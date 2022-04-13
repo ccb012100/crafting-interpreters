@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+namespace cslox;
+
 internal class Program
 {
     static bool hadError;
@@ -52,23 +54,6 @@ internal class Program
 
             Run(line);
         }
-    }
-
-    public class Scanner
-    {
-        public Scanner(string source)
-        {
-            Console.WriteLine($"source: {source}");
-        }
-
-        public List<Token> ScanTokens()
-        {
-            return new List<Token>();
-        }
-    }
-
-    public class Token
-    {
     }
 
 
