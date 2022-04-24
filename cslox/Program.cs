@@ -8,7 +8,7 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        Console.WriteLine("Hello World!");
+        // using exit code convention from UNIX “sysexits.h” header https://www.freebsd.org/cgi/man.cgi?query=sysexits
         switch (args.Length)
         {
             case 0:
@@ -27,6 +27,12 @@ internal class Program
     private static void RunFile(string path)
     {
         byte[] bytes = File.ReadAllBytes(path);
+
+        if (bytes is null)
+        {
+            Console.WriteLine($"File {path} is empty");
+            Environment.Exit(66);
+        }
 
         Run(bytes.ToString());
 

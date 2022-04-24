@@ -7,11 +7,11 @@ public class Token
     public object Literal;
     public int Line;
 
-    public Token(TokenType type, string lexeme, object literal, int line)
+    public Token(TokenType type, string lexeme, object? literal, int line)
     {
         Type = type;
         Lexeme = lexeme;
-        Literal = literal;
+        Literal = literal ?? throw new ArgumentNullException(nameof(literal));
         Line = line;
     }
 
