@@ -156,7 +156,7 @@ public class Scanner
             return;
         }
 
-        // The closing ".
+        // The closing " or '
         Advance();
 
         // Trim the surrounding quotes.
