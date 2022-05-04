@@ -2,19 +2,28 @@
 
 public class Lox
 {
-    static bool _hadError;
+    private static bool _hadError;
 
     public static void RunFile(string path)
     {
-        byte[] bytes = File.ReadAllBytes(path);
-
-        if (bytes is null)
+        if (path is "")
         {
             Console.WriteLine($"File {path} is empty");
             Environment.Exit(66);
         }
 
-        Run(bytes.ToString());
+        byte[] bytes = File.ReadAllBytes(path);
+
+        string? source = bytes.ToString();
+
+        if (source is not null)
+        {
+            Run(source);
+        }
+        else
+        {
+            Error(0, "Invalid source contents - null string.");
+        }
 
         if (_hadError) Environment.Exit(65);
     }
@@ -28,13 +37,11 @@ public class Lox
         {
             Console.WriteLine(token);
         }
-
-        throw new NotImplementedException();
     }
 
     public static void RunPrompt()
     {
-        while (Console.ReadLine() is string line)
+        while (Console.ReadLine() is { } line)
         {
             if (string.IsNullOrEmpty(line)) break;
 
