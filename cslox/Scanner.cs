@@ -80,6 +80,7 @@ public class Scanner
                 AddToken(Match('=') ? GREATER_EQUAL : GREATER);
                 break;
             default:
+                // TODO: handle consecutive unexpected chars as a single Error 
                 Lox.Error(_line, $"Unexpected character '{c}'.");
                 break;
         }
