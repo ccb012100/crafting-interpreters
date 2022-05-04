@@ -1,99 +1,98 @@
-﻿namespace cslox;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace cslox;
 
 using static TokenType;
 
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Scanner
 {
-    private int _current;
-    private int _line = 1;
-    private int _start;
+    private int current;
+    private int line = 1;
+    private int start;
 
-    private readonly List<Token> _tokens = new();
-    private readonly string _source;
+    private readonly List<Token> tokens = new();
+    private readonly string source;
 
     public Scanner(string source)
     {
-        _source = source;
+        this.source = source;
     }
 
     public List<Token> ScanTokens()
     {
-        while (!IsAtEnd())
+        while (!isAtEnd())
         {
-            _start = _current;
+            start = current;
             ScanToken();
         }
 
-        _tokens.Add(new Token(EOF, string.Empty, null, _line));
+        tokens.Add(new Token(EOF, string.Empty, null, line));
 
-        return _tokens;
+        return tokens;
     }
 
-    private bool IsAtEnd() => _current >= _source.Length;
+    private bool isAtEnd() => current >= source.Length;
 
     private void ScanToken()
     {
-        char c = Advance();
+        char c = advance();
 
         switch (c)
         {
             case '(':
-                AddToken(LEFT_PAREN);
+                addToken(LEFT_PAREN);
                 break;
             case ')':
-                AddToken(RIGHT_PAREN);
+                addToken(RIGHT_PAREN);
                 break;
             case '{':
-                AddToken(LEFT_BRACE);
+                addToken(LEFT_BRACE);
                 break;
             case '}':
-                AddToken(RIGHT_BRACE);
+                addToken(RIGHT_BRACE);
                 break;
             case ',':
-                AddToken(COMMA);
+                addToken(COMMA);
                 break;
             case '.':
-                AddToken(DOT);
+                addToken(DOT);
                 break;
             case '-':
-                AddToken(MINUS);
+                addToken(MINUS);
                 break;
             case '+':
-                AddToken(PLUS);
+                addToken(PLUS);
                 break;
             case ';':
-                AddToken(SEMICOLON);
+                addToken(SEMICOLON);
                 break;
             case '*':
-                AddToken(STAR);
+                addToken(STAR);
                 break;
             case '!':
-                AddToken(Match('=') ? BANG_EQUAL : BANG);
+                addToken(match('=') ? BANG_EQUAL : BANG);
                 break;
             case '=':
-                AddToken(Match('=') ? EQUAL_EQUAL : EQUAL);
+                addToken(match('=') ? EQUAL_EQUAL : EQUAL);
                 break;
             case '<':
-                AddToken(Match('=') ? LESS_EQUAL : LESS);
+                addToken(match('=') ? LESS_EQUAL : LESS);
                 break;
             case '>':
-                AddToken(Match('=') ? GREATER_EQUAL : GREATER);
+                addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-                if (Match('/'))
-                {
-                    /*
-                     * REVIEW: why don't we just increment _line? What do we gain from advancing through each character,
-                     * which seems less efficient? Is it because of the IsAtEnd method? Maybe we should just set
-                     * _current to the last character?
-                     */
-                    // A comment goes until the end of the line
-                    while (Peek() != '\n' && !IsAtEnd()) Advance();
-                }
-                else
-                {
-                    AddToken(SLASH);
-                }
+                /*
+                 * REVIEW: why don't we just increment _line? What do we gain from advancing through each character,
+                 * which seems less efficient? Is it because of the IsAtEnd method? Maybe we should just set
+                 * _current to the last character?
+                 */
+                // A comment goes until the end of the line
+                if (match('/'))
+                    while (Peek() != '\n' && !isAtEnd())
+                        advance();
+                else addToken(SLASH);
 
                 break;
             case ' ':
@@ -102,65 +101,66 @@ public class Scanner
                 // Ignore whitespace.
                 break;
             case '\n':
-                _line++;
+                line++;
                 break;
             case '"':
-                String('"');
+                @string('"');
                 break;
             case '\'':
-                String('\'');
+                @string('\'');
                 break;
             default:
+                if (isDigit(c)) number();
                 // TODO: handle consecutive unexpected chars as a single Error
-                Lox.Error(_line, $"Unexpected character '{c}'.");
+                else Lox.Error(line, $"Unexpected character '{c}'.");
                 break;
         }
     }
 
-    private char Advance() => _source[_current++];
+    private char advance() => source[current++];
 
-    private void AddToken(TokenType type) => AddToken(type, null);
+    private void addToken(TokenType type) => addToken(type, null);
 
-    private void AddToken(TokenType type, object? literal)
+    private void addToken(TokenType type, object? literal)
     {
-        string text = _source.Substring(_start, _current + 1); // [start, current]
+        string text = source.Substring(start, current + 1); // [start, current]
 
-        _tokens.Add(new Token(type, text, literal, _line));
+        tokens.Add(new Token(type, text, literal, line));
     }
 
-    private bool Match(char expected)
+    private bool match(char expected)
     {
         // NOTE: If there is a match, this method increments the value of <see cref="_current"/></remarks>
-        if (IsAtEnd()) return false;
+        if (isAtEnd()) return false;
 
-        if (_source[_current] != expected) return false;
+        if (source[current] != expected) return false;
 
-        _current++;
+        current++;
         return true;
     }
 
-    private char Peek() => IsAtEnd() ? '\0' : _source[_current];
+    private char Peek() => isAtEnd() ? '\0' : source[current];
 
-    private void String(char quoteType)
+    private void @string(char quoteType)
     {
         // Strings are multi-line and can be wrapped in single or double quotes
-        while (Peek() != quoteType && !IsAtEnd())
+        while (Peek() != quoteType && !isAtEnd())
         {
-            if (Peek() == '\n') _line++;
-            Advance();
+            if (Peek() == '\n') line++;
+            advance();
         }
 
-        if (IsAtEnd())
+        if (isAtEnd())
         {
-            Lox.Error(_line, "Unterminated string.");
+            Lox.Error(line, "Unterminated string.");
             return;
         }
 
         // The closing " or '
-        Advance();
+        advance();
 
         // Trim the surrounding quotes.
-        string value = _source.Substring(_start + 1, _current - 1);
-        AddToken(STRING, value);
+        string value = source.Substring(start + 1, current - 1);
+        addToken(STRING, value);
     }
 }
