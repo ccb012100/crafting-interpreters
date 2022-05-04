@@ -14,6 +14,26 @@ public class Scanner
     private readonly List<Token> tokens = new();
     private readonly string source;
 
+    private static readonly Dictionary<string, TokenType> keywords = new()
+    {
+        {"and", AND},
+        {"class", CLASS},
+        {"else", ELSE},
+        {"false", FALSE},
+        {"for", FOR},
+        {"fun", FUN},
+        {"if", IF},
+        {"nil", NIL},
+        {"or", OR},
+        {"print", PRINT},
+        {"return", RETURN},
+        {"super", SUPER},
+        {"this", THIS},
+        {"true", TRUE},
+        {"var", VAR},
+        {"while", WHILE}
+    };
+
     public Scanner(string source)
     {
         this.source = source;
@@ -113,6 +133,7 @@ public class Scanner
             default:
             {
                 if (isDigit(c)) number();
+                else if (isAlpha(c)) identifier();
                 // TODO: handle consecutive unexpected chars as a single Error
                 else Lox.Error(line, $"Unexpected character '{c}'.");
                 break;
@@ -171,6 +192,13 @@ public class Scanner
 
     private static bool isDigit(char c) => c is >= '0' and <= '9';
 
+    private static bool isAlpha(char c) =>
+        c is >= 'a' and <= 'z' ||
+        c is >= 'A' and <= 'Z' ||
+        c is '_';
+
+    private static bool isAlphaNumeric(char c) => isAlpha(c) || isDigit(c);
+
     private void number()
     {
         while (isDigit(peek())) advance();
@@ -185,5 +213,16 @@ public class Scanner
         }
 
         addToken(NUMBER, double.Parse(source.Substring(start, current)));
+    }
+
+    private void identifier()
+    {
+        while (isAlphaNumeric(peek())) advance();
+
+        string text = source.Substring(start, current);
+
+        if (!keywords.TryGetValue(text, out TokenType type)) type = IDENTIFIER;
+        
+        addToken(type);
     }
 }
