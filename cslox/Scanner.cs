@@ -79,6 +79,37 @@ public class Scanner
             case '>':
                 AddToken(Match('=') ? GREATER_EQUAL : GREATER);
                 break;
+            case '/':
+                if (Match('/'))
+                {
+                    /*
+                     * REVIEW: why don't we just increment _line? What do we gain from advancing through each character,
+                     * which seems less efficient? Is it because of the IsAtEnd method? Maybe we should just set
+                     * _current to the last character?
+                     */
+                    // A comment goes until the end of the line
+                    while (Peek() != '\n' && !IsAtEnd()) Advance();
+                }
+                else
+                {
+                    AddToken(SLASH);
+                }
+
+                break;
+            case ' ':
+            case '\r':
+            case '\t':
+                // Ignore whitespace.
+                break;
+            case '\n':
+                _line++;
+                break;
+            case '"':
+                String('"');
+                break;
+            case '\'':
+                String('\'');
+                break;
             default:
                 // TODO: handle consecutive unexpected chars as a single Error 
                 Lox.Error(_line, $"Unexpected character '{c}'.");
@@ -93,20 +124,43 @@ public class Scanner
     private void AddToken(TokenType type, object literal)
     {
         string text = _source.Substring(_start, _current + 1); // [start, current]
+
         _tokens.Add(new Token(type, text, literal, _line));
     }
 
-    /// <summary>
-    ///  See if _current matches <paramref name="expected"/>.
-    ///  Used to help us handle multiple-character tokens.
-    /// </summary>
     private bool Match(char expected)
     {
+        // NOTE: If there is a match, this method increments the value of <see cref="_current"/></remarks>
         if (IsAtEnd()) return false;
 
         if (_source[_current] != expected) return false;
 
         _current++;
         return true;
+    }
+
+    private char Peek() => IsAtEnd() ? '\0' : _source[_current];
+
+    private void String(char quoteType)
+    {
+        // Strings are multi-line and can be wrapped in single or double quotes
+        while (Peek() != quoteType && !IsAtEnd())
+        {
+            if (Peek() == '\n') _line++;
+            Advance();
+        }
+
+        if (IsAtEnd())
+        {
+            Lox.Error(_line, "Unterminated string.");
+            return;
+        }
+
+        // The closing ".
+        Advance();
+
+        // Trim the surrounding quotes.
+        string value = _source.Substring(_start + 1, _current - 1);
+        AddToken(STRING, value);
     }
 }
