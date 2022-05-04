@@ -83,6 +83,7 @@ public class Scanner
                 addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
+            {
                 /*
                  * REVIEW: why don't we just increment _line? What do we gain from advancing through each character,
                  * which seems less efficient? Is it because of the IsAtEnd method? Maybe we should just set
@@ -90,11 +91,11 @@ public class Scanner
                  */
                 // A comment goes until the end of the line
                 if (match('/'))
-                    while (Peek() != '\n' && !isAtEnd())
+                    while (peek() != '\n' && !isAtEnd())
                         advance();
                 else addToken(SLASH);
-
                 break;
+            }
             case ' ':
             case '\r':
             case '\t':
@@ -110,10 +111,12 @@ public class Scanner
                 @string('\'');
                 break;
             default:
+            {
                 if (isDigit(c)) number();
                 // TODO: handle consecutive unexpected chars as a single Error
                 else Lox.Error(line, $"Unexpected character '{c}'.");
                 break;
+            }
         }
     }
 
@@ -139,14 +142,16 @@ public class Scanner
         return true;
     }
 
-    private char Peek() => isAtEnd() ? '\0' : source[current];
+    private char peek() => isAtEnd() ? '\0' : source[current];
+
+    private char peekNext() => (current + 1 >= source.Length) ? '\0' : source[current + 1];
 
     private void @string(char quoteType)
     {
         // Strings are multi-line and can be wrapped in single or double quotes
-        while (Peek() != quoteType && !isAtEnd())
+        while (peek() != quoteType && !isAtEnd())
         {
-            if (Peek() == '\n') line++;
+            if (peek() == '\n') line++;
             advance();
         }
 
@@ -162,5 +167,23 @@ public class Scanner
         // Trim the surrounding quotes.
         string value = source.Substring(start + 1, current - 1);
         addToken(STRING, value);
+    }
+
+    private static bool isDigit(char c) => c is >= '0' and <= '9';
+
+    private void number()
+    {
+        while (isDigit(peek())) advance();
+
+        // Look for a fractional part.
+        if (peek() == '.' && isDigit(peekNext()))
+        {
+            // Consume the "."
+            advance();
+
+            while (isDigit(peek())) advance();
+        }
+
+        addToken(NUMBER, double.Parse(source.Substring(start, current)));
     }
 }
