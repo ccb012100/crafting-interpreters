@@ -111,7 +111,7 @@ public class Scanner
                 String('\'');
                 break;
             default:
-                // TODO: handle consecutive unexpected chars as a single Error 
+                // TODO: handle consecutive unexpected chars as a single Error
                 Lox.Error(_line, $"Unexpected character '{c}'.");
                 break;
         }
@@ -121,7 +121,7 @@ public class Scanner
 
     private void AddToken(TokenType type) => AddToken(type, null);
 
-    private void AddToken(TokenType type, object literal)
+    private void AddToken(TokenType type, object? literal)
     {
         string text = _source.Substring(_start, _current + 1); // [start, current]
 
