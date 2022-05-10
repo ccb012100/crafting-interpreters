@@ -1,6 +1,6 @@
 ﻿namespace cslox;
 
-public class Lox
+public static class Lox
 {
     private static bool _hadError;
 
@@ -8,22 +8,14 @@ public class Lox
     {
         if (path is "")
         {
-            Console.WriteLine($"File {path} is empty");
+            Console.WriteLine("File parameter is empty; aborting...");
             Environment.Exit(66);
         }
 
         byte[] bytes = File.ReadAllBytes(path);
-
-        string? source = bytes.ToString();
-
-        if (source is not null)
-        {
-            Run(source);
-        }
-        else
-        {
-            Error(0, "Invalid source contents - null string.");
-        }
+        // TODO: get encoding of path
+        string source = System.Text.Encoding.Default.GetString(bytes);
+        Run(source);
 
         if (_hadError) Environment.Exit(65);
     }
