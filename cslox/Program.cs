@@ -2,10 +2,12 @@
 
 namespace cslox;
 
+// ReSharper disable once ClassNeverInstantiated.Global
 internal class Program
 {
     private static void Main(string[] args)
     {
+        Console.WriteLine($"args: {args.ToJson()}");
         // using exit code convention from UNIX “sysexits.h” header https://www.freebsd.org/cgi/man.cgi?query=sysexits
         switch (args.Length)
         {

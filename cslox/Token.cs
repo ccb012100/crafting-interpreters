@@ -2,9 +2,9 @@ namespace cslox;
 
 public class Token
 {
-    public TokenType Type;
-    public string Lexeme;
-    public object? Literal;
+    public readonly TokenType Type;
+    public readonly string Lexeme;
+    public readonly object? Literal;
     public int Line;
 
     public Token(TokenType type, string lexeme, object? literal, int line)

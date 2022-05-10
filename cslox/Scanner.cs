@@ -125,15 +125,15 @@ public class Scanner
                 line++;
                 break;
             case '"':
-                @string('"');
+                addString('"');
                 break;
             case '\'':
-                @string('\'');
+                addString('\'');
                 break;
             default:
             {
-                if (isDigit(c)) number();
-                else if (isAlpha(c)) identifier();
+                if (c.isDigit()) addNumber();
+                else if (c.isAlpha()) addIdentifier();
                 // TODO: handle consecutive unexpected chars as a single Error
                 else Lox.Error(line, $"Unexpected character '{c}'.");
                 break;
@@ -167,7 +167,7 @@ public class Scanner
 
     private char peekNext() => (current + 1 >= source.Length) ? '\0' : source[current + 1];
 
-    private void @string(char quoteType)
+    private void addString(char quoteType)
     {
         // Strings are multi-line and can be wrapped in single or double quotes
         while (peek() != quoteType && !isAtEnd())
@@ -185,39 +185,30 @@ public class Scanner
         // The closing " or '
         advance();
 
-        // Trim the surrounding quotes.
-        string value = source.Substring(start + 1, current + start);
+        // Trim the surrounding quotes
+        string value = source.Substring(start + 1, current - start);
         addToken(STRING, value);
     }
 
-    private static bool isDigit(char c) => c is >= '0' and <= '9';
-
-    private static bool isAlpha(char c) =>
-        c is >= 'a' and <= 'z' ||
-        c is >= 'A' and <= 'Z' ||
-        c is '_';
-
-    private static bool isAlphaNumeric(char c) => isAlpha(c) || isDigit(c);
-
-    private void number()
+    private void addNumber()
     {
-        while (isDigit(peek())) advance();
+        while (peek().isDigit()) advance();
 
         // Look for a fractional part.
-        if (peek() == '.' && isDigit(peekNext()))
+        if (peek() == '.' && peekNext().isDigit())
         {
             // Consume the "."
             advance();
 
-            while (isDigit(peek())) advance();
+            while (peek().isDigit()) advance();
         }
 
         addToken(NUMBER, double.Parse(source.Substring(start, current - start)));
     }
 
-    private void identifier()
+    private void addIdentifier()
     {
-        while (isAlphaNumeric(peek())) advance();
+        while (peek().isAlphaNumeric()) advance();
 
         string text = source.Substring(start, current - start);
 
