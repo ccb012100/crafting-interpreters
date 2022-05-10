@@ -10,6 +10,7 @@ internal class Program
         switch (args.Length)
         {
             case 0:
+                Console.WriteLine("Enter code:");
                 Lox.RunPrompt();
                 return;
             case 1:

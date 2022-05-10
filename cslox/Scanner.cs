@@ -147,7 +147,7 @@ public class Scanner
 
     private void addToken(TokenType type, object? literal)
     {
-        string text = source.Substring(start, current + 1); // [start, current]
+        string text = source.Substring(start, current - start); // [start, current]
 
         tokens.Add(new Token(type, text, literal, line));
     }
@@ -186,7 +186,7 @@ public class Scanner
         advance();
 
         // Trim the surrounding quotes.
-        string value = source.Substring(start + 1, current - 1);
+        string value = source.Substring(start + 1, current + start);
         addToken(STRING, value);
     }
 
@@ -212,17 +212,17 @@ public class Scanner
             while (isDigit(peek())) advance();
         }
 
-        addToken(NUMBER, double.Parse(source.Substring(start, current)));
+        addToken(NUMBER, double.Parse(source.Substring(start, current - start)));
     }
 
     private void identifier()
     {
         while (isAlphaNumeric(peek())) advance();
 
-        string text = source.Substring(start, current);
+        string text = source.Substring(start, current - start);
 
         if (!keywords.TryGetValue(text, out TokenType type)) type = IDENTIFIER;
-        
+
         addToken(type);
     }
 }
