@@ -1,4 +1,9 @@
-var x = 1010.12324;
-
-var y = var z;
-
+var x = 1010.
+|;
+/* block comments do not /* support */ nesting */
+z=y;x+/2;
+var y = z;
+~
+;2k2
+/* unterminated block comment
+var abc = 12832;

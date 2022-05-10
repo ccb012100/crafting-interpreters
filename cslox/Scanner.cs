@@ -109,13 +109,43 @@ public class Scanner
                  * which seems less efficient? Is it because of the IsAtEnd method? Maybe we should just set
                  * _current to the last character?
                  */
-                // A comment goes until the end of the line
                 if (match('/'))
-                    while (peek() != '\n' && !isAtEnd())
+                {
+                    // comment goes until the end of the line
+                    while (!isAtEnd() && peek() != '\n')
                         advance();
-                else addToken(SLASH);
+                }
+                else if (match('*'))
+                {
+                    /*
+                     * C-style block comments can be multi-line and _do not_ support nested block comments
+                     */
+                    string nextTwo = $"{peek()}{peekNext()}";
+                    while (!isAtEnd() && nextTwo != "*/")
+                    {
+                        advance();
+                        nextTwo = $"{peek()}{peekNext()}";
+                    }
+
+                    if (isAtEnd() && nextTwo != "*/")
+                    {
+                        Lox.Error(line, "Block comment has no closing tag; reached EOF.");
+                    }
+                    else
+                    {
+                        // advance 2x to move past the "*/" that ends the comment
+                        advance();
+                        advance();
+                    }
+                }
+                else
+                {
+                    addToken(SLASH);
+                }
+
                 break;
             }
+
             case ' ':
             case '\r':
             case '\t':
