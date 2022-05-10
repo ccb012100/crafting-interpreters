@@ -1,0 +1,10 @@
+var x = 10;
+
+// this is a comment
+
+var y = "abd";
+
+var z = 'bcd';
+
+var a = y + z;
+
