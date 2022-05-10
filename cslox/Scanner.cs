@@ -186,7 +186,7 @@ public class Scanner
         advance();
 
         // Trim the surrounding quotes
-        string value = source.Substring(start + 1, current - start);
+        string value = source.Substring(start + 1, current - start - 2);
         addToken(STRING, value);
     }
 
