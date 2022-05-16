@@ -105,9 +105,9 @@ public class Scanner
             case '/':
             {
                 /*
-                 * REVIEW: why don't we just increment _line? What do we gain from advancing through each character,
-                 * which seems less efficient? Is it because of the IsAtEnd method? Maybe we should just set
-                 * _current to the last character?
+                 * REVIEW: why don't we just increment _line? What do we gain from advancing
+                 * through each character, which seems less efficient? Is it because of the
+                 * IsAtEnd method? Maybe we should just set _current to the last character?
                  */
                 if (match('/'))
                 {
