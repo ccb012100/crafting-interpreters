@@ -7,7 +7,8 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        Console.WriteLine($"args: {args.ToJson()}");
+        Console.WriteLine($"args: {args.ToJson(false)}\n");
+
         // using exit code convention from UNIX “sysexits.h” header https://www.freebsd.org/cgi/man.cgi?query=sysexits
         switch (args.Length)
         {
