@@ -11,6 +11,7 @@ public class Scanner
     private int line = 1;
     private int start;
 
+    private readonly List<char> scanningErrors = new();
     private readonly List<Token> tokens = new();
     private readonly string source;
 
@@ -44,7 +45,27 @@ public class Scanner
         while (!isAtEnd())
         {
             start = current;
-            ScanToken();
+
+            if (ScanToken()) continue;
+
+            // HACK: If no errors occurred, print out the previous errors (if any). This is an
+            // ugly way of being able to track a string of bad characters, but works for now.
+            switch (scanningErrors.Count)
+            {
+                // previous char wasn't an error
+                case 0:
+                    continue;
+                // previous char was an error
+                case 1:
+                    Lox.Error(line, $"Unexpected character '{scanningErrors[0]}'.");
+                    break;
+                // string of characters up to the previous char were errors
+                default:
+                    Lox.Error(line, $"Unexpected characters \"{string.Join(string.Empty, scanningErrors)}\".");
+                    break;
+            }
+
+            scanningErrors.Clear();
         }
 
         tokens.Add(new Token(EOF, string.Empty, null, line));
@@ -54,8 +75,10 @@ public class Scanner
 
     private bool isAtEnd() => current >= source.Length;
 
-    private void ScanToken()
+    private bool ScanToken()
     {
+        bool error = false;
+
         char c = advance();
 
         switch (c)
@@ -162,13 +185,26 @@ public class Scanner
                 break;
             default:
             {
-                if (c.isDigit()) addNumber();
-                else if (c.isAlpha()) addIdentifier();
-                // TODO: handle consecutive unexpected chars as a single Error
-                else Lox.Error(line, $"Unexpected character '{c}'.");
+                if (c.isDigit())
+                {
+                    addNumber();
+                }
+                else if (c.isAlpha())
+                {
+                    addIdentifier();
+                }
+                // Bad character encountered
+                else
+                {
+                    error = true;
+                    scanningErrors.Add(c);
+                }
+
                 break;
             }
         }
+
+        return error;
     }
 
     private char advance() => source[current++];
