@@ -184,7 +184,7 @@ public class Scanner
 
     private bool match(char expected)
     {
-        // NOTE: If there is a match, this method increments the value of <see cref="_current"/></remarks>
+        // NOTE: If there is a match, this method increments the value of _current
         if (isAtEnd()) return false;
 
         if (source[current] != expected) return false;
