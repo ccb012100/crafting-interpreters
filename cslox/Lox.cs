@@ -25,10 +25,18 @@ public static class Lox
         var scanner = new Scanner(source);
         List<Token> tokens = scanner.ScanTokens();
 
+        Console.WriteLine(
+            "\n**************************************************\n"
+            + "                 BEGIN Source\n"
+            + "**************************************************");
         foreach (Token token in tokens)
         {
             Console.WriteLine(token);
         }
+        Console.WriteLine(
+            "\n**************************************************\n"
+            + "                 END   Source\n"
+            + "**************************************************");
     }
 
     public static void RunPrompt()
