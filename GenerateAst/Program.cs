@@ -1,5 +1,7 @@
 ﻿// ReSharper disable once ClassNeverInstantiated.Global
 
+using tool;
+
 internal class Program
 {
     private static void Main(string[] args)
