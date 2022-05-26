@@ -4,7 +4,7 @@ namespace cslox;
 
 internal static class Extensions
 {
-    public static string ToJson(this object obj, bool prettyPrint = true) =>
+    public static string toJson(this object obj, bool prettyPrint = true) =>
         JsonSerializer.Serialize(obj, new JsonSerializerOptions {WriteIndented = prettyPrint});
 
     public static bool isDigit(this char c) => c is >= '0' and <= '9';

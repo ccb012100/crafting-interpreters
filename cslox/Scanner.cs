@@ -1,10 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace cslox;
+﻿namespace cslox;
 
 using static TokenType;
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Scanner
 {
     private int current;
@@ -40,13 +37,13 @@ public class Scanner
         this.source = source;
     }
 
-    public List<Token> ScanTokens()
+    public List<Token> scanTokens()
     {
         while (!isAtEnd())
         {
             start = current;
 
-            if (ScanToken()) continue;
+            if (scanToken()) continue;
 
             // HACK: If no errors occurred, print out the previous errors (if any). This is an
             // ugly way of being able to track a string of bad characters, but works for now.
@@ -57,11 +54,11 @@ public class Scanner
                     continue;
                 // previous char was an error
                 case 1:
-                    Lox.Error(line, $"Unexpected character '{scanningErrors[0]}'.");
+                    Lox.error(line, $"Unexpected character '{scanningErrors[0]}'.");
                     break;
                 // string of characters up to the previous char were errors
                 default:
-                    Lox.Error(line, $"Unexpected characters \"{string.Join(string.Empty, scanningErrors)}\".");
+                    Lox.error(line, $"Unexpected characters \"{string.Join(string.Empty, scanningErrors)}\".");
                     break;
             }
 
@@ -75,7 +72,7 @@ public class Scanner
 
     private bool isAtEnd() => current >= source.Length;
 
-    private bool ScanToken()
+    private bool scanToken()
     {
         bool error = false;
 
@@ -152,7 +149,7 @@ public class Scanner
 
                     if (isAtEnd() && nextTwo != "*/")
                     {
-                        Lox.Error(line, "Block comment has no closing tag; reached EOF.");
+                        Lox.error(line, "Block comment has no closing tag; reached EOF.");
                     }
                     else
                     {
@@ -244,7 +241,7 @@ public class Scanner
 
         if (isAtEnd())
         {
-            Lox.Error(line, "Unterminated string.");
+            Lox.error(line, "Unterminated string.");
             return;
         }
 

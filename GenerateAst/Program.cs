@@ -1,9 +1,10 @@
 ﻿// ReSharper disable once ClassNeverInstantiated.Global
 
-using tool;
+namespace tool;
 
 internal class Program
 {
+    // ReSharper disable once InconsistentNaming
     private static void Main(string[] args)
     {
         if (args.Length is not 1)

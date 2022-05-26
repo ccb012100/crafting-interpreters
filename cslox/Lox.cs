@@ -4,7 +4,7 @@ public static class Lox
 {
     private static bool _hadError;
 
-    public static void RunFile(string path)
+    public static void runFile(string path)
     {
         if (path is "")
         {
@@ -15,15 +15,15 @@ public static class Lox
         byte[] bytes = File.ReadAllBytes(path);
         // TODO: get encoding of path
         string source = System.Text.Encoding.Default.GetString(bytes);
-        Run(source);
+        run(source);
 
         if (_hadError) Environment.Exit(65);
     }
 
-    private static void Run(string source)
+    private static void run(string source)
     {
         var scanner = new Scanner(source);
-        List<Token> tokens = scanner.ScanTokens();
+        List<Token> tokens = scanner.scanTokens();
 
         Console.WriteLine(
             "\n**************************************************\n"
@@ -39,22 +39,22 @@ public static class Lox
             + "**************************************************");
     }
 
-    public static void RunPrompt()
+    public static void runPrompt()
     {
         while (Console.ReadLine() is { } line)
         {
             if (string.IsNullOrEmpty(line)) break;
 
-            Run(line);
+            run(line);
         }
     }
 
-    public static void Error(int line, string message)
+    public static void error(int line, string message)
     {
-        Report(line, "", message);
+        report(line, "", message);
     }
 
-    private static void Report(int line, string where, string message)
+    private static void report(int line, string where, string message)
     {
         TextWriter errorWriter = Console.Error;
         errorWriter.WriteLine($"[line {line}] Error{where}: {message}");

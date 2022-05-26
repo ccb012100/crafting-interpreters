@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace cslox;
 
-[SuppressMessage("ReSharper", "InconsistentNaming")]
 internal abstract class Expr
 {
     internal interface Visitor<out R>

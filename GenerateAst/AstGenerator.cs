@@ -1,8 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿namespace tool;
 
-namespace tool;
-
-[SuppressMessage("ReSharper", "InconsistentNaming")]
 internal static class AstGenerator
 {
     public static void defineAst(string outputDir, string baseName, List<string> types)
@@ -12,13 +9,11 @@ internal static class AstGenerator
 
         using StreamWriter writer = File.CreateText(path);
 
-        writer.WriteLine("using System.Diagnostics.CodeAnalysis;");
         blankLine();
 
         writer.WriteLine("namespace cslox;");
         blankLine();
 
-        writer.WriteLine("[SuppressMessage(\"ReSharper\", \"InconsistentNaming\")]");
         writer.WriteLine($"internal abstract class {baseName}");
         writer.WriteLine("{");
 

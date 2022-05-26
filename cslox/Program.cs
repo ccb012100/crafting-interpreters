@@ -5,19 +5,20 @@ namespace cslox;
 // ReSharper disable once ClassNeverInstantiated.Global
 internal class Program
 {
+    // ReSharper disable once InconsistentNaming
     private static void Main(string[] args)
     {
-        Console.WriteLine($"args: {args.ToJson(false)}\n");
+        Console.WriteLine($"args: {args.toJson(false)}\n");
 
         // using exit code convention from UNIX “sysexits.h” header https://www.freebsd.org/cgi/man.cgi?query=sysexits
         switch (args.Length)
         {
             case 0:
                 Console.WriteLine("Enter code:");
-                Lox.RunPrompt();
+                Lox.runPrompt();
                 return;
             case 1:
-                Lox.RunFile(args[0]);
+                Lox.runFile(args[0]);
                 return;
             default:
                 Console.WriteLine("Usage: dotnet run [script]");
