@@ -123,48 +123,48 @@ public class Scanner
                 addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
-            {
-                /*
-                 * REVIEW: why don't we just increment _line? What do we gain from advancing
-                 * through each character, which seems less efficient? Is it because of the
-                 * IsAtEnd method? Maybe we should just set _current to the last character?
-                 */
-                if (match('/'))
-                {
-                    // comment goes until the end of the line
-                    while (!isAtEnd() && peek() != '\n')
-                        advance();
-                }
-                else if (match('*'))
                 {
                     /*
-                     * C-style block comments can be multi-line and _do not_ support nested block comments
+                     * REVIEW: why don't we just increment _line? What do we gain from advancing
+                     * through each character, which seems less efficient? Is it because of the
+                     * IsAtEnd method? Maybe we should just set _current to the last character?
                      */
-                    string nextTwo = $"{peek()}{peekNext()}";
-                    while (!isAtEnd() && nextTwo != "*/")
+                    if (match('/'))
                     {
-                        advance();
-                        nextTwo = $"{peek()}{peekNext()}";
+                        // comment goes until the end of the line
+                        while (!isAtEnd() && peek() != '\n')
+                            advance();
                     }
-
-                    if (isAtEnd() && nextTwo != "*/")
+                    else if (match('*'))
                     {
-                        Lox.error(line, "Block comment has no closing tag; reached EOF.");
+                        /*
+                         * C-style block comments can be multi-line and _do not_ support nested block comments
+                         */
+                        string nextTwo = $"{peek()}{peekNext()}";
+                        while (!isAtEnd() && nextTwo != "*/")
+                        {
+                            advance();
+                            nextTwo = $"{peek()}{peekNext()}";
+                        }
+
+                        if (isAtEnd() && nextTwo != "*/")
+                        {
+                            Lox.error(line, "Block comment has no closing tag; reached EOF.");
+                        }
+                        else
+                        {
+                            // advance 2x to move past the "*/" that ends the comment
+                            advance();
+                            advance();
+                        }
                     }
                     else
                     {
-                        // advance 2x to move past the "*/" that ends the comment
-                        advance();
-                        advance();
+                        addToken(SLASH);
                     }
-                }
-                else
-                {
-                    addToken(SLASH);
-                }
 
-                break;
-            }
+                    break;
+                }
 
             case ' ':
             case '\r':
@@ -181,24 +181,24 @@ public class Scanner
                 addString('\'');
                 break;
             default:
-            {
-                if (c.isDigit())
                 {
-                    addNumber();
-                }
-                else if (c.isAlpha())
-                {
-                    addIdentifier();
-                }
-                // Bad character encountered
-                else
-                {
-                    error = true;
-                    scanningErrors.Add(c);
-                }
+                    if (c.isDigit())
+                    {
+                        addNumber();
+                    }
+                    else if (c.isAlpha())
+                    {
+                        addIdentifier();
+                    }
+                    // Bad character encountered
+                    else
+                    {
+                        error = true;
+                        scanningErrors.Add(c);
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
 
         return error;

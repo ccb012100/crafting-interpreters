@@ -5,7 +5,7 @@ namespace cslox;
 internal static class Extensions
 {
     public static string toJson(this object obj, bool prettyPrint = true) =>
-        JsonSerializer.Serialize(obj, new JsonSerializerOptions {WriteIndented = prettyPrint});
+        JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = prettyPrint });
 
     public static bool isDigit(this char c) => c is >= '0' and <= '9';
 
@@ -14,5 +14,5 @@ internal static class Extensions
         c is >= 'A' and <= 'Z' ||
         c is '_';
 
-     public static bool isAlphaNumeric(this char c) => c.isAlpha() || c.isDigit();
+    public static bool isAlphaNumeric(this char c) => c.isAlpha() || c.isDigit();
 }

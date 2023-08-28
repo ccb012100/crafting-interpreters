@@ -12,7 +12,7 @@ internal abstract class Expr
 
     public class Binary : Expr
     {
-        public Binary (Expr left, Token oper, Expr right)
+        public Binary(Expr left, Token oper, Expr right)
         {
             this.left = left;
             this.oper = oper;
@@ -28,7 +28,7 @@ internal abstract class Expr
 
     public class Grouping : Expr
     {
-        public Grouping (Expr expression)
+        public Grouping(Expr expression)
         {
             this.expression = expression;
         }
@@ -40,7 +40,7 @@ internal abstract class Expr
 
     public class Literal : Expr
     {
-        public Literal (object value)
+        public Literal(object value)
         {
             this.value = value;
         }
@@ -52,7 +52,7 @@ internal abstract class Expr
 
     public class Unary : Expr
     {
-        public Unary (Token oper, Expr right)
+        public Unary(Token oper, Expr right)
         {
             this.oper = oper;
             this.right = right;

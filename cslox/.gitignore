@@ -1,8 +1,0 @@
-bin
-obj
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
