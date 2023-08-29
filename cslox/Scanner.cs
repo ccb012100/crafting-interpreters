@@ -1,18 +1,18 @@
-﻿namespace cslox;
+﻿
+using static cslox.TokenType;
 
-using static TokenType;
-
+namespace cslox;
 public class Scanner
 {
-    private int current;
-    private int line = 1;
-    private int start;
+    private int _current;
+    private int _line = 1;
+    private int _start;
 
-    private readonly List<char> scanningErrors = new();
-    private readonly List<Token> tokens = new();
-    private readonly string source;
+    private readonly List<char> _scanningErrors = new();
+    private readonly List<Token> _tokens = new();
+    private readonly string _source;
 
-    private static readonly Dictionary<string, TokenType> keywords = new()
+    private static readonly Dictionary<string, TokenType> s_keywords = new()
     {
         {"and", AND},
         {"class", CLASS},
@@ -34,43 +34,43 @@ public class Scanner
 
     public Scanner(string source)
     {
-        this.source = source;
+        _source = source;
     }
 
     public List<Token> scanTokens()
     {
         while (!isAtEnd())
         {
-            start = current;
+            _start = _current;
 
             if (scanToken()) continue;
 
             // HACK: If no errors occurred, print out the previous errors (if any). This is an
             // ugly way of being able to track a string of bad characters, but works for now.
-            switch (scanningErrors.Count)
+            switch (_scanningErrors.Count)
             {
                 // previous char wasn't an error
                 case 0:
                     continue;
                 // previous char was an error
                 case 1:
-                    Lox.error(line, $"Unexpected character '{scanningErrors[0]}'.");
+                    Lox.error(_line, $"Unexpected character '{_scanningErrors[0]}'.");
                     break;
                 // string of characters up to the previous char were errors
                 default:
-                    Lox.error(line, $"Unexpected characters \"{string.Join(string.Empty, scanningErrors)}\".");
+                    Lox.error(_line, $"Unexpected characters \"{string.Join(string.Empty, _scanningErrors)}\".");
                     break;
             }
 
-            scanningErrors.Clear();
+            _scanningErrors.Clear();
         }
 
-        tokens.Add(new Token(EOF, string.Empty, null, line));
+        _tokens.Add(new Token(EOF, string.Empty, null, _line));
 
-        return tokens;
+        return _tokens;
     }
 
-    private bool isAtEnd() => current >= source.Length;
+    private bool isAtEnd() => _current >= _source.Length;
 
     private bool scanToken()
     {
@@ -149,7 +149,7 @@ public class Scanner
 
                         if (isAtEnd() && nextTwo != "*/")
                         {
-                            Lox.error(line, "Block comment has no closing tag; reached EOF.");
+                            Lox.error(_line, "Block comment has no closing tag; reached EOF.");
                         }
                         else
                         {
@@ -172,7 +172,7 @@ public class Scanner
                 // Ignore whitespace.
                 break;
             case '\n':
-                line++;
+                _line++;
                 break;
             case '"':
                 addString('"');
@@ -194,7 +194,7 @@ public class Scanner
                     else
                     {
                         error = true;
-                        scanningErrors.Add(c);
+                        _scanningErrors.Add(c);
                     }
 
                     break;
@@ -204,15 +204,15 @@ public class Scanner
         return error;
     }
 
-    private char advance() => source[current++];
+    private char advance() => _source[_current++];
 
     private void addToken(TokenType type) => addToken(type, null);
 
     private void addToken(TokenType type, object? literal)
     {
-        string text = source.Substring(start, current - start); // [start, current]
+        string text = _source.Substring(_start, _current - _start); // [start, current]
 
-        tokens.Add(new Token(type, text, literal, line));
+        _tokens.Add(new Token(type, text, literal, _line));
     }
 
     private bool match(char expected)
@@ -220,28 +220,28 @@ public class Scanner
         // NOTE: If there is a match, this method increments the value of _current
         if (isAtEnd()) return false;
 
-        if (source[current] != expected) return false;
+        if (_source[_current] != expected) return false;
 
-        current++;
+        _current++;
         return true;
     }
 
-    private char peek() => isAtEnd() ? '\0' : source[current];
+    private char peek() => isAtEnd() ? '\0' : _source[_current];
 
-    private char peekNext() => (current + 1 >= source.Length) ? '\0' : source[current + 1];
+    private char peekNext() => (_current + 1 >= _source.Length) ? '\0' : _source[_current + 1];
 
     private void addString(char quoteType)
     {
         // Strings are multi-line and can be wrapped in single or double quotes
         while (peek() != quoteType && !isAtEnd())
         {
-            if (peek() == '\n') line++;
+            if (peek() == '\n') _line++;
             advance();
         }
 
         if (isAtEnd())
         {
-            Lox.error(line, "Unterminated string.");
+            Lox.error(_line, "Unterminated string.");
             return;
         }
 
@@ -249,7 +249,7 @@ public class Scanner
         advance();
 
         // Trim the surrounding quotes
-        string value = source.Substring(start + 1, current - start - 2);
+        string value = _source.Substring(_start + 1, _current - _start - 2);
         addToken(STRING, value);
     }
 
@@ -266,16 +266,16 @@ public class Scanner
             while (peek().isDigit()) advance();
         }
 
-        addToken(NUMBER, double.Parse(source.Substring(start, current - start)));
+        addToken(NUMBER, double.Parse(_source.Substring(_start, _current - _start)));
     }
 
     private void addIdentifier()
     {
         while (peek().isAlphaNumeric()) advance();
 
-        string text = source.Substring(start, current - start);
+        string text = _source.Substring(_start, _current - _start);
 
-        if (!keywords.TryGetValue(text, out TokenType type)) type = IDENTIFIER;
+        if (!s_keywords.TryGetValue(text, out TokenType type)) type = IDENTIFIER;
 
         addToken(type);
     }

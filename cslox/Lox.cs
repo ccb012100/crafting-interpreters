@@ -2,7 +2,7 @@
 
 public static class Lox
 {
-    private static bool _hadError;
+    private static bool s_hadError;
 
     public static void runFile(string path)
     {
@@ -17,7 +17,7 @@ public static class Lox
         string source = System.Text.Encoding.Default.GetString(bytes);
         run(source);
 
-        if (_hadError) Environment.Exit(65);
+        if (s_hadError) Environment.Exit(65);
     }
 
     private static void run(string source)
@@ -58,6 +58,6 @@ public static class Lox
     {
         TextWriter errorWriter = Console.Error;
         errorWriter.WriteLine($"[line {line}] Error{where}: {message}");
-        _hadError = true;
+        s_hadError = true;
     }
 }
