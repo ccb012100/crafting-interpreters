@@ -12,17 +12,17 @@ internal abstract class Expr
 
     public class Binary : Expr
     {
-        public Binary(Expr left, Token oper, Expr right)
+        public Binary(Expr left, Token @operator, Expr right)
         {
             this.left = left;
-            this.oper = oper;
+            this.@operator = @operator;
             this.right = right;
         }
 
         public override R accept<R>(Visitor<R> visitor) => visitor.visitBinaryExpr(this);
 
         public Expr left;
-        public Token oper;
+        public Token @operator;
         public Expr right;
     }
 
@@ -40,14 +40,14 @@ internal abstract class Expr
 
     public class Literal : Expr
     {
-        public Literal(object value)
+        public Literal(object? value)
         {
             this.value = value;
         }
 
         public override R accept<R>(Visitor<R> visitor) => visitor.visitLiteralExpr(this);
 
-        public object value;
+        public object? value; // Literal can be null
     }
 
     public class Unary : Expr
