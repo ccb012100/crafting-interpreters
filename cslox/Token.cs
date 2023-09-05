@@ -1,6 +1,6 @@
 namespace cslox;
 
-public class Token
+internal class Token
 {
     public readonly TokenType Type;
     public readonly string Lexeme;

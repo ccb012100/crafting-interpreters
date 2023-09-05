@@ -1,8 +1,8 @@
-﻿
-using static cslox.TokenType;
+﻿using static cslox.TokenType;
 
 namespace cslox;
-public class Scanner
+
+internal class Scanner
 {
     private int _current;
     private int _line = 1;
