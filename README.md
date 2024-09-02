@@ -1,5 +1,7 @@
 # crafting-interpreters
 
+[![.NET](https://github.com/ccb012100/crafting-interpreters/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ccb012100/crafting-interpreters/actions/workflows/dotnet.yml)
+
 Working through [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom.
 
 Instead of `jlox` (`lox` in Java), I'm translating the code to [`cslox`](/cslox/) (`lox` in **C#**).
