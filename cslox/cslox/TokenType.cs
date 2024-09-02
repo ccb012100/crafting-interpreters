@@ -1,3 +1,5 @@
+// ReSharper disable InconsistentNaming
+
 namespace cslox;
 
 internal enum TokenType

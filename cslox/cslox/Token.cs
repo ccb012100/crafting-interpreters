@@ -2,12 +2,12 @@ namespace cslox;
 
 internal class Token
 {
-    public readonly TokenType Type;
     public readonly string Lexeme;
     public readonly object? Literal;
+    public readonly TokenType Type;
     public int Line;
 
-    public Token(TokenType type, string lexeme, object? literal, int line)
+    public Token( TokenType type, string lexeme, object? literal, int line )
     {
         Type = type;
         Lexeme = lexeme;
@@ -15,5 +15,8 @@ internal class Token
         Line = line;
     }
 
-    public override string ToString() => $"{Type} {Lexeme} {Literal}";
+    public override string ToString()
+    {
+        return $"{Type} {Lexeme} {Literal}";
+    }
 }
