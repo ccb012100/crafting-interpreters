@@ -1,6 +1,7 @@
 # crafting-interpreters
 
 [![.NET](https://github.com/ccb012100/crafting-interpreters/actions/workflows/dotnet.yml/badge.svg)](https://github.com/ccb012100/crafting-interpreters/actions/workflows/dotnet.yml)
+[![CodeQL](https://github.com/ccb012100/crafting-interpreters/actions/workflows/codeql.yml/badge.svg)](https://github.com/ccb012100/crafting-interpreters/actions/workflows/codeql.yml)
 
 Working through [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom.
 
