@@ -29,9 +29,9 @@ public static class Lox
 
     private static void Run( string source )
     {
-        Scanner scanner = new(source);
+        Scanner scanner = new( source );
         List<Token> tokens = scanner.scanTokens();
-        Parser parser = new(tokens);
+        Parser parser = new( tokens );
         Expr expression = parser.Parse();
 
         // Stop if there was a syntax error.
