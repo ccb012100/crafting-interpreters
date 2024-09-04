@@ -2,9 +2,11 @@
 
 namespace cslox;
 
+using static TokenType;
+
 public static class Lox
 {
-    private static bool s_hadError;
+    private static bool s_sHadError;
 
     public static void runFile( string path )
     {
@@ -19,7 +21,7 @@ public static class Lox
         string source = Encoding.Default.GetString( bytes );
         run( source );
 
-        if (s_hadError)
+        if (s_sHadError)
         {
             Environment.Exit( 65 );
         }
@@ -29,23 +31,16 @@ public static class Lox
     {
         Scanner scanner = new(source);
         List<Token> tokens = scanner.scanTokens();
+        Parser parser = new(tokens);
+        Expr expression = parser.parse();
 
-        Console.WriteLine(
-            "\n**************************************************\n"
-            + "                 BEGIN Source\n"
-            + "**************************************************"
-        );
-
-        foreach (Token token in tokens)
+        // Stop if there was a syntax error.
+        if (s_sHadError)
         {
-            Console.WriteLine( token );
+            return;
         }
 
-        Console.WriteLine(
-            "\n**************************************************\n"
-            + "                 END   Source\n"
-            + "**************************************************"
-        );
+        Console.WriteLine( new AstPrinter().print( expression ) );
     }
 
     public static void runPrompt()
@@ -70,7 +65,7 @@ public static class Lox
     {
         report(
             token.Line,
-            token.Type == TokenType.EOF ? " at end" : " at '" + token.Lexeme + "'",
+            token.Type == EOF ? " at end" : " at '" + token.Lexeme + "'",
             message
         );
     }
@@ -79,6 +74,52 @@ public static class Lox
     {
         TextWriter errorWriter = Console.Error;
         errorWriter.WriteLine( $"[line {line}] Error{where}: {message}" );
-        s_hadError = true;
+        s_sHadError = true;
+    }
+
+    private class AstPrinter : Expr.IVisitor<string>
+    {
+        public string visitBinaryExpr( Expr.Binary expr )
+        {
+            return parenthesize(
+                expr.Operator.Lexeme,
+                expr.Left,
+                expr.Right
+            );
+        }
+
+        public string visitGroupingExpr( Expr.Grouping expr )
+        {
+            return parenthesize( "group", expr.Expression );
+        }
+
+        public string visitLiteralExpr( Expr.Literal expr )
+        {
+            return expr.Value == null ? "nil" : expr.Value.ToString();
+        }
+
+        public string visitUnaryExpr( Expr.Unary expr )
+        {
+            return parenthesize( expr.Oper.Lexeme, expr.Right );
+        }
+
+        public string print( Expr expr )
+        {
+            return expr.accept( this );
+        }
+
+        private string parenthesize( string name, params Expr[] exprs )
+        {
+            StringBuilder builder = new StringBuilder()
+                .Append( '(' )
+                .Append( name );
+
+            foreach (Expr expr in exprs)
+            {
+                builder.Append( ' ' ).Append( expr.accept( this ) );
+            }
+
+            return builder.Append( ')' ).ToString();
+        }
     }
 }

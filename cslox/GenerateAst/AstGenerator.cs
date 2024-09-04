@@ -9,15 +9,15 @@ internal static class AstGenerator
 
         using StreamWriter writer = File.CreateText( path );
 
-        blankLine();
+        BlankLine();
 
         writer.WriteLine( "namespace cslox;" );
-        blankLine();
+        BlankLine();
 
         writer.WriteLine( $"internal abstract class {baseName}" );
         writer.WriteLine( "{" );
 
-        defineVisitor();
+        DefineVisitor();
 
         // The AST classes
         foreach (string type in types)
@@ -27,11 +27,11 @@ internal static class AstGenerator
             string className = typeSplit[0].Trim();
             string fields = typeSplit[1].Trim();
 
-            blankLine();
-            defineType( className, fields );
+            BlankLine();
+            DefineType( className, fields );
         }
 
-        blankLine();
+        BlankLine();
 
         // The base accept() method
         writer.WriteLine( $"{tab}public abstract R accept<R>(Visitor<R> visitor);" );
@@ -39,13 +39,14 @@ internal static class AstGenerator
         writer.WriteLine( "}" );
         writer.Close();
 
-        void blankLine()
+        return;
+
+        void BlankLine()
         {
             writer.WriteLine();
         }
 
-        // ReSharper disable once InconsistentNaming
-        void defineType( string className, string fieldList )
+        void DefineType( string className, string fieldList )
         {
             /*
                 public class ClassName : BaseName
@@ -84,13 +85,13 @@ internal static class AstGenerator
                 public override R Accept(Visitor<R> visitor) => return visitor.visitClassnameBasename(this);
                 ```
              */
-            blankLine();
+            BlankLine();
 
             writer.WriteLine(
                 $"{tab}{tab}public override R accept<R>(Visitor<R> visitor) => visitor.visit{className}{baseName}(this);"
             );
 
-            blankLine();
+            BlankLine();
 
             /*
                 fields
@@ -110,8 +111,7 @@ internal static class AstGenerator
             writer.WriteLine( $"{tab}}}" );
         }
 
-        // ReSharper disable once InconsistentNaming
-        void defineVisitor()
+        void DefineVisitor()
         {
             /*
                 ```

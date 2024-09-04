@@ -1,33 +1,31 @@
-// ReSharper disable InconsistentNaming
-
 namespace cslox;
 
 internal abstract class Expr
 {
-    public abstract R accept<R>( Visitor<R> visitor );
+    public abstract T accept<T>( IVisitor<T> visitor );
 
-    internal interface Visitor<out R>
+    internal interface IVisitor<out T>
     {
-        R visitBinaryExpr( Binary expr );
-        R visitGroupingExpr( Grouping expr );
-        R visitLiteralExpr( Literal expr );
-        R visitUnaryExpr( Unary expr );
+        T visitBinaryExpr( Binary expr );
+        T visitGroupingExpr( Grouping expr );
+        T visitLiteralExpr( Literal expr );
+        T visitUnaryExpr( Unary expr );
     }
 
     public class Binary : Expr
     {
-        public Expr left;
-        public Token @operator;
-        public Expr right;
+        public readonly Expr Left;
+        public readonly Token Operator;
+        public readonly Expr Right;
 
         public Binary( Expr left, Token @operator, Expr right )
         {
-            this.left = left;
-            this.@operator = @operator;
-            this.right = right;
+            Left = left;
+            Operator = @operator;
+            Right = right;
         }
 
-        public override R accept<R>( Visitor<R> visitor )
+        public override T accept<T>( IVisitor<T> visitor )
         {
             return visitor.visitBinaryExpr( this );
         }
@@ -35,14 +33,14 @@ internal abstract class Expr
 
     public class Grouping : Expr
     {
-        public Expr expression;
+        public readonly Expr Expression;
 
         public Grouping( Expr expression )
         {
-            this.expression = expression;
+            Expression = expression;
         }
 
-        public override R accept<R>( Visitor<R> visitor )
+        public override TR accept<TR>( IVisitor<TR> visitor )
         {
             return visitor.visitGroupingExpr( this );
         }
@@ -50,14 +48,14 @@ internal abstract class Expr
 
     public class Literal : Expr
     {
-        public object? value; // Literal can be null
+        public readonly object Value; // Literal can be null
 
-        public Literal( object? value )
+        public Literal( object value )
         {
-            this.value = value;
+            Value = value;
         }
 
-        public override R accept<R>( Visitor<R> visitor )
+        public override T accept<T>( IVisitor<T> visitor )
         {
             return visitor.visitLiteralExpr( this );
         }
@@ -65,16 +63,16 @@ internal abstract class Expr
 
     public class Unary : Expr
     {
-        public Token oper;
-        public Expr right;
+        public readonly Token Oper;
+        public readonly Expr Right;
 
         public Unary( Token oper, Expr right )
         {
-            this.oper = oper;
-            this.right = right;
+            Oper = oper;
+            Right = right;
         }
 
-        public override R accept<R>( Visitor<R> visitor )
+        public override T accept<T>( IVisitor<T> visitor )
         {
             return visitor.visitUnaryExpr( this );
         }

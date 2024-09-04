@@ -278,7 +278,7 @@ internal class Scanner
         return _source[_current++];
     }
 
-    private void addToken( TokenType type, object? literal = null )
+    private void addToken( TokenType type, object literal = null )
     {
         string text = _source.Substring( _start, _current - _start ); // [start, current]
 

@@ -2,8 +2,7 @@
 
 internal static class Program
 {
-    // ReSharper disable once InconsistentNaming
-    private static void Main( string[] args )
+    private static void main( string[] args )
     {
         if (args.Length is not 1)
         {

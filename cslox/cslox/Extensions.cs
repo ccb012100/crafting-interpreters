@@ -4,12 +4,12 @@ namespace cslox;
 
 internal static class Extensions
 {
-    private static readonly JsonSerializerOptions s_options = new() { WriteIndented = false };
-    private static readonly JsonSerializerOptions s_prettyPrintOptions = new() { WriteIndented = true };
+    private static readonly JsonSerializerOptions s_sOptions = new() { WriteIndented = false };
+    private static readonly JsonSerializerOptions s_sPrettyPrintOptions = new() { WriteIndented = true };
 
     public static string toJson( this object obj, bool prettyPrint = true )
     {
-        return JsonSerializer.Serialize( obj, prettyPrint ? s_prettyPrintOptions : s_options );
+        return JsonSerializer.Serialize( obj, prettyPrint ? s_sPrettyPrintOptions : s_sOptions );
     }
 
     public static bool isDigit( this char c )

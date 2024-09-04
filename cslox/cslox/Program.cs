@@ -5,8 +5,7 @@ namespace cslox;
 // ReSharper disable once ClassNeverInstantiated.Global
 internal class Program
 {
-    // ReSharper disable once InconsistentNaming
-    private static void Main( string[] args )
+    private static void main( string[] args )
     {
         Console.WriteLine( $"args: {args.toJson( false )}\n" );
 

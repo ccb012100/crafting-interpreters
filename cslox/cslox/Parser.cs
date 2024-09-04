@@ -13,6 +13,18 @@ internal class Parser
         _tokens = tokens;
     }
 
+    public Expr parse()
+    {
+        try
+        {
+            return expression();
+        }
+        catch (ParseError)
+        {
+            return null;
+        }
+    }
+
     private Expr expression()
     {
         return equality();
@@ -164,7 +176,7 @@ internal class Parser
             return new Expr.Grouping( expr );
         }
 
-        throw new NotImplementedException( "This comes later in the chapter" );
+        throw error( peek(), "Expect expression." );
     }
 
     private Token consume( TokenType type, string message )

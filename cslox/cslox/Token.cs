@@ -4,10 +4,10 @@ public class Token
 {
     public readonly string Lexeme;
     public readonly int Line;
-    public readonly object? Literal;
+    public readonly object Literal;
     public readonly TokenType Type;
 
-    public Token( TokenType type, string lexeme, object? literal, int line )
+    public Token( TokenType type, string lexeme, object literal, int line )
     {
         Type = type;
         Lexeme = lexeme;
