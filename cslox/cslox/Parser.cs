@@ -1,5 +1,7 @@
 ﻿namespace cslox;
 
+using static TokenType;
+
 internal class Parser
 {
     private readonly List<Token> _tokens;
@@ -20,7 +22,7 @@ internal class Parser
     {
         Expr expr = comparison();
 
-        while (match( TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL ))
+        while (match( BANG_EQUAL, EQUAL_EQUAL ))
         {
             Token @operator = previous();
             Expr right = comparison();
@@ -64,7 +66,7 @@ internal class Parser
 
     private bool isAtEnd()
     {
-        return peek().Type == TokenType.EOF;
+        return peek().Type == EOF;
     }
 
     private Token peek()
@@ -81,7 +83,7 @@ internal class Parser
     {
         Expr expr = term();
 
-        while (match( TokenType.GREATER, TokenType.GREATER_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL ))
+        while (match( GREATER, GREATER_EQUAL, LESS, LESS_EQUAL ))
         {
             Token @operator = previous();
             Expr right = term();
@@ -95,7 +97,7 @@ internal class Parser
     {
         Expr expr = factor();
 
-        while (match( TokenType.MINUS, TokenType.PLUS ))
+        while (match( MINUS, PLUS ))
         {
             Token @operator = previous();
             Expr right = factor();
@@ -109,7 +111,7 @@ internal class Parser
     {
         Expr expr = unary();
 
-        while (match( TokenType.SLASH, TokenType.STAR ))
+        while (match( SLASH, STAR ))
         {
             Token @operator = previous();
             Expr right = unary();
@@ -121,7 +123,7 @@ internal class Parser
 
     private Expr unary()
     {
-        if (match( TokenType.BANG, TokenType.MINUS ))
+        if (match( BANG, MINUS ))
         {
             Token @operator = previous();
             Expr right = unary();
@@ -134,30 +136,30 @@ internal class Parser
 
     private Expr primary()
     {
-        if (match( TokenType.FALSE ))
+        if (match( FALSE ))
         {
             return new Expr.Literal( false );
         }
 
-        if (match( TokenType.TRUE ))
+        if (match( TRUE ))
         {
             return new Expr.Literal( true );
         }
 
-        if (match( TokenType.NIL ))
+        if (match( NIL ))
         {
             return new Expr.Literal( null );
         }
 
-        if (match( TokenType.NUMBER, TokenType.STRING ))
+        if (match( NUMBER, STRING ))
         {
             return new Expr.Literal( previous().Literal );
         }
 
-        if (match( TokenType.LEFT_PAREN ))
+        if (match( LEFT_PAREN ))
         {
             Expr expr = expression();
-            consume( TokenType.RIGHT_PAREN, "Expect ')' after expression." );
+            consume( RIGHT_PAREN, "Expect ')' after expression." );
 
             return new Expr.Grouping( expr );
         }
@@ -180,6 +182,34 @@ internal class Parser
         Lox.error( token, message );
 
         return new ParseError();
+    }
+
+    private void synchronize()
+    {
+        advance();
+
+        while (!isAtEnd())
+        {
+            if (previous().Type == SEMICOLON)
+            {
+                return;
+            }
+
+            switch (peek().Type)
+            {
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            advance();
+        }
     }
 
     private class ParseError : Exception;
