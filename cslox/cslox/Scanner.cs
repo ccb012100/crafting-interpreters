@@ -59,14 +59,14 @@ internal class Scanner
                 // previous char was an error
                 case 1:
                     {
-                        Lox.error( _line, $"Unexpected character '{_scanningErrors[0]}'." );
+                        Lox.Error( _line, $"Unexpected character '{_scanningErrors[0]}'." );
 
                         break;
                     }
                 // string of characters up to the previous char were errors
                 default:
                     {
-                        Lox.error( _line, $"Unexpected characters \"{string.Join( string.Empty, _scanningErrors )}\"." );
+                        Lox.Error( _line, $"Unexpected characters \"{string.Join( string.Empty, _scanningErrors )}\"." );
 
                         break;
                     }
@@ -207,7 +207,7 @@ internal class Scanner
 
                         if (isAtEnd() && nextTwo != "*/")
                         {
-                            Lox.error( _line, "Block comment has no closing tag; reached EOF." );
+                            Lox.Error( _line, "Block comment has no closing tag; reached EOF." );
                         }
                         else
                         {
@@ -328,7 +328,7 @@ internal class Scanner
 
         if (isAtEnd())
         {
-            Lox.error( _line, "Unterminated string." );
+            Lox.Error( _line, "Unterminated string." );
 
             return;
         }

@@ -8,7 +8,7 @@ public static class Lox
 {
     private static bool s_sHadError;
 
-    public static void runFile( string path )
+    public static void RunFile( string path )
     {
         if (path is "")
         {
@@ -19,7 +19,7 @@ public static class Lox
         byte[] bytes = File.ReadAllBytes( path );
         // TODO: get encoding of path
         string source = Encoding.Default.GetString( bytes );
-        run( source );
+        Run( source );
 
         if (s_sHadError)
         {
@@ -27,12 +27,12 @@ public static class Lox
         }
     }
 
-    private static void run( string source )
+    private static void Run( string source )
     {
         Scanner scanner = new(source);
         List<Token> tokens = scanner.scanTokens();
         Parser parser = new(tokens);
-        Expr expression = parser.parse();
+        Expr expression = parser.Parse();
 
         // Stop if there was a syntax error.
         if (s_sHadError)
@@ -40,10 +40,10 @@ public static class Lox
             return;
         }
 
-        Console.WriteLine( new AstPrinter().print( expression ) );
+        Console.WriteLine( new AstPrinter().Print( expression ) );
     }
 
-    public static void runPrompt()
+    public static void RunPrompt()
     {
         while (Console.ReadLine() is { } line)
         {
@@ -52,25 +52,25 @@ public static class Lox
                 break;
             }
 
-            run( line );
+            Run( line );
         }
     }
 
-    public static void error( int line, string message )
+    public static void Error( int line, string message )
     {
-        report( line, "", message );
+        Report( line, "", message );
     }
 
-    public static void error( Token token, string message )
+    public static void Error( Token token, string message )
     {
-        report(
+        Report(
             token.Line,
             token.Type == EOF ? " at end" : " at '" + token.Lexeme + "'",
             message
         );
     }
 
-    private static void report( int line, string where, string message )
+    private static void Report( int line, string where, string message )
     {
         TextWriter errorWriter = Console.Error;
         errorWriter.WriteLine( $"[line {line}] Error{where}: {message}" );
@@ -81,7 +81,7 @@ public static class Lox
     {
         public string visitBinaryExpr( Expr.Binary expr )
         {
-            return parenthesize(
+            return Parenthesize(
                 expr.Operator.Lexeme,
                 expr.Left,
                 expr.Right
@@ -90,7 +90,7 @@ public static class Lox
 
         public string visitGroupingExpr( Expr.Grouping expr )
         {
-            return parenthesize( "group", expr.Expression );
+            return Parenthesize( "group", expr.Expression );
         }
 
         public string visitLiteralExpr( Expr.Literal expr )
@@ -100,15 +100,15 @@ public static class Lox
 
         public string visitUnaryExpr( Expr.Unary expr )
         {
-            return parenthesize( expr.Oper.Lexeme, expr.Right );
+            return Parenthesize( expr.Oper.Lexeme, expr.Right );
         }
 
-        public string print( Expr expr )
+        public string Print( Expr expr )
         {
             return expr.accept( this );
         }
 
-        private string parenthesize( string name, params Expr[] exprs )
+        private string Parenthesize( string name, params Expr[] exprs )
         {
             StringBuilder builder = new StringBuilder()
                 .Append( '(' )

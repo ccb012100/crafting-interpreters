@@ -15,13 +15,13 @@ internal class Program
             case 0:
                 {
                     Console.WriteLine( "Enter code:" );
-                    Lox.runPrompt();
+                    Lox.RunPrompt();
 
                     return;
                 }
             case 1:
                 {
-                    Lox.runFile( args[0] );
+                    Lox.RunFile( args[0] );
 
                     return;
                 }

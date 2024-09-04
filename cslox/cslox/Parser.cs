@@ -13,11 +13,11 @@ internal class Parser
         _tokens = tokens;
     }
 
-    public Expr parse()
+    public Expr Parse()
     {
         try
         {
-            return expression();
+            return Expression();
         }
         catch (ParseError)
         {
@@ -25,189 +25,189 @@ internal class Parser
         }
     }
 
-    private Expr expression()
+    private Expr Expression()
     {
-        return equality();
+        return Equality();
     }
 
-    private Expr equality()
+    private Expr Equality()
     {
-        Expr expr = comparison();
+        Expr expr = Comparison();
 
-        while (match( BANG_EQUAL, EQUAL_EQUAL ))
+        while (Match( BANG_EQUAL, EQUAL_EQUAL ))
         {
-            Token @operator = previous();
-            Expr right = comparison();
+            Token @operator = Previous();
+            Expr right = Comparison();
             expr = new Expr.Binary( expr, @operator, right );
         }
 
         return expr;
     }
 
-    private bool match( params TokenType[] types )
+    private bool Match( params TokenType[] types )
     {
-        if (!types.Any( check ))
+        if (!types.Any( Check ))
         {
             return false;
         }
 
-        advance();
+        Advance();
 
         return true;
     }
 
-    private bool check( TokenType type )
+    private bool Check( TokenType type )
     {
-        if (isAtEnd())
+        if (IsAtEnd())
         {
             return false;
         }
 
-        return peek().Type == type;
+        return Peek().Type == type;
     }
 
-    private Token advance()
+    private Token Advance()
     {
-        if (!isAtEnd())
+        if (!IsAtEnd())
         {
             _current++;
         }
 
-        return previous();
+        return Previous();
     }
 
-    private bool isAtEnd()
+    private bool IsAtEnd()
     {
-        return peek().Type == EOF;
+        return Peek().Type == EOF;
     }
 
-    private Token peek()
+    private Token Peek()
     {
         return _tokens.ElementAt( _current );
     }
 
-    private Token previous()
+    private Token Previous()
     {
         return _tokens.ElementAt( _current - 1 );
     }
 
-    private Expr comparison()
+    private Expr Comparison()
     {
-        Expr expr = term();
+        Expr expr = Term();
 
-        while (match( GREATER, GREATER_EQUAL, LESS, LESS_EQUAL ))
+        while (Match( GREATER, GREATER_EQUAL, LESS, LESS_EQUAL ))
         {
-            Token @operator = previous();
-            Expr right = term();
+            Token @operator = Previous();
+            Expr right = Term();
             expr = new Expr.Binary( expr, @operator, right );
         }
 
         return expr;
     }
 
-    private Expr term()
+    private Expr Term()
     {
-        Expr expr = factor();
+        Expr expr = Factor();
 
-        while (match( MINUS, PLUS ))
+        while (Match( MINUS, PLUS ))
         {
-            Token @operator = previous();
-            Expr right = factor();
+            Token @operator = Previous();
+            Expr right = Factor();
             expr = new Expr.Binary( expr, @operator, right );
         }
 
         return expr;
     }
 
-    private Expr factor()
+    private Expr Factor()
     {
-        Expr expr = unary();
+        Expr expr = Unary();
 
-        while (match( SLASH, STAR ))
+        while (Match( SLASH, STAR ))
         {
-            Token @operator = previous();
-            Expr right = unary();
+            Token @operator = Previous();
+            Expr right = Unary();
             expr = new Expr.Binary( expr, @operator, right );
         }
 
         return expr;
     }
 
-    private Expr unary()
+    private Expr Unary()
     {
-        if (match( BANG, MINUS ))
+        if (Match( BANG, MINUS ))
         {
-            Token @operator = previous();
-            Expr right = unary();
+            Token @operator = Previous();
+            Expr right = Unary();
 
             return new Expr.Unary( @operator, right );
         }
 
-        return primary();
+        return Primary();
     }
 
-    private Expr primary()
+    private Expr Primary()
     {
-        if (match( FALSE ))
+        if (Match( FALSE ))
         {
             return new Expr.Literal( false );
         }
 
-        if (match( TRUE ))
+        if (Match( TRUE ))
         {
             return new Expr.Literal( true );
         }
 
-        if (match( NIL ))
+        if (Match( NIL ))
         {
             return new Expr.Literal( null );
         }
 
-        if (match( NUMBER, STRING ))
+        if (Match( NUMBER, STRING ))
         {
-            return new Expr.Literal( previous().Literal );
+            return new Expr.Literal( Previous().Literal );
         }
 
-        if (match( LEFT_PAREN ))
+        if (Match( LEFT_PAREN ))
         {
-            Expr expr = expression();
-            consume( RIGHT_PAREN, "Expect ')' after expression." );
+            Expr expr = Expression();
+            Consume( RIGHT_PAREN, "Expect ')' after expression." );
 
             return new Expr.Grouping( expr );
         }
 
-        throw error( peek(), "Expect expression." );
+        throw Error( Peek(), "Expect expression." );
     }
 
-    private Token consume( TokenType type, string message )
+    private Token Consume( TokenType type, string message )
     {
-        if (check( type ))
+        if (Check( type ))
         {
-            return advance();
+            return Advance();
         }
 
-        throw error( peek(), message );
+        throw Error( Peek(), message );
     }
 
-    private static ParseError error( Token token, string message )
+    private static ParseError Error( Token token, string message )
     {
-        Lox.error( token, message );
+        Lox.Error( token, message );
 
         return new ParseError();
     }
 
-    private void synchronize()
+    private void Synchronize()
     {
-        advance();
+        Advance();
 
-        while (!isAtEnd())
+        while (!IsAtEnd())
         {
-            if (previous().Type == SEMICOLON)
+            if (Previous().Type == SEMICOLON)
             {
                 return;
             }
 
-            switch (peek().Type)
+            switch (Peek().Type)
             {
                 case CLASS:
                 case FUN:
@@ -220,7 +220,7 @@ internal class Parser
                     return;
             }
 
-            advance();
+            Advance();
         }
     }
 
