@@ -2,7 +2,7 @@
 
 namespace cslox;
 
-internal enum TokenType
+public enum TokenType
 {
     // Single-character tokens
     LEFT_PAREN,

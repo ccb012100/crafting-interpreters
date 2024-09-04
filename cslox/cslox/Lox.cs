@@ -27,13 +27,13 @@ public static class Lox
 
     private static void run( string source )
     {
-        Scanner scanner = new( source );
+        Scanner scanner = new(source);
         List<Token> tokens = scanner.scanTokens();
 
         Console.WriteLine(
             "\n**************************************************\n"
-          + "                 BEGIN Source\n"
-          + "**************************************************"
+            + "                 BEGIN Source\n"
+            + "**************************************************"
         );
 
         foreach (Token token in tokens)
@@ -43,8 +43,8 @@ public static class Lox
 
         Console.WriteLine(
             "\n**************************************************\n"
-          + "                 END   Source\n"
-          + "**************************************************"
+            + "                 END   Source\n"
+            + "**************************************************"
         );
     }
 
@@ -64,6 +64,15 @@ public static class Lox
     public static void error( int line, string message )
     {
         report( line, "", message );
+    }
+
+    public static void error( Token token, string message )
+    {
+        report(
+            token.Line,
+            token.Type == TokenType.EOF ? " at end" : " at '" + token.Lexeme + "'",
+            message
+        );
     }
 
     private static void report( int line, string where, string message )

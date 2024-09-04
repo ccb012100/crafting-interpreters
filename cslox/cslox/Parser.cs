@@ -52,14 +52,14 @@ internal class Parser
         return peek().Type == type;
     }
 
-    private void advance()
+    private Token advance()
     {
         if (!isAtEnd())
         {
             _current++;
         }
 
-        previous();
+        return previous();
     }
 
     private bool isAtEnd()
@@ -165,8 +165,22 @@ internal class Parser
         throw new NotImplementedException( "This comes later in the chapter" );
     }
 
-    private void consume( TokenType type, string message )
+    private Token consume( TokenType type, string message )
     {
-        throw new NotImplementedException( "This comes later in the chapter" );
+        if (check( type ))
+        {
+            return advance();
+        }
+
+        throw error( peek(), message );
     }
+
+    private static ParseError error( Token token, string message )
+    {
+        Lox.error( token, message );
+
+        return new ParseError();
+    }
+
+    private class ParseError : Exception;
 }
