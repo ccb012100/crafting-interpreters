@@ -2,7 +2,7 @@
 
 internal static class Program
 {
-    private static void main( string[] args )
+    private static void Main( string[] args )
     {
         if (args.Length is not 1)
         {
