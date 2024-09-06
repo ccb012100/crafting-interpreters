@@ -12,7 +12,7 @@ internal static class Program
 
         string outputDir = args[0];
 
-        AstGenerator.defineAst(
+        AstGenerator.DefineAst(
             outputDir,
             "Expr",
             [

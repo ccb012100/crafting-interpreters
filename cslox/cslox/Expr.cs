@@ -2,14 +2,14 @@ namespace cslox;
 
 internal abstract class Expr
 {
-    public abstract T accept<T>( IVisitor<T> visitor );
+    public abstract T Accept<T>( IVisitor<T> visitor );
 
     internal interface IVisitor<out T>
     {
-        T visitBinaryExpr( Binary expr );
-        T visitGroupingExpr( Grouping expr );
-        T visitLiteralExpr( Literal expr );
-        T visitUnaryExpr( Unary expr );
+        T VisitBinaryExpr( Binary expr );
+        T VisitGroupingExpr( Grouping expr );
+        T VisitLiteralExpr( Literal expr );
+        T VisitUnaryExpr( Unary expr );
     }
 
     public class Binary : Expr
@@ -25,9 +25,9 @@ internal abstract class Expr
             Right = right;
         }
 
-        public override T accept<T>( IVisitor<T> visitor )
+        public override T Accept<T>( IVisitor<T> visitor )
         {
-            return visitor.visitBinaryExpr( this );
+            return visitor.VisitBinaryExpr( this );
         }
     }
 
@@ -40,9 +40,9 @@ internal abstract class Expr
             Expression = expression;
         }
 
-        public override TR accept<TR>( IVisitor<TR> visitor )
+        public override TR Accept<TR>( IVisitor<TR> visitor )
         {
-            return visitor.visitGroupingExpr( this );
+            return visitor.VisitGroupingExpr( this );
         }
     }
 
@@ -55,9 +55,9 @@ internal abstract class Expr
             Value = value;
         }
 
-        public override T accept<T>( IVisitor<T> visitor )
+        public override T Accept<T>( IVisitor<T> visitor )
         {
-            return visitor.visitLiteralExpr( this );
+            return visitor.VisitLiteralExpr( this );
         }
     }
 
@@ -72,9 +72,9 @@ internal abstract class Expr
             Right = right;
         }
 
-        public override T accept<T>( IVisitor<T> visitor )
+        public override T Accept<T>( IVisitor<T> visitor )
         {
-            return visitor.visitUnaryExpr( this );
+            return visitor.VisitUnaryExpr( this );
         }
     }
 }

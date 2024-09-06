@@ -19,6 +19,7 @@ public static class Lox
         byte[] bytes = File.ReadAllBytes( path );
         // TODO: get encoding of path
         string source = Encoding.Default.GetString( bytes );
+        Console.WriteLine( $"source = {source}" );
         Run( source );
 
         if (s_sHadError)
@@ -29,9 +30,9 @@ public static class Lox
 
     private static void Run( string source )
     {
-        Scanner scanner = new( source );
-        List<Token> tokens = scanner.scanTokens();
-        Parser parser = new( tokens );
+        Scanner scanner = new(source);
+        List<Token> tokens = scanner.ScanTokens();
+        Parser parser = new(tokens);
         Expr expression = parser.Parse();
 
         // Stop if there was a syntax error.
@@ -79,7 +80,7 @@ public static class Lox
 
     private class AstPrinter : Expr.IVisitor<string>
     {
-        public string visitBinaryExpr( Expr.Binary expr )
+        public string VisitBinaryExpr( Expr.Binary expr )
         {
             return Parenthesize(
                 expr.Operator.Lexeme,
@@ -88,24 +89,24 @@ public static class Lox
             );
         }
 
-        public string visitGroupingExpr( Expr.Grouping expr )
+        public string VisitGroupingExpr( Expr.Grouping expr )
         {
             return Parenthesize( "group", expr.Expression );
         }
 
-        public string visitLiteralExpr( Expr.Literal expr )
+        public string VisitLiteralExpr( Expr.Literal expr )
         {
             return expr.Value == null ? "nil" : expr.Value.ToString();
         }
 
-        public string visitUnaryExpr( Expr.Unary expr )
+        public string VisitUnaryExpr( Expr.Unary expr )
         {
             return Parenthesize( expr.Oper.Lexeme, expr.Right );
         }
 
         public string Print( Expr expr )
         {
-            return expr.accept( this );
+            return expr.Accept( this );
         }
 
         private string Parenthesize( string name, params Expr[] exprs )
@@ -116,7 +117,7 @@ public static class Lox
 
             foreach (Expr expr in exprs)
             {
-                builder.Append( ' ' ).Append( expr.accept( this ) );
+                builder.Append( ' ' ).Append( expr.Accept( this ) );
             }
 
             return builder.Append( ')' ).ToString();

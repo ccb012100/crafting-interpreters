@@ -36,13 +36,13 @@ internal class Scanner
         _source = source;
     }
 
-    public List<Token> scanTokens()
+    public List<Token> ScanTokens()
     {
-        while (!isAtEnd())
+        while (!IsAtEnd())
         {
             _start = _current;
 
-            if (scanToken())
+            if (ScanToken())
             {
                 continue;
             }
@@ -80,100 +80,100 @@ internal class Scanner
         return _tokens;
     }
 
-    private bool isAtEnd()
+    private bool IsAtEnd()
     {
         return _current >= _source.Length;
     }
 
-    private bool scanToken()
+    private bool ScanToken()
     {
         bool error = false;
 
-        char c = advance();
+        char c = Advance();
 
         switch (c)
         {
             case '(':
                 {
-                    addToken( LEFT_PAREN );
+                    AddToken( LEFT_PAREN );
 
                     break;
                 }
             case ')':
                 {
-                    addToken( RIGHT_PAREN );
+                    AddToken( RIGHT_PAREN );
 
                     break;
                 }
             case '{':
                 {
-                    addToken( LEFT_BRACE );
+                    AddToken( LEFT_BRACE );
 
                     break;
                 }
             case '}':
                 {
-                    addToken( RIGHT_BRACE );
+                    AddToken( RIGHT_BRACE );
 
                     break;
                 }
             case ',':
                 {
-                    addToken( COMMA );
+                    AddToken( COMMA );
 
                     break;
                 }
             case '.':
                 {
-                    addToken( DOT );
+                    AddToken( DOT );
 
                     break;
                 }
             case '-':
                 {
-                    addToken( MINUS );
+                    AddToken( MINUS );
 
                     break;
                 }
             case '+':
                 {
-                    addToken( PLUS );
+                    AddToken( PLUS );
 
                     break;
                 }
             case ';':
                 {
-                    addToken( SEMICOLON );
+                    AddToken( SEMICOLON );
 
                     break;
                 }
             case '*':
                 {
-                    addToken( STAR );
+                    AddToken( STAR );
 
                     break;
                 }
             case '!':
                 {
-                    addToken( match( '=' ) ? BANG_EQUAL : BANG );
+                    AddToken( Match( '=' ) ? BANG_EQUAL : BANG );
 
                     break;
                 }
             case '=':
                 {
-                    addToken( match( '=' ) ? EQUAL_EQUAL : EQUAL );
+                    AddToken( Match( '=' ) ? EQUAL_EQUAL : EQUAL );
 
                     break;
                 }
             case '<':
                 {
-                    addToken( match( '=' ) ? LESS_EQUAL : LESS );
+                    AddToken( Match( '=' ) ? LESS_EQUAL : LESS );
 
                     break;
                 }
             case '>':
                 {
-                    addToken( match( '=' ) ? GREATER_EQUAL : GREATER );
+                    AddToken( Match( '=' ) ? GREATER_EQUAL : GREATER );
 
                     break;
                 }
@@ -184,41 +184,41 @@ internal class Scanner
                      * through each character, which seems less efficient? Is it because of the
                      * IsAtEnd method? Maybe we should just set _current to the last character?
                      */
-                    if (match( '/' ))
+                    if (Match( '/' ))
                     {
                         // comment goes until the end of the line
-                        while (!isAtEnd() && peek() != '\n')
+                        while (!IsAtEnd() && Peek() != '\n')
                         {
-                            advance();
+                            Advance();
                         }
                     }
-                    else if (match( '*' ))
+                    else if (Match( '*' ))
                     {
                         /*
                          * C-style block comments can be multi-line and _do not_ support nested block comments
                          */
-                        string nextTwo = $"{peek()}{peekNext()}";
+                        string nextTwo = $"{Peek()}{PeekNext()}";
 
-                        while (!isAtEnd() && nextTwo != "*/")
+                        while (!IsAtEnd() && nextTwo != "*/")
                         {
-                            advance();
-                            nextTwo = $"{peek()}{peekNext()}";
+                            Advance();
+                            nextTwo = $"{Peek()}{PeekNext()}";
                         }
 
-                        if (isAtEnd() && nextTwo != "*/")
+                        if (IsAtEnd() && nextTwo != "*/")
                         {
                             Lox.Error( _line, "Block comment has no closing tag; reached EOF." );
                         }
                         else
                         {
                             // advance 2x to move past the "*/" that ends the comment
-                            advance();
-                            advance();
+                            Advance();
+                            Advance();
                         }
                     }
                     else
                     {
-                        addToken( SLASH );
+                        AddToken( SLASH );
                     }
 
                     break;
@@ -239,13 +239,13 @@ internal class Scanner
                 }
             case '"':
                 {
-                    addString( '"' );
+                    AddString( '"' );
 
                     break;
                 }
             case '\'':
                 {
-                    addString( '\'' );
+                    AddString( '\'' );
 
                     break;
                 }
@@ -253,11 +253,11 @@ internal class Scanner
                 {
                     if (c.isDigit())
                     {
-                        addNumber();
+                        AddNumber();
                     }
                     else if (c.isAlpha())
                     {
-                        addIdentifier();
+                        AddIdentifier();
                     }
                     // Bad character encountered
                     else
@@ -273,22 +273,22 @@ internal class Scanner
         return error;
     }
 
-    private char advance()
+    private char Advance()
     {
         return _source[_current++];
     }
 
-    private void addToken( TokenType type, object literal = null )
+    private void AddToken( TokenType type, object literal = null )
     {
         string text = _source.Substring( _start, _current - _start ); // [start, current]
 
         _tokens.Add( new Token( type, text, literal, _line ) );
     }
 
-    private bool match( char expected )
+    private bool Match( char expected )
     {
         // NOTE: If there is a match, this method increments the value of _current
-        if (isAtEnd())
+        if (IsAtEnd())
         {
             return false;
         }
@@ -303,30 +303,30 @@ internal class Scanner
         return true;
     }
 
-    private char peek()
+    private char Peek()
     {
-        return isAtEnd() ? '\0' : _source[_current];
+        return IsAtEnd() ? '\0' : _source[_current];
     }
 
-    private char peekNext()
+    private char PeekNext()
     {
         return _current + 1 >= _source.Length ? '\0' : _source[_current + 1];
     }
 
-    private void addString( char quoteType )
+    private void AddString( char quoteType )
     {
         // Strings are multi-line and can be wrapped in single or double quotes
-        while (peek() != quoteType && !isAtEnd())
+        while (Peek() != quoteType && !IsAtEnd())
         {
-            if (peek() == '\n')
+            if (Peek() == '\n')
             {
                 _line++;
             }
 
-            advance();
+            Advance();
         }
 
-        if (isAtEnd())
+        if (IsAtEnd())
         {
             Lox.Error( _line, "Unterminated string." );
 
@@ -334,46 +334,46 @@ internal class Scanner
         }
 
         // The closing " or '
-        advance();
+        Advance();
 
         // Trim the surrounding quotes
         string value = _source.Substring( _start + 1, _current - _start - 2 );
-        addToken( STRING, value );
+        AddToken( STRING, value );
     }
 
-    private void addNumber()
+    private void AddNumber()
     {
-        while (peek().isDigit())
+        while (Peek().isDigit())
         {
-            advance();
+            Advance();
         }
 
         // Look for a fractional part.
-        if (peek() == '.' && peekNext().isDigit())
+        if (Peek() == '.' && PeekNext().isDigit())
         {
             // Consume the "."
-            advance();
+            Advance();
 
-            while (peek().isDigit())
+            while (Peek().isDigit())
             {
-                advance();
+                Advance();
             }
         }
 
-        addToken( NUMBER, double.Parse( _source.Substring( _start, _current - _start ) ) );
+        AddToken( NUMBER, double.Parse( _source.Substring( _start, _current - _start ) ) );
     }
 
-    private void addIdentifier()
+    private void AddIdentifier()
     {
-        while (peek().isAlphaNumeric())
+        while (Peek().isAlphaNumeric())
         {
-            advance();
+            Advance();
         }
 
         string text = _source.Substring( _start, _current - _start );
 
         TokenType type = s_keywords.GetValueOrDefault( text, IDENTIFIER );
 
-        addToken( type );
+        AddToken( type );
     }
 }

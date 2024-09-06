@@ -2,7 +2,7 @@
 
 internal static class AstGenerator
 {
-    public static void defineAst( string outputDir, string baseName, List<string> types )
+    public static void DefineAst( string outputDir, string baseName, List<string> types )
     {
         const string tab = "    ";
         string path = $"{outputDir}/{baseName}.cs";
