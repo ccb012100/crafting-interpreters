@@ -13,25 +13,19 @@ internal class Program
         switch (args.Length)
         {
             case 0:
-                {
-                    Console.WriteLine( "Enter code:" );
-                    Lox.RunPrompt();
+                Console.WriteLine( "Enter code:" );
+                Lox.RunPrompt();
 
-                    return;
-                }
+                return;
             case 1:
-                {
-                    Lox.RunFile( args[0] );
+                Lox.RunFile( args[0] );
 
-                    return;
-                }
+                return;
             default:
-                {
-                    Console.WriteLine( "Usage: dotnet run [script]" );
-                    Environment.Exit( 64 );
+                Console.WriteLine( "Usage: dotnet run [script]" );
+                Environment.Exit( 64 );
 
-                    break;
-                }
+                break;
         }
     }
 }

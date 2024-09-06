@@ -53,23 +53,17 @@ internal class Scanner
             {
                 // previous char wasn't an error
                 case 0:
-                    {
-                        continue;
-                    }
+                    continue;
                 // previous char was an error
                 case 1:
-                    {
-                        Lox.Error( _line, $"Unexpected character '{_scanningErrors[0]}'." );
+                    Lox.Error( _line, $"Unexpected character '{_scanningErrors[0]}'." );
 
-                        break;
-                    }
+                    break;
                 // string of characters up to the previous char were errors
                 default:
-                    {
-                        Lox.Error( _line, $"Unexpected characters \"{string.Join( string.Empty, _scanningErrors )}\"." );
+                    Lox.Error( _line, $"Unexpected characters \"{string.Join( string.Empty, _scanningErrors )}\"." );
 
-                        break;
-                    }
+                    break;
             }
 
             _scanningErrors.Clear();
@@ -94,180 +88,139 @@ internal class Scanner
         switch (c)
         {
             case '(':
-                {
-                    AddToken( LEFT_PAREN );
+                AddToken( LEFT_PAREN );
 
-                    break;
-                }
+                break;
             case ')':
-                {
-                    AddToken( RIGHT_PAREN );
+                AddToken( RIGHT_PAREN );
 
-                    break;
-                }
+                break;
             case '{':
-                {
-                    AddToken( LEFT_BRACE );
+                AddToken( LEFT_BRACE );
 
-                    break;
-                }
+                break;
             case '}':
-                {
-                    AddToken( RIGHT_BRACE );
+                AddToken( RIGHT_BRACE );
 
-                    break;
-                }
+                break;
             case ',':
-                {
-                    AddToken( COMMA );
+                AddToken( COMMA );
 
-                    break;
-                }
+                break;
             case '.':
-                {
-                    AddToken( DOT );
+                AddToken( DOT );
 
-                    break;
-                }
+                break;
             case '-':
-                {
-                    AddToken( MINUS );
+                AddToken( MINUS );
 
-                    break;
-                }
+                break;
             case '+':
-                {
-                    AddToken( PLUS );
+                AddToken( PLUS );
 
-                    break;
-                }
+                break;
             case ';':
-                {
-                    AddToken( SEMICOLON );
+                AddToken( SEMICOLON );
 
-                    break;
-                }
+                break;
             case '*':
-                {
-                    AddToken( STAR );
+                AddToken( STAR );
 
-                    break;
-                }
+                break;
             case '!':
-                {
-                    AddToken( Match( '=' ) ? BANG_EQUAL : BANG );
+                AddToken( Match( '=' ) ? BANG_EQUAL : BANG );
 
-                    break;
-                }
+                break;
             case '=':
-                {
-                    AddToken( Match( '=' ) ? EQUAL_EQUAL : EQUAL );
+                AddToken( Match( '=' ) ? EQUAL_EQUAL : EQUAL );
 
-                    break;
-                }
+                break;
             case '<':
-                {
-                    AddToken( Match( '=' ) ? LESS_EQUAL : LESS );
+                AddToken( Match( '=' ) ? LESS_EQUAL : LESS );
 
-                    break;
-                }
+                break;
             case '>':
-                {
-                    AddToken( Match( '=' ) ? GREATER_EQUAL : GREATER );
+                AddToken( Match( '=' ) ? GREATER_EQUAL : GREATER );
 
-                    break;
-                }
+                break;
             case '/':
-                {
                     /*
                      * REVIEW: why don't we just increment _line? What do we gain from advancing
                      * through each character, which seems less efficient? Is it because of the
                      * IsAtEnd method? Maybe we should just set _current to the last character?
                      */
-                    if (Match( '/' ))
+                if (Match( '/' ))
+                {
+                    // comment goes until the end of the line
+                    while (!IsAtEnd() && Peek() != '\n')
                     {
-                        // comment goes until the end of the line
-                        while (!IsAtEnd() && Peek() != '\n')
-                        {
-                            Advance();
-                        }
+                        Advance();
                     }
-                    else if (Match( '*' ))
-                    {
+                }
+                else if (Match( '*' ))
+                {
                         /*
                          * C-style block comments can be multi-line and _do not_ support nested block comments
                          */
-                        string nextTwo = $"{Peek()}{PeekNext()}";
+                    string nextTwo = $"{Peek()}{PeekNext()}";
 
-                        while (!IsAtEnd() && nextTwo != "*/")
-                        {
-                            Advance();
-                            nextTwo = $"{Peek()}{PeekNext()}";
-                        }
+                    while (!IsAtEnd() && nextTwo != "*/")
+                    {
+                        Advance();
+                        nextTwo = $"{Peek()}{PeekNext()}";
+                    }
 
-                        if (IsAtEnd() && nextTwo != "*/")
-                        {
-                            Lox.Error( _line, "Block comment has no closing tag; reached EOF." );
-                        }
-                        else
-                        {
-                            // advance 2x to move past the "*/" that ends the comment
-                            Advance();
-                            Advance();
-                        }
+                    if (IsAtEnd() && nextTwo != "*/")
+                    {
+                        Lox.Error( _line, "Block comment has no closing tag; reached EOF." );
                     }
                     else
                     {
-                        AddToken( SLASH );
+                        // advance 2x to move past the "*/" that ends the comment
+                        Advance();
+                        Advance();
                     }
-
-                    break;
+                }
+                else
+                {
+                    AddToken( SLASH );
                 }
 
+                break;
             case ' ':
             case '\r':
             case '\t':
-                {
-                    // Ignore whitespace.
-                    break;
-                }
+                // Ignore whitespace.
+                break;
             case '\n':
-                {
-                    _line++;
+                _line++;
 
-                    break;
-                }
+                break;
             case '"':
-                {
-                    AddString( '"' );
+                AddString( '"' );
 
-                    break;
-                }
+                break;
             case '\'':
-                {
-                    AddString( '\'' );
+                AddString( '\'' );
 
-                    break;
-                }
+                break;
             default:
+                if (c.isDigit())
                 {
-                    if (c.isDigit())
-                    {
-                        AddNumber();
-                    }
-                    else if (c.isAlpha())
-                    {
-                        AddIdentifier();
-                    }
-                    // Bad character encountered
-                    else
-                    {
-                        error = true;
-                        _scanningErrors.Add( c );
-                    }
-
-                    break;
+                    AddNumber();
                 }
+                else if (c.isAlpha())
+                {
+                    AddIdentifier();
+                }
+                // Bad character encountered
+                else
+                {
+                    error = true;
+                    _scanningErrors.Add( c );
+                }
+
+                break;
         }
 
         return error;
