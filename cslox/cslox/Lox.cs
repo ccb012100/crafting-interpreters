@@ -1,9 +1,6 @@
 ﻿using System.Text;
 
 namespace cslox;
-
-using static TokenType;
-
 public static class Lox
 {
     private static bool s_sHadError;
@@ -30,9 +27,9 @@ public static class Lox
 
     private static void Run( string source )
     {
-        Scanner scanner = new(source);
+        Scanner scanner = new( source );
         List<Token> tokens = scanner.ScanTokens();
-        Parser parser = new(tokens);
+        Parser parser = new( tokens );
         Expr expression = parser.Parse();
 
         // Stop if there was a syntax error.

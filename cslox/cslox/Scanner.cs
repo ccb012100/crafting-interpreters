@@ -1,6 +1,4 @@
-﻿using static cslox.TokenType;
-
-namespace cslox;
+﻿namespace cslox;
 
 internal class Scanner
 {

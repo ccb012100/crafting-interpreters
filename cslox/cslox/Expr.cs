@@ -12,18 +12,11 @@ internal abstract class Expr
         T VisitUnaryExpr( Unary expr );
     }
 
-    public class Binary : Expr
+    public class Binary( Expr left, Token @operator, Expr right ) : Expr
     {
-        public readonly Expr Left;
-        public readonly Token Operator;
-        public readonly Expr Right;
-
-        public Binary( Expr left, Token @operator, Expr right )
-        {
-            Left = left;
-            Operator = @operator;
-            Right = right;
-        }
+        public readonly Expr Left = left;
+        public readonly Token Operator = @operator;
+        public readonly Expr Right = right;
 
         public override T Accept<T>( IVisitor<T> visitor )
         {
@@ -31,14 +24,9 @@ internal abstract class Expr
         }
     }
 
-    public class Grouping : Expr
+    public class Grouping( Expr expression ) : Expr
     {
-        public readonly Expr Expression;
-
-        public Grouping( Expr expression )
-        {
-            Expression = expression;
-        }
+        public readonly Expr Expression = expression;
 
         public override TR Accept<TR>( IVisitor<TR> visitor )
         {
@@ -46,14 +34,9 @@ internal abstract class Expr
         }
     }
 
-    public class Literal : Expr
+    public class Literal( object value ) : Expr
     {
-        public readonly object Value; // Literal can be null
-
-        public Literal( object value )
-        {
-            Value = value;
-        }
+        public readonly object Value = value; // Literal can be null
 
         public override T Accept<T>( IVisitor<T> visitor )
         {
@@ -61,16 +44,10 @@ internal abstract class Expr
         }
     }
 
-    public class Unary : Expr
+    public class Unary( Token oper, Expr right ) : Expr
     {
-        public readonly Token Oper;
-        public readonly Expr Right;
-
-        public Unary( Token oper, Expr right )
-        {
-            Oper = oper;
-            Right = right;
-        }
+        public readonly Token Oper = oper;
+        public readonly Expr Right = right;
 
         public override T Accept<T>( IVisitor<T> visitor )
         {

@@ -1,7 +1,5 @@
-﻿namespace cslox;
-
-using static TokenType;
-
+﻿
+namespace cslox;
 /*
  *   --------------------------------------------------------------------------
  *                         Expression Grammar
@@ -28,16 +26,11 @@ using static TokenType;
  *     ?                    |   if statement
  *   --------------------------------------------------------------------------
  */
-internal class Parser
+internal class Parser( List<Token> tokens )
 {
-    private readonly List<Token> _tokens;
+    private readonly List<Token> _tokens = tokens;
 
     private int _current;
-
-    public Parser( List<Token> tokens )
-    {
-        _tokens = tokens;
-    }
 
     public Expr Parse()
     {
