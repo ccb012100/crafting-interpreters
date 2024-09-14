@@ -80,6 +80,14 @@ internal class Parser( List<Token> tokens )
 
     private Expr Equality()
     {
+        if (Peek().Type is BANG_EQUAL or EQUAL_EQUAL)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
+
+            throw Error( @operator, "Missing left-hand operand" );
+        }
+
         Expr expr = Comparison();
 
         while (Match( BANG_EQUAL, EQUAL_EQUAL ))
@@ -94,6 +102,14 @@ internal class Parser( List<Token> tokens )
 
     private Expr Comparison()
     {
+        if (Peek().Type is GREATER or GREATER_EQUAL or LESS or LESS_EQUAL)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
+
+            throw Error( @operator, "Missing left-hand operand" );
+        }
+
         Expr expr = Term();
 
         while (Match( GREATER, GREATER_EQUAL, LESS, LESS_EQUAL ))
@@ -108,6 +124,14 @@ internal class Parser( List<Token> tokens )
 
     private Expr Term()
     {
+        if (Peek().Type is MINUS or PLUS)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
+
+            throw Error( @operator, "Missing left-hand operand" );
+        }
+
         Expr expr = Factor();
 
         while (Match( MINUS, PLUS ))
@@ -122,6 +146,14 @@ internal class Parser( List<Token> tokens )
 
     private Expr Factor()
     {
+        if (Peek().Type is SLASH or STAR)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
+
+            throw Error( @operator, "Missing left-hand operand" );
+        }
+
         Expr expr = Unary();
 
         while (Match( SLASH, STAR ))

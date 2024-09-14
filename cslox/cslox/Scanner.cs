@@ -22,9 +22,9 @@ internal class Scanner( string source )
         { "while", WHILE }
     };
 
-    private readonly List<char> _scanningErrors = new();
+    private readonly List<char> _scanningErrors = [];
     private readonly string _source = source;
-    private readonly List<Token> _tokens = new();
+    private readonly List<Token> _tokens = [];
     private int _current;
     private int _line = 1;
     private int _start;
@@ -211,8 +211,7 @@ internal class Scanner( string source )
                 {
                     AddIdentifier();
                 }
-                // Bad character encountered
-                else
+                else // Bad character encountered
                 {
                     error = true;
                     _scanningErrors.Add( c );

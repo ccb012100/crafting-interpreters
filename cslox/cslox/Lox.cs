@@ -16,7 +16,7 @@ public static class Lox
         byte[] bytes = File.ReadAllBytes( path );
         // TODO: get encoding of path
         string source = Encoding.Default.GetString( bytes );
-        Console.WriteLine( $"source = {source}" );
+        Console.WriteLine( $"*source* {source}" );
         Run( source );
 
         if (s_sHadError)
