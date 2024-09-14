@@ -1,6 +1,6 @@
 ﻿namespace cslox;
 
-internal class Scanner
+internal class Scanner( string source )
 {
     private static readonly Dictionary<string, TokenType> s_keywords = new()
     {
@@ -23,16 +23,11 @@ internal class Scanner
     };
 
     private readonly List<char> _scanningErrors = new();
-    private readonly string _source;
+    private readonly string _source = source;
     private readonly List<Token> _tokens = new();
     private int _current;
     private int _line = 1;
     private int _start;
-
-    public Scanner( string source )
-    {
-        _source = source;
-    }
 
     public List<Token> ScanTokens()
     {
