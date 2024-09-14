@@ -13,9 +13,11 @@ public enum TokenType
     DOT,
     MINUS,
     PLUS,
+    COLON,
     SEMICOLON,
     SLASH,
     STAR,
+    QUESTION_MARK,
 
     // One or two character tokens
     BANG,

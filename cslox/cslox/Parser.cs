@@ -4,26 +4,27 @@ namespace cslox;
  *   --------------------------------------------------------------------------
  *                         Expression Grammar
  *   --------------------------------------------------------------------------
- *     expression       →   comma ;
- *     comma            →   "(" equality ( "," equality )* ;
- *     equality         →   comparison ( ( "!=" | "==" ) comparison )* ;
- *     comparison       →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
- *     term             →   factor ( ( "-" | "+" ) factor )* ;
- *     factor           →   unary ( ( "/" | "*" ) unary )* ;
- *     unary            →   ( "!" | "-" ) unary
+ *      expression      →   ternary ;
+ *      ternary         →   comma ( "?" comma ":" comma )* ;
+ *      comma           →   "(" equality ( "," equality )* ;
+ *      equality        →   comparison ( ( "!=" | "==" ) comparison )* ;
+ *      comparison      →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+ *      term            →   factor ( ( "-" | "+" ) factor )* ;
+ *      factor          →   unary ( ( "/" | "*" ) unary )* ;
+ *      unary           →   ( "!" | "-" ) unary
  *                      |   primary ;
- *     primary          →   NUMBER | STRING | "true" | "false" | "nil"
+ *      primary         →   NUMBER | STRING | "true" | "false" | "nil"
  *                      |   "(" expression ")" ;
  *   --------------------------------------------------------------------------
  *
  *   --------------------------------------------------------------------------
- *     Grammar notation     |   Code representation
- *   -----------------------|--------------------------------------------------
- *     Terminal             |   Code to match and consume a token
- *     Non-terminal         |   Call to that rule’s function
- *     |                    |   if or switch statement
- *     * or +               |   while or for loop
- *     ?                    |   if statement
+ *      Grammar notation     |   Code representation
+ *   ------------------------|-------------------------------------------------
+ *      Terminal             |   Code to match and consume a token
+ *      Non-terminal         |   Call to that rule’s function
+ *      |                    |   if or switch statement
+ *      * or +               |   while or for loop
+ *      ?                    |   if statement
  *   --------------------------------------------------------------------------
  */
 internal class Parser( List<Token> tokens )
@@ -46,7 +47,23 @@ internal class Parser( List<Token> tokens )
 
     private Expr Expression()
     {
-        return Comma();
+        return Ternary();
+    }
+
+    private Expr Ternary()
+    {
+        Expr expr = Comma();
+
+        if (Match( QUESTION_MARK ))
+        {
+            _ = Ternary();
+
+            Consume( COLON, "Expect ':' after expression." );
+
+            expr = Ternary();
+        }
+
+        return expr;
     }
 
     private Expr Comma()
@@ -73,53 +90,6 @@ internal class Parser( List<Token> tokens )
         }
 
         return expr;
-    }
-
-    private bool Match( params TokenType[] types )
-    {
-        if (!types.Any( Check ))
-        {
-            return false;
-        }
-
-        Advance();
-
-        return true;
-    }
-
-    private bool Check( TokenType type )
-    {
-        if (IsAtEnd())
-        {
-            return false;
-        }
-
-        return Peek().Type == type;
-    }
-
-    private Token Advance()
-    {
-        if (!IsAtEnd())
-        {
-            _current++;
-        }
-
-        return Previous();
-    }
-
-    private bool IsAtEnd()
-    {
-        return Peek().Type == EOF;
-    }
-
-    private Token Peek()
-    {
-        return _tokens.ElementAt( _current );
-    }
-
-    private Token Previous()
-    {
-        return _tokens.ElementAt( _current - 1 );
     }
 
     private Expr Comparison()
@@ -208,6 +178,53 @@ internal class Parser( List<Token> tokens )
         }
 
         throw Error( Peek(), "Expect expression." );
+    }
+
+    private bool Match( params TokenType[] types )
+    {
+        if (!types.Any( Check ))
+        {
+            return false;
+        }
+
+        Advance();
+
+        return true;
+    }
+
+    private bool Check( TokenType type )
+    {
+        if (IsAtEnd())
+        {
+            return false;
+        }
+
+        return Peek().Type == type;
+    }
+
+    private Token Advance()
+    {
+        if (!IsAtEnd())
+        {
+            _current++;
+        }
+
+        return Previous();
+    }
+
+    private bool IsAtEnd()
+    {
+        return Peek().Type == EOF;
+    }
+
+    private Token Peek()
+    {
+        return _tokens.ElementAt( _current );
+    }
+
+    private Token Previous()
+    {
+        return _tokens.ElementAt( _current - 1 );
     }
 
     private Token Consume( TokenType type, string message )

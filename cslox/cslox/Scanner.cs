@@ -40,8 +40,8 @@ internal class Scanner( string source )
                 continue;
             }
 
-            // HACK: If no errors occurred, print out the previous errors (if any). This is an
-            // ugly way of being able to track a string of bad characters, but works for now.
+            /* HACK: If no errors occurred, print out the previous errors (if any). This is an
+             * ugly way of being able to track a string of bad characters, but works for now. */
             switch (_scanningErrors.Count)
             {
                 // previous char wasn't an error
@@ -112,6 +112,10 @@ internal class Scanner( string source )
                 AddToken( PLUS );
 
                 break;
+            case ':':
+                AddToken( COLON );
+
+                break;
             case ';':
                 AddToken( SEMICOLON );
 
@@ -119,6 +123,9 @@ internal class Scanner( string source )
             case '*':
                 AddToken( STAR );
 
+                break;
+            case '?':
+                AddToken( QUESTION_MARK );
                 break;
             case '!':
                 AddToken( Match( '=' ) ? BANG_EQUAL : BANG );
@@ -137,11 +144,11 @@ internal class Scanner( string source )
 
                 break;
             case '/':
-                    /*
-                     * REVIEW: why don't we just increment _line? What do we gain from advancing
-                     * through each character, which seems less efficient? Is it because of the
-                     * IsAtEnd method? Maybe we should just set _current to the last character?
-                     */
+                /*
+                 * REVIEW: why don't we just increment _line? What do we gain from advancing
+                 * through each character, which seems less efficient? Is it because of the
+                 * IsAtEnd method? Maybe we should just set _current to the last character?
+                 */
                 if (Match( '/' ))
                 {
                     // comment goes until the end of the line
@@ -152,9 +159,7 @@ internal class Scanner( string source )
                 }
                 else if (Match( '*' ))
                 {
-                        /*
-                         * C-style block comments can be multi-line and _do not_ support nested block comments
-                         */
+                    /* C-style block comments can be multi-line and _do not_ support nested block comments */
                     string nextTwo = $"{Peek()}{PeekNext()}";
 
                     while (!IsAtEnd() && nextTwo != "*/")
