@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using cslox.DataTypes;
+using cslox.Interpreter;
 
 namespace cslox;
 public static class Lox
@@ -100,7 +102,7 @@ public static class Lox
 
         public string VisitUnaryExpr( Expr.Unary expr )
         {
-            return Parenthesize( expr.Oper.Lexeme, expr.Right );
+            return Parenthesize( expr.Operator.Lexeme, expr.Right );
         }
 
         public string Print( Expr expr )
@@ -145,7 +147,7 @@ public static class Lox
 
         public string VisitUnaryExpr( Expr.Unary expr )
         {
-            return $"{expr.Right.Accept( this )} {expr.Oper.Lexeme}";
+            return $"{expr.Right.Accept( this )} {expr.Operator.Lexeme}";
         }
 
         public string Print( Expr expr )

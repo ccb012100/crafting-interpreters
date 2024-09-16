@@ -1,4 +1,4 @@
-namespace cslox;
+namespace cslox.DataTypes;
 
 public class Token( TokenType type, string lexeme, object literal, int line )
 {

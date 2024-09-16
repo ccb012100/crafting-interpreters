@@ -1,4 +1,4 @@
-namespace cslox;
+namespace cslox.DataTypes;
 
 internal abstract class Expr
 {
@@ -44,9 +44,9 @@ internal abstract class Expr
         }
     }
 
-    public class Unary( Token oper, Expr right ) : Expr
+    public class Unary( Token @operator, Expr right ) : Expr
     {
-        public readonly Token Oper = oper;
+        public readonly Token Operator = @operator;
         public readonly Expr Right = right;
 
         public override T Accept<T>( IVisitor<T> visitor )

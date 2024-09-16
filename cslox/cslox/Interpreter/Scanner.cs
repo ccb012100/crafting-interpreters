@@ -1,4 +1,7 @@
-﻿namespace cslox;
+﻿using cslox.DataTypes;
+using cslox.Extensions;
+
+namespace cslox.Interpreter;
 
 internal class Scanner( string source )
 {

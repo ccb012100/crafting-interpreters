@@ -1,1 +1,1 @@
-global using static cslox.TokenType;
+global using static cslox.DataTypes.TokenType;

@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using cslox.Extensions;
+
 namespace cslox;
 
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -22,7 +24,7 @@ internal class Program
 
                 return;
             default:
-                Console.WriteLine( "Usage: dotnet run [script]" );
+                Console.WriteLine( "Usage: dotnet run [SCRIPT]" );
                 Environment.Exit( 64 );
 
                 break;
