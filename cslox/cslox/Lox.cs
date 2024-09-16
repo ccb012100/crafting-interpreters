@@ -39,6 +39,8 @@ public static class Lox
         }
 
         Console.WriteLine( new AstPrinter().Print( expression ) );
+
+        Console.WriteLine( new RpnPrinter().Print( expression ) );
     }
 
     public static void RunPrompt()
@@ -118,6 +120,37 @@ public static class Lox
             }
 
             return builder.Append( ')' ).ToString();
+        }
+    }
+
+    /// <summary>
+    ///     Print in Reverse Polish Notation
+    /// </summary>
+    private class RpnPrinter : Expr.IVisitor<string>
+    {
+        public string VisitBinaryExpr( Expr.Binary expr )
+        {
+            return $"{expr.Left.Accept( this )} {expr.Right.Accept( this )} {expr.Operator.Lexeme}";
+        }
+
+        public string VisitGroupingExpr( Expr.Grouping expr )
+        {
+            return expr.Expression.Accept( this );
+        }
+
+        public string VisitLiteralExpr( Expr.Literal expr )
+        {
+            return expr.Value == null ? "nil" : expr.Value.ToString();
+        }
+
+        public string VisitUnaryExpr( Expr.Unary expr )
+        {
+            return $"{expr.Right.Accept( this )} {expr.Oper.Lexeme}";
+        }
+
+        public string Print( Expr expr )
+        {
+            return expr.Accept( this );
         }
     }
 }
