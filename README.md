@@ -17,23 +17,23 @@ For feature commits, the subject line follows the format:
 
 ### `cslox`
 
-This includes the "extra credit" grammar such as `ternary` and `comma` that I've implemented on top of the core **Java** **Lox** implementation.
+This includes the "extra credit" grammar such as `ternary` and `comma` that I've implemented on top of the "core" **Lox** implementation from the book.
 
 ```console
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                       Expression Grammar                                 │
 ├──────────────────────────────────────────────────────────────────────────┤
-│    expression      →    ternary ;                                        │
-│    ternary         →    comma ( "?" comma ":" comma )*;                  │
-│    comma           →    "(" equality ( "," equality )* ;                 │
-│    equality        →    comparison ( ( "!=" | "==" ) comparison )*;      │
-│    comparison      →    term ( ( ">" | ">=" | "<" | "<=" ) term )* ;     │
-│    term            →    factor ( ( "-" | "+" ) factor )*;                │
-│    factor          →    unary ( ( "/" | "*" ) unary )* ;                 │
-│    unary           →    ( "!" | "-" ) unary                              │
-│                    |    primary ;                                        │
-│    primary         →    NUMBER | STRING | "true" | "false" | "nil"       │
-│                    |    "(" expression ")" ;                             │
+│    expression   →   ternary ;                                            │
+│    ternary      →   comma ( "?" comma ":" comma )*;                      │
+│    comma        →   "(" equality ( "," equality )* ;                     │
+│    equality     →   comparison ( ( "!=" | "==" ) comparison )*;          │
+│    comparison   →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;         │
+│    term         →   factor ( ( "-" | "+" ) factor )*;                    │
+│    factor       →   unary ( ( "/" | "*" ) unary )* ;                     │
+│    unary        →   ( "!" | "-" ) unary                                  │
+│                 |   primary ;                                            │
+│    primary      →   NUMBER | STRING | "true" | "false" | "nil"           │
+│                 |   "(" expression ")" ;                                 │
 └──────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────┐
