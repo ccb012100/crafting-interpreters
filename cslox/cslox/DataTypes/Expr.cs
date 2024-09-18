@@ -28,7 +28,7 @@ internal abstract class Expr
     {
         public readonly Expr Expression = expression;
 
-        public override TR Accept<TR>( IVisitor<TR> visitor )
+        public override T Accept<T>( IVisitor<T> visitor )
         {
             return visitor.VisitGroupingExpr( this );
         }

@@ -115,7 +115,7 @@ internal static class AstGenerator
         {
             /*
                 ```
-                internal interface Visitor<R>
+                internal interface Visitor<T>
                 {
                     R visitTypename1Basename(TypenameBasename);
                     R visitTypename2Basename(TypenameBasename);
