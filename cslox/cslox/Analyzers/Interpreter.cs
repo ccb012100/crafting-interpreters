@@ -29,6 +29,11 @@ internal class Interpreter : Expr.IVisitor<object>
             case SLASH:
                 CheckNumberOperands( expr.Operator, left, right );
 
+                if ((double)right == 0)
+                {
+                    throw new RuntimeError( expr.Operator, "Division by 0." );
+                }
+
                 return (double)left / (double)right;
             case STAR:
                 CheckNumberOperands( expr.Operator, left, right );
