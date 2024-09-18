@@ -1,6 +1,4 @@
-﻿using cslox.DataTypes;
-
-namespace cslox.Interpreters;
+﻿namespace cslox.Analyzers;
 internal class Parser( List<Token> tokens )
 {
     private readonly List<Token> _tokens = tokens;

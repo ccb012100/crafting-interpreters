@@ -1,6 +1,6 @@
-using cslox.DataTypes;
+namespace cslox.DataTypes;
 
-internal class RuntimeError( Token token, String message ) : Exception( message )
+internal class RuntimeError( Token token, string message ) : Exception( message )
 {
     public readonly Token Token = token;
 }

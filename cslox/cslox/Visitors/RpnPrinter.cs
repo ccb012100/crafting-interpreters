@@ -1,5 +1,3 @@
-using cslox.DataTypes;
-
 namespace cslox.Visitors;
 
 /// <summary>

@@ -1,6 +1,5 @@
-using cslox.DataTypes;
+namespace cslox.Analyzers;
 
-namespace cslox.Interpreters;
 internal class Interpreter : Expr.IVisitor<object>
 {
     public void Interpret( Expr expression )
@@ -25,30 +24,39 @@ internal class Interpreter : Expr.IVisitor<object>
         {
             case MINUS:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left - (double)right;
             case SLASH:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left / (double)right;
             case STAR:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left * (double)right;
             case GREATER:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left > (double)right;
             case GREATER_EQUAL:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left >= (double)right;
             case LESS:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left < (double)right;
             case LESS_EQUAL:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return (double)left <= (double)right;
             case BANG_EQUAL:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return !IsEqual( left, right );
             case EQUAL_EQUAL:
                 CheckNumberOperands( expr.Operator, left, right );
+
                 return IsEqual( left, right );
             case PLUS:
                 if (left is double dl && right is double dr)
@@ -66,7 +74,7 @@ internal class Interpreter : Expr.IVisitor<object>
                 }
             default:
                 return null; // unreachable
-        };
+        }
     }
 
     public object VisitGroupingExpr( Expr.Grouping expr )
@@ -89,8 +97,9 @@ internal class Interpreter : Expr.IVisitor<object>
                 return !IsTruthy( right );
             case MINUS:
                 CheckNumberOperand( expr.Operator, right );
+
                 return -(double)right;
-        };
+        }
 
         return null; // Unreachable
     }

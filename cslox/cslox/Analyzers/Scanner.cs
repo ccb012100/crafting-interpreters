@@ -1,7 +1,6 @@
-﻿using cslox.DataTypes;
-using cslox.Extensions;
+﻿using cslox.Extensions;
 
-namespace cslox.Interpreters;
+namespace cslox.Analyzers;
 internal class Scanner( string source )
 {
     private static readonly Dictionary<string, TokenType> s_keywords = new()

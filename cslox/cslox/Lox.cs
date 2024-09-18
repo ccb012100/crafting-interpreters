@@ -1,13 +1,13 @@
 ﻿using System.Text;
-using cslox.DataTypes;
-using cslox.Interpreters;
+using cslox.Analyzers;
 
 namespace cslox;
-internal static partial class Lox
+
+internal static class Lox
 {
     private static readonly Interpreter s_interpreter = new();
     private static bool s_hadError;
-    private static bool s_hadRuntimeError = false;
+    private static bool s_hadRuntimeError;
 
     public static void RunFile( string path )
     {
@@ -27,6 +27,7 @@ internal static partial class Lox
         {
             Environment.Exit( 65 );
         }
+
         if (s_hadRuntimeError)
         {
             Environment.Exit( 70 );
@@ -46,7 +47,7 @@ internal static partial class Lox
             return;
         }
 
-        s_interpreter.Interpret(expression);
+        s_interpreter.Interpret( expression );
     }
 
     public static void RunPrompt()
