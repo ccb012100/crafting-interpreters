@@ -22,6 +22,34 @@ internal class Parser( List<Token> tokens )
         return Ternary();
     }
 
+    private Stmt Statement()
+    {
+        if (Match( PRINT ))
+        {
+            return PrintStatement();
+        }
+
+        return ExpressionStatement();
+    }
+
+    private Stmt PrintStatement()
+    {
+        Expr value = Expression();
+
+        Consume( SEMICOLON, "Expect ';' after value." );
+
+        return new Stmt.PrintStatement( value );
+    }
+
+    private Stmt ExpressionStatement()
+    {
+        Expr expr = Expression();
+
+        Consume( SEMICOLON, "Expect ';' after expression." );
+
+        return new Stmt.ExpressionStatement( expr );
+    }
+
     private Expr Ternary()
     {
         Expr expr = Comma();

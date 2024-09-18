@@ -22,5 +22,14 @@ internal static class Program
                 "Unary    : Token oper, Expr right"
             ]
         );
+
+        AstGenerator.DefineAst(
+            outputDir,
+            "Stmt",
+            [
+                "ExpressionStatement : Expr expression",
+                "PrintStatement      : Expr expression"
+            ]
+        );
     }
 }

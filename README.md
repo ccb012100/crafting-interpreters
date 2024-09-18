@@ -23,17 +23,25 @@ This includes the "extra credit" grammar such as `ternary` and `comma` that I've
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                       Expression Grammar                                 │
 ├──────────────────────────────────────────────────────────────────────────┤
-│    expression   →   ternary ;                                            │
-│    ternary      →   comma ( "?" comma ":" comma )*;                      │
-│    comma        →   "(" equality ( "," equality )* ;                     │
-│    equality     →   comparison ( ( "!=" | "==" ) comparison )*;          │
-│    comparison   →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;         │
-│    term         →   factor ( ( "-" | "+" ) factor )*;                    │
-│    factor       →   unary ( ( "/" | "*" ) unary )* ;                     │
-│    unary        →   ( "!" | "-" ) unary                                  │
-│                 |   primary ;                                            │
-│    primary      →   NUMBER | STRING | "true" | "false" | "nil"           │
-│                 |   "(" expression ")" ;                                 │
+│    program        →   statement* EOF ;                                   │
+│                                                                          │
+│    statement      →   exprStmt                                           │
+│                   |   printStmt ;                                        │
+│                                                                          │
+│    exprStmt       →   expression ";" ;                                   │
+│    printStmt      →   "print" expression ";" ;                           │
+│                                                                          │
+│    expression     →   ternary ;                                          │
+│    ternary        →   comma ( "?" comma ":" comma )*;                    │
+│    comma          →   "(" equality ( "," equality )* ;                   │
+│    equality       →   comparison ( ( "!=" | "==" ) comparison )*;        │
+│    comparison     →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;       │
+│    term           →   factor ( ( "-" | "+" ) factor )*;                  │
+│    factor         →   unary ( ( "/" | "*" ) unary )* ;                   │
+│    unary          →   ( "!" | "-" ) unary                                │
+│                   |   primary ;                                          │
+│    primary        →   NUMBER | STRING | "true" | "false" | "nil"         │
+│                   |   "(" expression ")" ;                               │
 └──────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────────────────────────────────────────────────────────────┐

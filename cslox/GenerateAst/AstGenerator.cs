@@ -34,7 +34,7 @@ internal static class AstGenerator
         BlankLine();
 
         // The base accept() method
-        writer.WriteLine( $"{tab}public abstract R accept<R>(Visitor<R> visitor);" );
+        writer.WriteLine( $"{tab}public abstract T accept<T>(IVisitor<T> visitor);" );
 
         writer.WriteLine( "}" );
         writer.Close();
@@ -82,13 +82,13 @@ internal static class AstGenerator
                 Visitor pattern
 
                 ```
-                public override R Accept(Visitor<R> visitor) => return visitor.visitClassnameBasename(this);
+                public override T Accept(Visitor<T> visitor) => return Visitor.VisitClassnameBasename(this);
                 ```
              */
             BlankLine();
 
             writer.WriteLine(
-                $"{tab}{tab}public override R accept<R>(Visitor<R> visitor) => visitor.visit{className}{baseName}(this);"
+                $"{tab}{tab}public override T Accept<T>(IVisitor<T> visitor) => visitor.visit{className}{baseName}(this);"
             );
 
             BlankLine();
@@ -124,12 +124,12 @@ internal static class AstGenerator
                 }
                 ```
             */
-            writer.WriteLine( $"{tab}internal interface Visitor<out R>" );
+            writer.WriteLine( $"{tab}internal interface IVisitor<out T>" );
             writer.WriteLine( $"{tab}{{" );
 
             foreach (string typeName in types.Select( type => type.Split( ':' )[0].Trim() ))
             {
-                writer.WriteLine( $"{tab}{tab}R visit{typeName}{baseName}({typeName} {baseName.ToLowerInvariant()});" );
+                writer.WriteLine( $"{tab}{tab}T visit{typeName}{baseName}({typeName} {baseName.ToLowerInvariant()});" );
             }
 
             writer.WriteLine( $"{tab}}}" );
