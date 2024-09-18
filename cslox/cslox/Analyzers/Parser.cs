@@ -1,20 +1,21 @@
 ﻿namespace cslox.Analyzers;
+
 internal class Parser( List<Token> tokens )
 {
     private readonly List<Token> _tokens = tokens;
 
     private int _current;
 
-    public Expr Parse()
+    public List<Stmt> Parse()
     {
-        try
+        List<Stmt> statements = [];
+
+        while (!IsAtEnd())
         {
-            return Expression();
+            statements.Add( Statement() );
         }
-        catch (ParseError)
-        {
-            return null;
-        }
+
+        return statements;
     }
 
     private Expr Expression()
