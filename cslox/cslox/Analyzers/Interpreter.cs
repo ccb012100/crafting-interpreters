@@ -64,19 +64,15 @@ internal class Interpreter : Expr.IVisitor<object>
 
                 return IsEqual( left, right );
             case PLUS:
-                if (left is double dl && right is double dr)
+                return (left, right) switch
                 {
-                    return dl + dr;
-                }
-                else
-                {
-                    if (left is string sl && right is string sr)
-                    {
-                        return sl + sr;
-                    }
+                    (double dl, double dr) => dl + dr,
+                    (string sl, double dr) => sl + Stringify( dr ),
+                    (double dl, string sr) => Stringify( dl ) + sr,
+                    (string sl, string sr) => sl + sr,
+                    _ => throw new RuntimeError( expr.Operator, "Operands must be number or strings." )
+                };
 
-                    throw new RuntimeError( expr.Operator, "Operands must both be number or both be strings." );
-                }
             default:
                 return null; // unreachable
         }
@@ -146,6 +142,8 @@ internal class Interpreter : Expr.IVisitor<object>
 
                     return str.EndsWith( ".00" ) ? str[..^3] : str;
                 }
+            case string s:
+                return s;
             default:
                 return obj.ToString();
         }
@@ -165,11 +163,11 @@ internal class Interpreter : Expr.IVisitor<object>
     {
         switch (left, right)
         {
-            case (double, double ):
+            case (double, double):
                 return;
-            case (double, _ ):
+            case (double, _):
                 throw new RuntimeError( @operator, "Right operand must be a number." );
-            case (_, double ):
+            case (_, double):
                 throw new RuntimeError( @operator, "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator, "Operands must be numbers." );
