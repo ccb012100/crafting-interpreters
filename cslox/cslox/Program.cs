@@ -5,18 +5,15 @@ using cslox.Extensions;
 namespace cslox;
 
 // ReSharper disable once ClassNeverInstantiated.Global
-internal class Program
-{
-    private static void Main( string[] args )
-    {
+internal class Program {
+    private static void Main( string[ ] args ) {
         Console.WriteLine( $"*args* {args.toJson( false )}\n" );
 
         // using exit code convention from UNIX “sysexits.h” header https://www.freebsd.org/cgi/man.cgi?query=sysexits
-        switch (args.Length)
-        {
+        switch ( args.Length ) {
             case 0:
                 Console.WriteLine( "Enter code:" );
-                Lox.RunPrompt();
+                Lox.RunPrompt( );
 
                 return;
             case 1:
