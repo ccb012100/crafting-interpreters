@@ -1,16 +1,21 @@
+using static cslox.DataTypes.Expr;
+using static cslox.DataTypes.Stmt;
+
 namespace cslox.Analyzers;
 
-internal class Interpreter : Expr.IVisitor<object> {
-    public void Interpret( Expr expression ) {
-        try {
-            object value = Evaluate( expression );
-            Console.WriteLine( Stringify( value ) );
-        } catch ( RuntimeError e ) {
-            Lox.RuntimeError( e );
-        }
+internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
+    private Environment _environment = new( );
+
+    #region Expr.IVisitor<object>
+
+    public object VisitAssignExpression( AssignExpression expr ) {
+        object value = Evaluate( expr.Value );
+        _environment.Assign( expr.Name , value );
+
+        return value;
     }
 
-    public object VisitBinaryExpr( Expr.Binary expr ) {
+    public object VisitBinaryExpression( BinaryExpression expr ) {
         object left = Evaluate( expr.Left );
         object right = Evaluate( expr.Right );
 
@@ -56,11 +61,11 @@ internal class Interpreter : Expr.IVisitor<object> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return (left, right) switch {
-                    (double dl, double dr ) => dl + dr,
-                    (string sl, double dr ) => sl + Stringify( dr ),
-                    (double dl, string sr ) => Stringify( dl ) + sr,
-                    (string sl, string sr ) => sl + sr,
+                return ( left , right ) switch {
+                    (double dl , double dr) => dl + dr ,
+                    (string sl , double dr) => sl + Stringify( dr ) ,
+                    (double dl , string sr) => Stringify( dl ) + sr ,
+                    (string sl , string sr) => sl + sr ,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -69,15 +74,15 @@ internal class Interpreter : Expr.IVisitor<object> {
         }
     }
 
-    public object VisitGroupingExpr( Expr.Grouping expr ) {
+    public object VisitGroupingExpression( GroupingExpression expr ) {
         return Evaluate( expr.Expression );
     }
 
-    public object VisitLiteralExpr( Expr.Literal expr ) {
+    public object VisitLiteralExpression( LiteralExpression expr ) {
         return expr.Value;
     }
 
-    public object VisitUnaryExpr( Expr.Unary expr ) {
+    public object VisitUnaryExpression( UnaryExpression expr ) {
         object right = Evaluate( expr.Right );
 
         switch ( expr.Operator.Type ) {
@@ -92,14 +97,89 @@ internal class Interpreter : Expr.IVisitor<object> {
         return null; // Unreachable
     }
 
+    public object VisitVariableExpression( VariableExpression expr ) {
+        return _environment.Get( expr.Name );
+    }
+
+    #endregion
+
+    #region Stmt.IVisitor<ValueTuple>
+
+    public ValueTuple VisitExpressionStatement( ExpressionStatement stmt ) {
+        Evaluate( stmt.Expression );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitPrintStatement( PrintStatement stmt ) {
+        object value = Evaluate( stmt.Expression );
+        Console.WriteLine( Stringify( value ) );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitReturnStatement( ReturnStatement stmt ) {
+        throw new NotImplementedException( );
+    }
+
+    public ValueTuple VisitVarStatement( VarStatement stmt ) {
+        object value = null;
+
+        if ( stmt.Initializer is not null ) {
+            value = Evaluate( stmt.Initializer );
+        }
+
+        _environment.Define( stmt.Name.Lexeme , value );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitBlockStatement( BlockStatement stmt ) {
+        ExecuteBlock( stmt.Statements , new Environment( _environment ) );
+
+        return ValueTuple.Create( );
+    }
+
+    #endregion
+
+    public void Interpret( List<Stmt> statements ) {
+        try {
+            foreach ( Stmt statement in statements ) {
+                Execute( statement );
+            }
+        } catch ( RuntimeError e ) {
+            Lox.RuntimeError( e );
+        }
+    }
+
+    #region private methods
+
     private object Evaluate( Expr expr ) {
         return expr.Accept( this );
     }
 
+    private void Execute( Stmt stmt ) {
+        stmt.Accept( this );
+    }
+
+    private void ExecuteBlock( List<Stmt> statements , Environment environment ) {
+        Environment previous = _environment;
+
+        try {
+            _environment = environment;
+
+            foreach ( Stmt stmt in statements ) {
+                Execute( stmt );
+            }
+        } finally {
+            _environment = previous;
+        }
+    }
+
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false,
-            bool b => b,
+            null => false ,
+            bool b => b ,
             _ => true
         };
     }
@@ -118,10 +198,10 @@ internal class Interpreter : Expr.IVisitor<object> {
             case null:
                 return "nil";
             case double d: {
-                    string str = d.ToString( "N2" );
+                string str = d.ToString( "N2" );
 
-                    return str.EndsWith( ".00" ) ? str[..^3] : str;
-                }
+                return str.EndsWith( ".00" ) ? str[..^3] : str;
+            }
             case string s:
                 return s;
             default:
@@ -138,15 +218,17 @@ internal class Interpreter : Expr.IVisitor<object> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch (left, right) {
-            case (double, double ):
+        switch ( left , right ) {
+            case (double , double):
                 return;
-            case (double, _ ):
+            case (double , _):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_, double ):
+            case (_ , double):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );
         }
     }
+
+    #endregion
 }

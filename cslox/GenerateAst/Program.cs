@@ -13,10 +13,12 @@ internal static class Program {
             outputDir ,
             "Expr" ,
             [
+                "Assign   : Token name, Expr value" ,
                 "Binary   : Expr left, Token oper, Expr right" ,
                 "Grouping : Expr expression" ,
                 "Literal  : object value" ,
-                "Unary    : Token oper, Expr right"
+                "Unary    : Token oper, Expr right" ,
+                "Variable : Token name"
             ]
         );
 
@@ -24,8 +26,10 @@ internal static class Program {
             outputDir ,
             "Stmt" ,
             [
+                "BlockStatement      : List<Stmt> statements",
                 "ExpressionStatement : Expr expression" ,
-                "PrintStatement      : Expr expression"
+                "PrintStatement      : Expr expression" ,
+                "Var                 : Token name, Expr initializer"
             ]
         );
     }

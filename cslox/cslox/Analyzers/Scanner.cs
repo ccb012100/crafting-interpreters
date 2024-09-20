@@ -1,6 +1,7 @@
 ﻿using cslox.Extensions;
 
 namespace cslox.Analyzers;
+
 internal class Scanner( string source ) {
     private static readonly Dictionary<string , TokenType> s_keywords = new( )
     {
@@ -23,7 +24,6 @@ internal class Scanner( string source ) {
     };
 
     private readonly List<char> _scanningErrors = [ ];
-    private readonly string _source = source;
     private readonly List<Token> _tokens = [ ];
     private int _current;
     private int _line = 1;
@@ -64,7 +64,7 @@ internal class Scanner( string source ) {
     }
 
     private bool IsAtEnd( ) {
-        return _current >= _source.Length;
+        return _current >= source.Length;
     }
 
     private bool ScanToken( ) {
@@ -119,6 +119,7 @@ internal class Scanner( string source ) {
                 break;
             case '?':
                 AddToken( QUESTION_MARK );
+
                 break;
             case '!':
                 AddToken( Match( '=' ) ? BANG_EQUAL : BANG );
@@ -203,11 +204,11 @@ internal class Scanner( string source ) {
     }
 
     private char Advance( ) {
-        return _source[_current++];
+        return source[_current++];
     }
 
     private void AddToken( TokenType type , object literal = null ) {
-        string text = _source.Substring( _start , _current - _start ); // [start, current]
+        string text = source.Substring( _start , _current - _start ); // [start, current]
 
         _tokens.Add( new Token( type , text , literal , _line ) );
     }
@@ -218,7 +219,7 @@ internal class Scanner( string source ) {
             return false;
         }
 
-        if ( _source[_current] != expected ) {
+        if ( source[_current] != expected ) {
             return false;
         }
 
@@ -228,11 +229,11 @@ internal class Scanner( string source ) {
     }
 
     private char Peek( ) {
-        return IsAtEnd( ) ? '\0' : _source[_current];
+        return IsAtEnd( ) ? '\0' : source[_current];
     }
 
     private char PeekNext( ) {
-        return _current + 1 >= _source.Length ? '\0' : _source[_current + 1];
+        return _current + 1 >= source.Length ? '\0' : source[_current + 1];
     }
 
     private void AddString( char quoteType ) {
@@ -255,7 +256,7 @@ internal class Scanner( string source ) {
         Advance( );
 
         // Trim the surrounding quotes
-        string value = _source.Substring( _start + 1 , _current - _start - 2 );
+        string value = source.Substring( _start + 1 , _current - _start - 2 );
         AddToken( STRING , value );
     }
 
@@ -274,7 +275,7 @@ internal class Scanner( string source ) {
             }
         }
 
-        AddToken( NUMBER , double.Parse( _source.Substring( _start , _current - _start ) ) );
+        AddToken( NUMBER , double.Parse( source.Substring( _start , _current - _start ) ) );
     }
 
     private void AddIdentifier( ) {
@@ -282,7 +283,7 @@ internal class Scanner( string source ) {
             Advance( );
         }
 
-        string text = _source.Substring( _start , _current - _start );
+        string text = source.Substring( _start , _current - _start );
 
         TokenType type = s_keywords.GetValueOrDefault( text , IDENTIFIER );
 

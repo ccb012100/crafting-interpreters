@@ -1,9 +1,15 @@
 using System.Text;
 
+using static cslox.DataTypes.Expr;
+
 namespace cslox.Visitors;
 
-internal class AstPrinter : Expr.IVisitor<string> {
-    public string VisitBinaryExpr( Expr.Binary expr ) {
+internal class AstPrinter : IVisitor<string> {
+    public string VisitAssignExpression( AssignExpression expr ) {
+        throw new NotImplementedException( );
+    }
+
+    public string VisitBinaryExpression( BinaryExpression expr ) {
         return Parenthesize(
             expr.Operator.Lexeme ,
             expr.Left ,
@@ -11,16 +17,20 @@ internal class AstPrinter : Expr.IVisitor<string> {
         );
     }
 
-    public string VisitGroupingExpr( Expr.Grouping expr ) {
+    public string VisitGroupingExpression( GroupingExpression expr ) {
         return Parenthesize( "group" , expr.Expression );
     }
 
-    public string VisitLiteralExpr( Expr.Literal expr ) {
+    public string VisitLiteralExpression( LiteralExpression expr ) {
         return expr.Value == null ? "nil" : expr.Value.ToString( );
     }
 
-    public string VisitUnaryExpr( Expr.Unary expr ) {
+    public string VisitUnaryExpression( UnaryExpression expr ) {
         return Parenthesize( expr.Operator.Lexeme , expr.Right );
+    }
+
+    public string VisitVariableExpression( VariableExpression expr ) {
+        throw new NotImplementedException( );
     }
 
     public string Print( Expr expr ) {

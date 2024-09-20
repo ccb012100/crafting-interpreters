@@ -76,13 +76,13 @@ internal static class AstGenerator {
                 Visitor pattern
 
                 ```
-                public override T Accept(Visitor<T> visitor) => return Visitor.VisitClassnameBasename(this);
+                public override T Accept(Visitor<T> visitor) => return Visitor.VisitClassname(this);
                 ```
              */
             BlankLine( );
 
             writer.WriteLine(
-                $"{tab}{tab}public override T Accept<T>(IVisitor<T> visitor) => visitor.visit{className}{baseName}(this);"
+                $"{tab}{tab}public override T Accept<T>(IVisitor<T> visitor) => visitor.visit{className}(this);"
             );
 
             BlankLine( );
@@ -109,10 +109,10 @@ internal static class AstGenerator {
                 ```
                 internal interface Visitor<T>
                 {
-                    R visitTypename1Basename(TypenameBasename);
-                    R visitTypename2Basename(TypenameBasename);
+                    T visitTypename1(Typename Basename);
+                    T visitTypename2(Typename Basename);
                     ...
-                    R visitTypenameNBasename(TypenameBasename);
+                    T visitTypenameN(Typename Basename);
                 }
                 ```
             */
@@ -120,7 +120,7 @@ internal static class AstGenerator {
             writer.WriteLine( $"{tab}{{" );
 
             foreach ( string typeName in types.Select( type => type.Split( ':' )[0].Trim( ) ) ) {
-                writer.WriteLine( $"{tab}{tab}T visit{typeName}{baseName}({typeName} {baseName.ToLowerInvariant( )});" );
+                writer.WriteLine( $"{tab}{tab}T visit{typeName}({typeName} {baseName.ToLowerInvariant( )});" );
             }
 
             writer.WriteLine( $"{tab}}}" );

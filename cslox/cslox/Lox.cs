@@ -2,6 +2,8 @@
 
 using cslox.Analyzers;
 
+using Environment = System.Environment;
+
 namespace cslox;
 
 internal static class Lox {
@@ -16,9 +18,7 @@ internal static class Lox {
         }
 
         byte[ ] bytes = File.ReadAllBytes( path );
-        // TODO: get encoding of path
-        string source = Encoding.Default.GetString( bytes );
-        Console.WriteLine( $"*source* {source}" );
+        string source = Encoding.Default.GetString( bytes ); // TODO: get encoding of path
         Run( source );
 
         if ( s_hadError ) {
@@ -34,14 +34,14 @@ internal static class Lox {
         Scanner scanner = new( source );
         List<Token> tokens = scanner.ScanTokens( );
         Parser parser = new( tokens );
-        Expr expression = parser.Parse( );
+        List<Stmt> statements = parser.Parse( );
 
         // Stop if there was a syntax error.
         if ( s_hadError ) {
             return;
         }
 
-        s_interpreter.Interpret( expression );
+        s_interpreter.Interpret( statements );
     }
 
     public static void RunPrompt( ) {

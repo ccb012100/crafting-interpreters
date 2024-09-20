@@ -17,50 +17,63 @@ For feature commits, the subject line follows the format:
 
 ### `cslox`
 
-This includes the "extra credit" grammar such as `ternary` and `comma` that I've implemented on top of the "core" **Lox** implementation from the book.
+This includes the "extra credit" grammar such as `ternary` and `comma` that I've implemented on top of the "core" **Lox** implementation from the
+book.
 
 ```console
-┌──────────────────────────────────────────────────────────────────────────┐
-│                       Expression Grammar                                 │
-├──────────────────────────────────────────────────────────────────────────┤
-│    program        →   statement* EOF ;                                   │
-│                                                                          │
-│    statement      →   exprStmt                                           │
-│                   |   printStmt ;                                        │
-│                                                                          │
-│    exprStmt       →   expression ";" ;                                   │
-│    printStmt      →   "print" expression ";" ;                           │
-│                                                                          │
-│    expression     →   ternary ;                                          │
-│    ternary        →   comma ( "?" comma ":" comma )*;                    │
-│    comma          →   "(" equality ( "," equality )* ;                   │
-│    equality       →   comparison ( ( "!=" | "==" ) comparison )*;        │
-│    comparison     →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;       │
-│    term           →   factor ( ( "-" | "+" ) factor )*;                  │
-│    factor         →   unary ( ( "/" | "*" ) unary )* ;                   │
-│    unary          →   ( "!" | "-" ) unary                                │
-│                   |   primary ;                                          │
-│    primary        →   NUMBER | STRING | "true" | "false" | "nil"         │
-│                   |   "(" expression ")" ;                               │
-└──────────────────────────────────────────────────────────────────────────┘
+╭────────────────────────────────────────────────────────────────────────────╮
+│                       Expression Grammar                                   │░
+├────────────────────────────────────────────────────────────────────────────┤░
+│    program        →   declaration* EOF ;                                   │░
+│                                                                            │░
+│    declaration    →   varDecl                                              │░
+│                   |   statement ;                                          │░
+│                                                                            │░
+│    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
+│                                                                            │░
+│    statement      →   exprStmt                                             │░
+│                   |   printStmt                                            │░
+│                   |   block ;                                              │░
+│                                                                            │░
+│    exprStmt       →   expression ";" ;                                     │░
+│    printStmt      →   "print" expression ";" ;                             │░
+│                                                                            │░
+│    expression     →   ternary ;                                            │░
+│    ternary        →   comma ( "?" comma ":" comma )*;                      │░
+│    comma          →   "(" assignment ( "," assignment )* ;                 │░
+│    assignment     →   IDENTIFIER "=" assignment                            │░
+│                   |   equality ;                                           │░
+│    equality       →   comparison ( ( "!=" | "==" ) comparison )*;          │░
+│    comparison     →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;         │░
+│    term           →   factor ( ( "-" | "+" ) factor )*;                    │░
+│    factor         →   unary ( ( "/" | "*" ) unary )* ;                     │░
+│    unary          →   ( "!" | "-" ) unary                                  │░
+│                   |   primary ;                                            │░
+│    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
+│                   |   "(" expression ")" ;                                 │░
+│                   |   IDENTIFIER ;                                         │░
+╰────────────────────────────────────────────────────────────────────────────╯░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-┌──────────────────────────────────────────────────────────────────────────┐
-│    Grammar notation    |   Code representation                           │
-├──────────────────────────────────────────────────────────────────────────┤
-│    Terminal            |   Code to match and consume a token             │
-│    Non-terminal        |   Call to that rule’s function                  │
-│    |                   |   if or switch statement                        │
-│    * or +              |   while or for loop                             │
-│    ?                   |   if statement                                  │
-└──────────────────────────────────────────────────────────────────────────┘
+╔════════════════════════╦═══════════════════════════════════════════════════╗
+║    Grammar notation    ║   Code representation                             ║░
+╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
+║    Terminal            ║   Code to match and consume a token               ║░
+║    Non-terminal        ║   Call to that rule’s function                    ║░
+║    |                   ║   if or switch statement                          ║░
+║    * or +              ║   while or for loop                               ║░
+║    ?                   ║   if statement                                    ║░
+╚════════════════════════╩═══════════════════════════════════════════════════╝░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-┌──────────────────────────────────────────────────────────────────────────┐
-│    Lox Type            |   C# representation                             │
-├──────────────────────────────────────────────────────────────────────────┤
-│    Any Lox value       |   object                                        │
-│    nil                 |   null                                          │
-│    Boolean             |   boolean                                       │
-│    number              |   Double                                        │
-│    string              |   string                                        │
-└──────────────────────────────────────────────────────────────────────────┘
+╔════════════════════════╦═══════════════════════════════════════════════════╗
+║    Lox Type            ║   C# representation                               ║░
+╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
+║    Any Lox value       ║   object                                          ║░
+║    nil                 ║   null                                            ║░
+║    Boolean             ║   boolean                                         ║░
+║    number              ║   Double                                          ║░
+║    string              ║   string                                          ║░
+╚════════════════════════╩═══════════════════════════════════════════════════╝░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ```
