@@ -30,13 +30,13 @@ book.
 │                   |   statement ;                                          │░
 │                                                                            │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
-│                                                                            │░
 │    statement      →   exprStmt                                             │░
 │                   |   printStmt                                            │░
 │                   |   block ;                                              │░
 │                                                                            │░
 │    exprStmt       →   expression ";" ;                                     │░
 │    printStmt      →   "print" expression ";" ;                             │░
+│    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
 │    expression     →   ternary ;                                            │░
 │    ternary        →   comma ( "?" comma ":" comma )*;                      │░
