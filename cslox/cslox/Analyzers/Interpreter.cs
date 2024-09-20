@@ -1,18 +1,16 @@
-using cslox.Extensions;
-
 using static cslox.DataTypes.Expr;
 using static cslox.DataTypes.Stmt;
 
 namespace cslox.Analyzers;
 
-internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
+internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     private Environment _environment = new( );
 
     #region Expr.IVisitor<object>
 
     public object VisitAssignExpression( AssignExpression expr ) {
         object value = Evaluate( expr.Value );
-        _environment.Assign( expr.Name , value );
+        _environment.Assign( expr.Name , value , true );
 
         return value;
     }
@@ -63,11 +61,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return (left, right) switch {
-                    (double dl, double dr ) => dl + dr,
-                    (string sl, double dr ) => sl + Stringify( dr ),
-                    (double dl, string sr ) => Stringify( dl ) + sr,
-                    (string sl, string sr ) => sl + sr,
+                return ( left , right ) switch {
+                    (double dl , double dr) => dl + dr ,
+                    (string sl , double dr) => sl + Stringify( dr ) ,
+                    (double dl , string sr) => Stringify( dl ) + sr ,
+                    (string sl , string sr) => sl + sr ,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -131,7 +129,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             value = Evaluate( stmt.Initializer );
         }
 
-        _environment.Define( stmt.Name.Lexeme , value );
+        _environment.Define( stmt.Name.Lexeme , value , stmt.Initializer != null );
 
         return ValueTuple.Create( );
     }
@@ -188,8 +186,8 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false,
-            bool b => b,
+            null => false ,
+            bool b => b ,
             _ => true
         };
     }
@@ -208,10 +206,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             case null:
                 return "nil";
             case double d: {
-                    string str = d.ToString( "N2" );
+                string str = d.ToString( "N2" );
 
-                    return str.EndsWith( ".00" ) ? str[..^3] : str;
-                }
+                return str.EndsWith( ".00" ) ? str[..^3] : str;
+            }
             case string s:
                 return s;
             default:
@@ -228,12 +226,12 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch (left, right) {
-            case (double, double ):
+        switch ( left , right ) {
+            case (double , double):
                 return;
-            case (double, _ ):
+            case (double , _):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_, double ):
+            case (_ , double):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );
