@@ -1,49 +1,51 @@
 using System.Text;
 
+using static cslox.DataTypes.Expr;
+
 namespace cslox.Visitors;
 
-internal class AstPrinter : Expr.IVisitor<string>
-{
-    public string VisitBinaryExpr( Expr.Binary expr )
-    {
+internal class AstPrinter : IVisitor<string> {
+    public string VisitAssignExpression( AssignExpression expr ) {
+        throw new NotImplementedException( );
+    }
+
+    public string VisitBinaryExpression( BinaryExpression expr ) {
         return Parenthesize(
-            expr.Operator.Lexeme,
-            expr.Left,
+            expr.Operator.Lexeme ,
+            expr.Left ,
             expr.Right
         );
     }
 
-    public string VisitGroupingExpr( Expr.Grouping expr )
-    {
-        return Parenthesize( "group", expr.Expression );
+    public string VisitGroupingExpression( GroupingExpression expr ) {
+        return Parenthesize( "group" , expr.Expression );
     }
 
-    public string VisitLiteralExpr( Expr.Literal expr )
-    {
-        return expr.Value == null ? "nil" : expr.Value.ToString();
+    public string VisitLiteralExpression( LiteralExpression expr ) {
+        return expr.Value == null ? "nil" : expr.Value.ToString( );
     }
 
-    public string VisitUnaryExpr( Expr.Unary expr )
-    {
-        return Parenthesize( expr.Operator.Lexeme, expr.Right );
+    public string VisitUnaryExpression( UnaryExpression expr ) {
+        return Parenthesize( expr.Operator.Lexeme , expr.Right );
     }
 
-    public string Print( Expr expr )
-    {
+    public string VisitVariableExpression( VariableExpression expr ) {
+        throw new NotImplementedException( );
+    }
+
+    public string Print( Expr expr ) {
         return expr.Accept( this );
     }
 
-    private string Parenthesize( string name, params Expr[] exprs )
-    {
-        StringBuilder builder = new StringBuilder()
+    private string Parenthesize( string name , params Expr[ ] exprs ) {
+        StringBuilder builder = new StringBuilder( )
             .Append( '(' )
             .Append( name );
 
-        foreach (Expr expr in exprs)
-        {
+        foreach ( Expr expr in exprs ) {
             builder.Append( ' ' ).Append( expr.Accept( this ) );
         }
 
-        return builder.Append( ')' ).ToString();
+        return builder.Append( ')' ).ToString( );
     }
 }

@@ -2,8 +2,7 @@
 
 namespace cslox.DataTypes;
 
-public enum TokenType
-{
+public enum TokenType {
     // Single-character tokens
     LEFT_PAREN,
     RIGHT_PAREN,

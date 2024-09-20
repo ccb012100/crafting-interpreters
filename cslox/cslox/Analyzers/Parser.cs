@@ -1,295 +1,319 @@
-﻿namespace cslox.Analyzers;
+﻿using static cslox.DataTypes.Expr;
+using static cslox.DataTypes.Stmt;
 
-internal class Parser( List<Token> tokens )
-{
-    private readonly List<Token> _tokens = tokens;
+namespace cslox.Analyzers;
 
+internal class Parser( List<Token> tokens ) {
     private int _current;
 
-    public List<Stmt> Parse()
-    {
+    public List<Stmt> Parse( ) {
         List<Stmt> statements = [];
 
-        while (!IsAtEnd())
-        {
-            statements.Add( Statement() );
+        while ( !IsAtEnd( ) ) {
+            statements.Add( Declaration( ) );
         }
 
         return statements;
     }
 
-    private Expr Expression()
-    {
-        return Ternary();
-    }
+    #region Stmt
 
-    private Stmt Statement()
-    {
-        if (Match( PRINT ))
-        {
-            return PrintStatement();
+    private Stmt Statement( ) {
+        if ( Match( PRINT ) ) {
+            return PrintStatement( );
         }
 
-        return ExpressionStatement();
+        if ( Match( LEFT_BRACE ) ) {
+            return new BlockStatement( Block( ) );
+        }
+
+        return ExpressionStatement( );
     }
 
-    private Stmt PrintStatement()
-    {
-        Expr value = Expression();
+    private PrintStatement PrintStatement( ) {
+        Expr value = Expression( );
 
-        Consume( SEMICOLON, "Expect ';' after value." );
+        Consume( SEMICOLON , "Expect ';' after value." );
 
-        return new Stmt.PrintStatement( value );
+        return new PrintStatement( value );
     }
 
-    private Stmt ExpressionStatement()
-    {
-        Expr expr = Expression();
+    private VarStatement VarDeclaration( ) {
+        Token name = Consume( IDENTIFIER , "Expect variable name." );
 
-        Consume( SEMICOLON, "Expect ';' after expression." );
+        Expr initializer = null;
 
-        return new Stmt.ExpressionStatement( expr );
+        if ( Match( EQUAL ) ) {
+            initializer = Expression( );
+        }
+
+        Consume( SEMICOLON , "Expect ';' after variable declaration." );
+
+        return new VarStatement( name , initializer );
     }
 
-    private Expr Ternary()
-    {
-        Expr expr = Comma();
+    private ExpressionStatement ExpressionStatement( ) {
+        Expr expr = Expression( );
 
-        if (Match( QUESTION_MARK ))
-        {
-            _ = Ternary();
+        Consume( SEMICOLON , "Expect ';' after expression." );
 
-            Consume( COLON, "Expect ':' after expression." );
+        return new ExpressionStatement( expr );
+    }
 
-            expr = Ternary();
+    private List<Stmt> Block( ) {
+        List<Stmt> statements = [];
+
+        while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
+            statements.Add( Declaration( ) );
+        }
+
+        Consume( RIGHT_BRACE , "Expect '}' after block" );
+
+        return statements;
+    }
+
+    private Stmt Declaration( ) {
+        try {
+            return Match( VAR ) ? VarDeclaration( ) : Statement( );
+        } catch ( ParseError ) {
+            Synchronize( );
+
+            return null;
+        }
+    }
+
+    #endregion
+
+    #region Expr
+
+    private Expr Expression( ) {
+        return Ternary( );
+    }
+
+    private Expr Ternary( ) {
+        Expr expr = Comma( );
+
+        if ( Match( QUESTION_MARK ) ) {
+            _ = Ternary( );
+
+            Consume( COLON , "Expect ':' after expression." );
+
+            expr = Ternary( );
         }
 
         return expr;
     }
 
-    private Expr Comma()
-    {
-        Expr expr = Equality();
+    private Expr Comma( ) {
+        Expr expr = Assignment( );
 
-        while (Match( COMMA ))
-        {
-            expr = Equality();
+        while ( Match( COMMA ) ) {
+            expr = Assignment( );
         }
 
         return expr;
     }
 
-    private Expr Equality()
-    {
-        if (Peek().Type is BANG_EQUAL or EQUAL_EQUAL)
-        {
-            Token @operator = Advance();
-            _ = Comparison(); // right-hand operand
+    private Expr Assignment( ) {
+        Expr expr = Equality( );
 
-            throw Error( @operator, "Missing left-hand operand" );
-        }
+        if ( Match( EQUAL ) ) {
+            Token equals = Previous( );
+            Expr value = Assignment( );
 
-        Expr expr = Comparison();
+            if ( expr is VariableExpression varExpr ) {
+                Token name = varExpr.Name;
 
-        while (Match( BANG_EQUAL, EQUAL_EQUAL ))
-        {
-            Token @operator = Previous();
-            Expr right = Comparison();
-            expr = new Expr.Binary( expr, @operator, right );
+                return new AssignExpression( name , value );
+            }
+
+            Error( equals , "Invalid assignment target." );
         }
 
         return expr;
     }
 
-    private Expr Comparison()
-    {
-        if (Peek().Type is GREATER or GREATER_EQUAL or LESS or LESS_EQUAL)
-        {
-            Token @operator = Advance();
-            _ = Comparison(); // right-hand operand
+    private Expr Equality( ) {
+        if ( Peek( ).Type is BANG_EQUAL or EQUAL_EQUAL ) {
+            Token @operator = Advance( );
+            _ = Comparison( ); // right-hand operand
 
-            throw Error( @operator, "Missing left-hand operand" );
+            throw Error( @operator , "Missing left-hand operand" );
         }
 
-        Expr expr = Term();
+        Expr expr = Comparison( );
 
-        while (Match( GREATER, GREATER_EQUAL, LESS, LESS_EQUAL ))
-        {
-            Token @operator = Previous();
-            Expr right = Term();
-            expr = new Expr.Binary( expr, @operator, right );
+        while ( Match( BANG_EQUAL , EQUAL_EQUAL ) ) {
+            Token @operator = Previous( );
+            Expr right = Comparison( );
+            expr = new BinaryExpression( expr , @operator , right );
         }
 
         return expr;
     }
 
-    private Expr Term()
-    {
-        if (Peek().Type is MINUS or PLUS)
-        {
-            Token @operator = Advance();
-            _ = Comparison(); // right-hand operand
+    private Expr Comparison( ) {
+        if ( Peek( ).Type is GREATER or GREATER_EQUAL or LESS or LESS_EQUAL ) {
+            Token @operator = Advance( );
+            _ = Comparison( ); // right-hand operand
 
-            throw Error( @operator, "Missing left-hand operand" );
+            throw Error( @operator , "Missing left-hand operand" );
         }
 
-        Expr expr = Factor();
+        Expr expr = Term( );
 
-        while (Match( MINUS, PLUS ))
-        {
-            Token @operator = Previous();
-            Expr right = Factor();
-            expr = new Expr.Binary( expr, @operator, right );
+        while ( Match( GREATER , GREATER_EQUAL , LESS , LESS_EQUAL ) ) {
+            Token @operator = Previous( );
+            Expr right = Term( );
+            expr = new BinaryExpression( expr , @operator , right );
         }
 
         return expr;
     }
 
-    private Expr Factor()
-    {
-        if (Peek().Type is SLASH or STAR)
-        {
-            Token @operator = Advance();
-            _ = Comparison(); // right-hand operand
+    private Expr Term( ) {
+        if ( Peek( ).Type is MINUS or PLUS ) {
+            Token @operator = Advance( );
+            _ = Comparison( ); // right-hand operand
 
-            throw Error( @operator, "Missing left-hand operand" );
+            throw Error( @operator , "Missing left-hand operand" );
         }
 
-        Expr expr = Unary();
+        Expr expr = Factor( );
 
-        while (Match( SLASH, STAR ))
-        {
-            Token @operator = Previous();
-            Expr right = Unary();
-            expr = new Expr.Binary( expr, @operator, right );
+        while ( Match( MINUS , PLUS ) ) {
+            Token @operator = Previous( );
+            Expr right = Factor( );
+            expr = new BinaryExpression( expr , @operator , right );
         }
 
         return expr;
     }
 
-    private Expr Unary()
-    {
-        if (Match( BANG, MINUS ))
-        {
-            Token @operator = Previous();
-            Expr right = Unary();
+    private Expr Factor( ) {
+        if ( Peek( ).Type is SLASH or STAR ) {
+            Token @operator = Advance( );
+            _ = Comparison( ); // right-hand operand
 
-            return new Expr.Unary( @operator, right );
+            throw Error( @operator , "Missing left-hand operand" );
         }
 
-        return Primary();
+        Expr expr = Unary( );
+
+        while ( Match( SLASH , STAR ) ) {
+            Token @operator = Previous( );
+            Expr right = Unary( );
+            expr = new BinaryExpression( expr , @operator , right );
+        }
+
+        return expr;
     }
 
-    private Expr Primary()
-    {
-        if (Match( FALSE ))
-        {
-            return new Expr.Literal( false );
+    private Expr Unary( ) {
+        if ( Match( BANG , MINUS ) ) {
+            Token @operator = Previous( );
+            Expr right = Unary( );
+
+            return new UnaryExpression( @operator , right );
         }
 
-        if (Match( TRUE ))
-        {
-            return new Expr.Literal( true );
-        }
-
-        if (Match( NIL ))
-        {
-            return new Expr.Literal( null );
-        }
-
-        if (Match( NUMBER, STRING ))
-        {
-            return new Expr.Literal( Previous().Literal );
-        }
-
-        if (Match( LEFT_PAREN ))
-        {
-            Expr expr = Expression();
-            Consume( RIGHT_PAREN, "Expect ')' after expression." );
-
-            return new Expr.Grouping( expr );
-        }
-
-        throw Error( Peek(), "Expect expression." );
+        return Primary( );
     }
 
-    private bool Match( params TokenType[] types )
-    {
-        if (!types.Any( Check ))
-        {
+    private Expr Primary( ) {
+        if ( Match( FALSE ) ) {
+            return new LiteralExpression( false );
+        }
+
+        if ( Match( TRUE ) ) {
+            return new LiteralExpression( true );
+        }
+
+        if ( Match( NIL ) ) {
+            return new LiteralExpression( null );
+        }
+
+        if ( Match( NUMBER , STRING ) ) {
+            return new LiteralExpression( Previous( ).Literal );
+        }
+
+        if ( Match( IDENTIFIER ) ) {
+            return new VariableExpression( Previous( ) );
+        }
+
+        if ( Match( LEFT_PAREN ) ) {
+            Expr expr = Expression( );
+            Consume( RIGHT_PAREN , "Expect ')' after expression." );
+
+            return new GroupingExpression( expr );
+        }
+
+        throw Error( Peek( ) , "Expect expression." );
+    }
+
+    #endregion
+
+    private bool Match( params TokenType[ ] types ) {
+        if ( !types.Any( Check ) ) {
             return false;
         }
 
-        Advance();
+        Advance( );
 
         return true;
     }
 
-    private bool Check( TokenType type )
-    {
-        if (IsAtEnd())
-        {
+    private bool Check( TokenType type ) {
+        if ( IsAtEnd( ) ) {
             return false;
         }
 
-        return Peek().Type == type;
+        return Peek( ).Type == type;
     }
 
-    private Token Advance()
-    {
-        if (!IsAtEnd())
-        {
+    private Token Advance( ) {
+        if ( !IsAtEnd( ) ) {
             _current++;
         }
 
-        return Previous();
+        return Previous( );
     }
 
-    private bool IsAtEnd()
-    {
-        return Peek().Type == EOF;
+    private bool IsAtEnd( ) {
+        return Peek( ).Type == EOF;
     }
 
-    private Token Peek()
-    {
-        return _tokens.ElementAt( _current );
+    private Token Peek( ) {
+        return tokens.ElementAt( _current );
     }
 
-    private Token Previous()
-    {
-        return _tokens.ElementAt( _current - 1 );
+    private Token Previous( ) {
+        return tokens.ElementAt( _current - 1 );
     }
 
-    private Token Consume( TokenType type, string message )
-    {
-        if (Check( type ))
-        {
-            return Advance();
+    private Token Consume( TokenType type , string message ) {
+        if ( Check( type ) ) {
+            return Advance( );
         }
 
-        throw Error( Peek(), message );
+        throw Error( Peek( ) , message );
     }
 
-    private static ParseError Error( Token token, string message )
-    {
-        Lox.Error( token, message );
+    private static ParseError Error( Token token , string message ) {
+        Lox.Error( token , message );
 
-        return new ParseError();
+        return new ParseError( );
     }
 
-    private void Synchronize()
-    {
-        Advance();
+    private void Synchronize( ) {
+        Advance( );
 
-        while (!IsAtEnd())
-        {
-            if (Previous().Type == SEMICOLON)
-            {
+        while ( !IsAtEnd( ) ) {
+            if ( Previous( ).Type == SEMICOLON ) {
                 return;
             }
 
-            switch (Peek().Type)
-            {
+            switch ( Peek( ).Type ) {
                 case CLASS:
                 case FUN:
                 case VAR:
@@ -301,7 +325,7 @@ internal class Parser( List<Token> tokens )
                     return;
             }
 
-            Advance();
+            Advance( );
         }
     }
 
