@@ -9,6 +9,7 @@ internal abstract class Stmt {
         T VisitReturnStatement( ReturnStatement stmt );
         T VisitVarStatement( VarStatement stmt );
         T VisitBlockStatement( BlockStatement stmt );
+        T VisitIfStatement( IfStatement stmt );
     }
 
     public class ExpressionStatement( Expr expression ) : Stmt {
@@ -50,6 +51,16 @@ internal abstract class Stmt {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitBlockStatement( this );
+        }
+    }
+
+    public class IfStatement( Expr condition , Stmt thenBranch , Stmt elseBranch ) : Stmt {
+        public readonly Expr Condition = condition;
+        public readonly Stmt ThenBranch = thenBranch;
+        public readonly Stmt ElseBranch = elseBranch;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitIfStatement( this );
         }
     }
 }

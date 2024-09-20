@@ -9,7 +9,7 @@ internal class Parser( List<Token> tokens ) {
     private int _current;
 
     public List<Stmt> Parse( ) {
-        List<Stmt> statements = [ ];
+        List<Stmt> statements = [];
 
         while ( !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -25,6 +25,10 @@ internal class Parser( List<Token> tokens ) {
     #region Stmt
 
     private Stmt Statement( ) {
+        if ( Match( IF ) ) {
+            return IfStatement( );
+        }
+
         if ( Match( PRINT ) ) {
             return PrintStatement( );
         }
@@ -34,6 +38,21 @@ internal class Parser( List<Token> tokens ) {
         }
 
         return ExpressionStatement( );
+    }
+
+    private IfStatement IfStatement( ) {
+        Consume( LEFT_PAREN , "Expect '(' after 'if'." );
+        Expr condition = Expression( );
+        Consume( RIGHT_PAREN , "Expect ')' after if condition." );
+
+        Stmt thenBranch = Statement( );
+        Stmt elseBranch = null;
+
+        if ( Match( ELSE ) ) {
+            elseBranch = Statement( );
+        }
+
+        return new IfStatement( condition , thenBranch , elseBranch );
     }
 
     private PrintStatement PrintStatement( ) {
@@ -67,7 +86,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private List<Stmt> Block( ) {
-        List<Stmt> statements = [ ];
+        List<Stmt> statements = [];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );

@@ -28,6 +28,7 @@ internal static class Program {
             [
                 "BlockStatement      : List<Stmt> statements" ,
                 "ExpressionStatement : Expr expression" ,
+                "IfStatement         : Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "PrintStatement      : Expr expression" ,
                 "Var                 : Token name, Expr initializer"
             ]

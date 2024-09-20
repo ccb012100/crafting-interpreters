@@ -140,6 +140,16 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitIfStatement( IfStatement stmt ) {
+        if ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
+            Execute( stmt.ThenBranch );
+        } else if ( stmt.ElseBranch is not null ) {
+            Execute( stmt.ElseBranch );
+        }
+
+        return ValueTuple.Create( );
+    }
+
     #endregion
 
     public void Interpret( List<Stmt> statements ) {
