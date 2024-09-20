@@ -11,6 +11,8 @@ internal static class Lox {
     private static bool s_hadError;
     private static bool s_hadRuntimeError;
 
+    #region Run
+
     public static void RunFile( string path ) {
         if ( path is "" ) {
             Console.WriteLine( "File parameter is empty; aborting..." );
@@ -19,7 +21,15 @@ internal static class Lox {
 
         byte[ ] bytes = File.ReadAllBytes( path );
         string source = Encoding.Default.GetString( bytes ); // TODO: get encoding of path
-        Run( source );
+
+        List<Stmt> statements = source.ToParser( ).Parse( );
+
+        // Stop if there was a syntax error.
+        if ( s_hadError ) {
+            return;
+        }
+
+        s_interpreter.Interpret( statements );
 
         if ( s_hadError ) {
             Environment.Exit( 65 );
@@ -30,10 +40,22 @@ internal static class Lox {
         }
     }
 
-    private static void Run( string source ) {
-        Scanner scanner = new( source );
-        List<Token> tokens = scanner.ScanTokens( );
-        Parser parser = new( tokens );
+    public static void RunPrompt( ) {
+        while ( Console.ReadLine( ) is { } line ) {
+            s_hadError = false; // reset the state
+            if ( string.IsNullOrEmpty( line ) ) {
+                break;
+            }
+
+            if ( line.EndsWith( ';' ) ) {
+                RunStatementsInPrompt( line.ToParser( ) );
+            } else {
+                RunExpressionInPrompt( line.ToParser( ) );
+            }
+        }
+    }
+
+    private static void RunStatementsInPrompt( Parser parser ) {
         List<Stmt> statements = parser.Parse( );
 
         // Stop if there was a syntax error.
@@ -44,14 +66,36 @@ internal static class Lox {
         s_interpreter.Interpret( statements );
     }
 
-    public static void RunPrompt( ) {
-        while ( Console.ReadLine( ) is { } line ) {
-            if ( string.IsNullOrEmpty( line ) ) {
-                break;
-            }
+    private static void RunExpressionInPrompt( Parser parser ) {
+        Expr expression = null;
 
-            Run( line );
+        try {
+            expression = parser.ParseExpression( );
+        } catch ( Parser.ParseError pe ) {
+            s_hadError = true;
+            Console.WriteLine( $"{pe.Message}" );
         }
+
+        // Stop if there was a syntax or parse error.
+        if ( s_hadError ) {
+            return;
+        }
+
+        s_interpreter.Eval( expression );
+    }
+
+    private static Parser ToParser( this string source ) {
+        return new Parser( new Scanner( source ).ScanTokens( ) );
+    }
+
+    #endregion
+
+    #region Error
+
+    public static void RuntimeError( RuntimeError error ) {
+        Console.WriteLine( $"{error.Message}\n[line {error.Token.Line}]" );
+
+        s_hadRuntimeError = true;
     }
 
     public static void Error( int line , string message ) {
@@ -66,15 +110,11 @@ internal static class Lox {
         );
     }
 
-    internal static void RuntimeError( RuntimeError error ) {
-        Console.WriteLine( $"{error.Message}\n[line {error.Token.Line}]" );
-
-        s_hadRuntimeError = true;
-    }
-
     private static void Report( int line , string where , string message ) {
         TextWriter errorWriter = Console.Error;
         errorWriter.WriteLine( $"[line {line}] Error{where}: {message}" );
         s_hadError = true;
     }
+
+    #endregion
 }

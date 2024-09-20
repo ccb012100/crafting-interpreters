@@ -4,16 +4,22 @@ using static cslox.DataTypes.Stmt;
 namespace cslox.Analyzers;
 
 internal class Parser( List<Token> tokens ) {
+    public class ParseError : Exception;
+
     private int _current;
 
     public List<Stmt> Parse( ) {
-        List<Stmt> statements = [];
+        List<Stmt> statements = [ ];
 
         while ( !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
         }
 
         return statements;
+    }
+
+    public Expr ParseExpression( ) {
+        return Expression( );
     }
 
     #region Stmt
@@ -61,7 +67,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private List<Stmt> Block( ) {
-        List<Stmt> statements = [];
+        List<Stmt> statements = [ ];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -328,6 +334,4 @@ internal class Parser( List<Token> tokens ) {
             Advance( );
         }
     }
-
-    private class ParseError : Exception;
 }

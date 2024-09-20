@@ -26,7 +26,7 @@ internal static class Program {
             outputDir ,
             "Stmt" ,
             [
-                "BlockStatement      : List<Stmt> statements",
+                "BlockStatement      : List<Stmt> statements" ,
                 "ExpressionStatement : Expr expression" ,
                 "PrintStatement      : Expr expression" ,
                 "Var                 : Token name, Expr initializer"
