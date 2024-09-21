@@ -25,6 +25,9 @@ internal class Parser( List<Token> tokens ) {
     #region Stmt
 
     private Stmt Statement( ) {
+        if ( Match( FOR ) ) {
+            return ForStatement( );
+        }
         if ( Match( IF ) ) {
             return IfStatement( );
         }
@@ -42,6 +45,46 @@ internal class Parser( List<Token> tokens ) {
         }
 
         return ExpressionStatement( );
+    }
+
+    private Stmt ForStatement( ) {
+        Consume( LEFT_PAREN , "Expect '(' after 'for'." );
+        Stmt initializer;
+        if ( Match( SEMICOLON ) ) {
+            initializer = null;
+        } else if ( Match( VAR ) ) {
+            initializer = VarDeclaration( );
+        } else {
+            initializer = ExpressionStatement( );
+        }
+
+        Expr condition = Expression( );
+        if ( !Check( SEMICOLON ) ) {
+            condition = Expression( );
+        }
+        Consume( SEMICOLON , "Expect ';' after loop condition." );
+
+        Expr increment = null;
+        if ( !Check( RIGHT_PAREN ) ) {
+            increment = Expression( );
+        }
+        Consume( RIGHT_PAREN , "Expect ')' after for clauses." );
+
+        Stmt body = Statement( );
+
+        if ( increment is not null ) {
+            body = new Block( [body , new ExpressionStmt( increment )] );
+        }
+
+        condition ??= new Literal( true );
+
+        body = new While( condition , body );
+
+        if ( initializer is not null ) {
+            body = new Block( [initializer , body] );
+        }
+
+        return body;
     }
 
     private If IfStatement( ) {

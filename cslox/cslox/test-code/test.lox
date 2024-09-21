@@ -1,10 +1,9 @@
-// No initializers.
-var a = nil;
-var b = 2;
+print 'first 21 elements of the Fibonacci sequence:';
+var a = 0;
+var temp;
 
-if (a or b) print "this or will print";
-if (a and b) print "this and won't print";
-else print "this else will print";
-if (1 > 0 and b)
-    print "this and will print";
-print a or b; // prints '2'
+for (var b = 1; a < 10000; b = temp + b) {
+  print a;
+  temp = a;
+  a = b;
+}
