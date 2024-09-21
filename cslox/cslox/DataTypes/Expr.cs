@@ -10,6 +10,7 @@ internal abstract class Expr {
         T VisitLiteralExpression( LiteralExpression expr );
         T VisitUnaryExpression( UnaryExpression expr );
         T VisitVariableExpression( VariableExpression expr );
+        T VisitLogicalExpression( LogicalExpression expr );
     }
 
     public class AssignExpression( Token name , Expr value ) : Expr {
@@ -61,6 +62,16 @@ internal abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitVariableExpression( this );
+        }
+    }
+
+    public class LogicalExpression(Expr left, Token @operator, Expr right) : Expr {
+        public readonly Token Operator = @operator;
+        public readonly Expr Left = left;
+        public readonly Expr Right = right;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitLogicalExpression( this );
         }
     }
 }

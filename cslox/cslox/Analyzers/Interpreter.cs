@@ -101,6 +101,16 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         return _environment.Get( expr.Name );
     }
 
+    public object VisitLogicalExpression( LogicalExpression expr ) {
+        object left = Evaluate( expr.Left );
+
+        return expr.Operator.Type switch {
+            OR when IsTruthy( left ) => left ,
+            AND when !IsTruthy( left ) => left ,
+            _ => Evaluate( expr.Right )
+        };
+    }
+
     #endregion
 
     #region Stmt.IVisitor<ValueTuple>

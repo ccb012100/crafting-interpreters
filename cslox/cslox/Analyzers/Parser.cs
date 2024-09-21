@@ -140,7 +140,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr Assignment( ) {
-        Expr expr = Equality( );
+        Expr expr = Or( );
 
         if ( Match( EQUAL ) ) {
             Token equals = Previous( );
@@ -153,6 +153,32 @@ internal class Parser( List<Token> tokens ) {
             }
 
             Error( equals , "Invalid assignment target." );
+        }
+
+        return expr;
+    }
+
+    private Expr Or( ) {
+        Expr expr = And( );
+
+        while ( Match( OR ) ) {
+            Token @operator = Previous( );
+            Expr right = And( );
+
+            expr = new LogicalExpression( expr , @operator , right );
+        }
+
+        return expr;
+    }
+
+    private Expr And( ) {
+        Expr expr = Equality( );
+
+        while ( Match( AND ) ) {
+            Token @operator = Previous( );
+            Expr right = Equality( );
+
+            expr = new LogicalExpression( expr , @operator , right );
         }
 
         return expr;

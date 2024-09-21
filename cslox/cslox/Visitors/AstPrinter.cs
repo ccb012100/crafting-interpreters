@@ -33,6 +33,10 @@ internal class AstPrinter : IVisitor<string> {
         throw new NotImplementedException( );
     }
 
+    public string VisitLogicalExpression( LogicalExpression expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string Print( Expr expr ) {
         return expr.Accept( this );
     }

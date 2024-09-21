@@ -28,6 +28,10 @@ internal class RpnPrinter : Expr.IVisitor<string> {
         throw new NotImplementedException( );
     }
 
+    public string VisitLogicalExpression( Expr.LogicalExpression expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string Print( Expr expr ) {
         return expr.Accept( this );
     }

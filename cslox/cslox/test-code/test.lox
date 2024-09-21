@@ -1,9 +1,10 @@
 // No initializers.
-var a;
-var b;
-var c = 12 + 1;
+var a = nil;
+var b = 2;
 
-a = "assigned";
-print a; // OK, was assigned first.
-print c; // OK, was assigned on declaration.
-print b; // Error!
+if (a or b) print "this or will print";
+if (a and b) print "this and won't print";
+else print "this else will print";
+if (1 > 0 and b)
+    print "this and will print";
+print a or b; // prints '2'
