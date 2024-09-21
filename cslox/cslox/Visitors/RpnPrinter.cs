@@ -4,31 +4,31 @@ namespace cslox.Visitors;
 ///     Print in Reverse Polish Notation
 /// </summary>
 internal class RpnPrinter : Expr.IVisitor<string> {
-    public string VisitAssignExpression( Expr.AssignExpression expr ) {
+    public string VisitAssignExpr( Expr.Assign expr ) {
         throw new NotImplementedException( );
     }
 
-    public string VisitBinaryExpression( Expr.BinaryExpression expr ) {
+    public string VisitBinaryExpr( Expr.Binary expr ) {
         return $"{expr.Left.Accept( this )} {expr.Right.Accept( this )} {expr.Operator.Lexeme}";
     }
 
-    public string VisitGroupingExpression( Expr.GroupingExpression expr ) {
+    public string VisitGroupingExpr( Expr.Grouping expr ) {
         return expr.Expression.Accept( this );
     }
 
-    public string VisitLiteralExpression( Expr.LiteralExpression expr ) {
+    public string VisitLiteralExpr( Expr.Literal expr ) {
         return expr.Value == null ? "nil" : expr.Value.ToString( );
     }
 
-    public string VisitUnaryExpression( Expr.UnaryExpression expr ) {
+    public string VisitUnaryExpr( Expr.Unary expr ) {
         return $"{expr.Right.Accept( this )} {expr.Operator.Lexeme}";
     }
 
-    public string VisitVariableExpression( Expr.VariableExpression expr ) {
+    public string VisitVariableExpr( Expr.Variable expr ) {
         throw new NotImplementedException( );
     }
 
-    public string VisitLogicalExpression( Expr.LogicalExpression expr ) {
+    public string VisitLogicalExpr( Expr.Logical expr ) {
         throw new NotImplementedException( );
     }
 

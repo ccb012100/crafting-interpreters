@@ -5,11 +5,11 @@ using static cslox.DataTypes.Expr;
 namespace cslox.Visitors;
 
 internal class AstPrinter : IVisitor<string> {
-    public string VisitAssignExpression( AssignExpression expr ) {
+    public string VisitAssignExpr( Assign expr ) {
         throw new NotImplementedException( );
     }
 
-    public string VisitBinaryExpression( BinaryExpression expr ) {
+    public string VisitBinaryExpr( Binary expr ) {
         return Parenthesize(
             expr.Operator.Lexeme ,
             expr.Left ,
@@ -17,23 +17,23 @@ internal class AstPrinter : IVisitor<string> {
         );
     }
 
-    public string VisitGroupingExpression( GroupingExpression expr ) {
+    public string VisitGroupingExpr( Grouping expr ) {
         return Parenthesize( "group" , expr.Expression );
     }
 
-    public string VisitLiteralExpression( LiteralExpression expr ) {
+    public string VisitLiteralExpr( Literal expr ) {
         return expr.Value == null ? "nil" : expr.Value.ToString( );
     }
 
-    public string VisitUnaryExpression( UnaryExpression expr ) {
+    public string VisitUnaryExpr( Unary expr ) {
         return Parenthesize( expr.Operator.Lexeme , expr.Right );
     }
 
-    public string VisitVariableExpression( VariableExpression expr ) {
+    public string VisitVariableExpr( Variable expr ) {
         throw new NotImplementedException( );
     }
 
-    public string VisitLogicalExpression( LogicalExpression expr ) {
+    public string VisitLogicalExpr( Logical expr ) {
         throw new NotImplementedException( );
     }
 

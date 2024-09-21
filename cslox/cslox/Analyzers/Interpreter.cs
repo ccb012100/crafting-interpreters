@@ -3,19 +3,19 @@ using static cslox.DataTypes.Stmt;
 
 namespace cslox.Analyzers;
 
-internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
+internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     private Environment _environment = new( );
 
     #region Expr.IVisitor<object>
 
-    public object VisitAssignExpression( AssignExpression expr ) {
+    public object VisitAssignExpr( Assign expr ) {
         object value = Evaluate( expr.Value );
         _environment.Assign( expr.Name , value , true );
 
         return value;
     }
 
-    public object VisitBinaryExpression( BinaryExpression expr ) {
+    public object VisitBinaryExpr( Binary expr ) {
         object left = Evaluate( expr.Left );
         object right = Evaluate( expr.Right );
 
@@ -61,11 +61,11 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return ( left , right ) switch {
-                    (double dl , double dr) => dl + dr ,
-                    (string sl , double dr) => sl + Stringify( dr ) ,
-                    (double dl , string sr) => Stringify( dl ) + sr ,
-                    (string sl , string sr) => sl + sr ,
+                return (left, right) switch {
+                    (double dl, double dr ) => dl + dr,
+                    (string sl, double dr ) => sl + Stringify( dr ),
+                    (double dl, string sr ) => Stringify( dl ) + sr,
+                    (string sl, string sr ) => sl + sr,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -74,15 +74,15 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    public object VisitGroupingExpression( GroupingExpression expr ) {
+    public object VisitGroupingExpr( Grouping expr ) {
         return Evaluate( expr.Expression );
     }
 
-    public object VisitLiteralExpression( LiteralExpression expr ) {
+    public object VisitLiteralExpr( Literal expr ) {
         return expr.Value;
     }
 
-    public object VisitUnaryExpression( UnaryExpression expr ) {
+    public object VisitUnaryExpr( Unary expr ) {
         object right = Evaluate( expr.Right );
 
         switch ( expr.Operator.Type ) {
@@ -97,16 +97,16 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         return null; // Unreachable
     }
 
-    public object VisitVariableExpression( VariableExpression expr ) {
+    public object VisitVariableExpr( Variable expr ) {
         return _environment.Get( expr.Name );
     }
 
-    public object VisitLogicalExpression( LogicalExpression expr ) {
+    public object VisitLogicalExpr( Logical expr ) {
         object left = Evaluate( expr.Left );
 
         return expr.Operator.Type switch {
-            OR when IsTruthy( left ) => left ,
-            AND when !IsTruthy( left ) => left ,
+            OR when IsTruthy( left ) => left,
+            AND when !IsTruthy( left ) => left,
             _ => Evaluate( expr.Right )
         };
     }
@@ -115,24 +115,20 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
     #region Stmt.IVisitor<ValueTuple>
 
-    public ValueTuple VisitExpressionStatement( ExpressionStatement stmt ) {
+    public ValueTuple VisitExpressionStmt( ExpressionStmt stmt ) {
         Evaluate( stmt.Expression );
 
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitPrintStatement( PrintStatement stmt ) {
+    public ValueTuple VisitPrintStmt( Print stmt ) {
         object value = Evaluate( stmt.Expression );
         Console.WriteLine( Stringify( value ) );
 
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitReturnStatement( ReturnStatement stmt ) {
-        throw new NotImplementedException( );
-    }
-
-    public ValueTuple VisitVarStatement( VarStatement stmt ) {
+    public ValueTuple VisitVarStmt( Var stmt ) {
         object value = null;
 
         if ( stmt.Initializer is not null ) {
@@ -144,17 +140,25 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitBlockStatement( BlockStatement stmt ) {
+    public ValueTuple VisitBlockStmt( Block stmt ) {
         ExecuteBlock( stmt.Statements , new Environment( _environment ) );
 
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitIfStatement( IfStatement stmt ) {
+    public ValueTuple VisitIfStmt( If stmt ) {
         if ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
             Execute( stmt.ThenBranch );
         } else if ( stmt.ElseBranch is not null ) {
             Execute( stmt.ElseBranch );
+        }
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitWhileStmt( While stmt ) {
+        while ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
+            Execute( stmt.Body );
         }
 
         return ValueTuple.Create( );
@@ -206,8 +210,8 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false ,
-            bool b => b ,
+            null => false,
+            bool b => b,
             _ => true
         };
     }
@@ -226,10 +230,10 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
             case null:
                 return "nil";
             case double d: {
-                string str = d.ToString( "N2" );
+                    string str = d.ToString( "N2" );
 
-                return str.EndsWith( ".00" ) ? str[..^3] : str;
-            }
+                    return str.EndsWith( ".00" ) ? str[..^3] : str;
+                }
             case string s:
                 return s;
             default:
@@ -246,12 +250,12 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch ( left , right ) {
-            case (double , double):
+        switch (left, right) {
+            case (double, double ):
                 return;
-            case (double , _):
+            case (double, _ ):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_ , double):
+            case (_, double ):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );

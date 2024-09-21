@@ -9,7 +9,7 @@ internal class Parser( List<Token> tokens ) {
     private int _current;
 
     public List<Stmt> Parse( ) {
-        List<Stmt> statements = [];
+        List<Stmt> statements = [ ];
 
         while ( !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -33,14 +33,18 @@ internal class Parser( List<Token> tokens ) {
             return PrintStatement( );
         }
 
+        if ( Match( WHILE ) ) {
+            return WhileStatement( );
+        }
+
         if ( Match( LEFT_BRACE ) ) {
-            return new BlockStatement( Block( ) );
+            return new Block( Block( ) );
         }
 
         return ExpressionStatement( );
     }
 
-    private IfStatement IfStatement( ) {
+    private If IfStatement( ) {
         Consume( LEFT_PAREN , "Expect '(' after 'if'." );
         Expr condition = Expression( );
         Consume( RIGHT_PAREN , "Expect ')' after if condition." );
@@ -52,18 +56,27 @@ internal class Parser( List<Token> tokens ) {
             elseBranch = Statement( );
         }
 
-        return new IfStatement( condition , thenBranch , elseBranch );
+        return new If( condition , thenBranch , elseBranch );
     }
 
-    private PrintStatement PrintStatement( ) {
+    private Print PrintStatement( ) {
         Expr value = Expression( );
 
         Consume( SEMICOLON , "Expect ';' after value." );
 
-        return new PrintStatement( value );
+        return new Print( value );
     }
 
-    private VarStatement VarDeclaration( ) {
+    private While WhileStatement( ) {
+        Consume( LEFT_PAREN , "Expect '(' after 'while'." );
+        Expr condition = Expression( );
+        Consume( RIGHT_PAREN , "Expect ')' after condition." );
+        Stmt body = Statement( );
+
+        return new While( condition , body );
+    }
+
+    private Var VarDeclaration( ) {
         Token name = Consume( IDENTIFIER , "Expect variable name." );
 
         Expr initializer = null;
@@ -74,19 +87,19 @@ internal class Parser( List<Token> tokens ) {
 
         Consume( SEMICOLON , "Expect ';' after variable declaration." );
 
-        return new VarStatement( name , initializer );
+        return new Var( name , initializer );
     }
 
-    private ExpressionStatement ExpressionStatement( ) {
+    private ExpressionStmt ExpressionStatement( ) {
         Expr expr = Expression( );
 
         Consume( SEMICOLON , "Expect ';' after expression." );
 
-        return new ExpressionStatement( expr );
+        return new ExpressionStmt( expr );
     }
 
     private List<Stmt> Block( ) {
-        List<Stmt> statements = [];
+        List<Stmt> statements = [ ];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -146,10 +159,10 @@ internal class Parser( List<Token> tokens ) {
             Token equals = Previous( );
             Expr value = Assignment( );
 
-            if ( expr is VariableExpression varExpr ) {
+            if ( expr is Variable varExpr ) {
                 Token name = varExpr.Name;
 
-                return new AssignExpression( name , value );
+                return new Assign( name , value );
             }
 
             Error( equals , "Invalid assignment target." );
@@ -165,7 +178,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = And( );
 
-            expr = new LogicalExpression( expr , @operator , right );
+            expr = new Logical( expr , @operator , right );
         }
 
         return expr;
@@ -178,7 +191,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = Equality( );
 
-            expr = new LogicalExpression( expr , @operator , right );
+            expr = new Logical( expr , @operator , right );
         }
 
         return expr;
@@ -197,7 +210,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( BANG_EQUAL , EQUAL_EQUAL ) ) {
             Token @operator = Previous( );
             Expr right = Comparison( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -216,7 +229,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( GREATER , GREATER_EQUAL , LESS , LESS_EQUAL ) ) {
             Token @operator = Previous( );
             Expr right = Term( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -235,7 +248,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( MINUS , PLUS ) ) {
             Token @operator = Previous( );
             Expr right = Factor( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -254,7 +267,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( SLASH , STAR ) ) {
             Token @operator = Previous( );
             Expr right = Unary( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -265,7 +278,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = Unary( );
 
-            return new UnaryExpression( @operator , right );
+            return new Unary( @operator , right );
         }
 
         return Primary( );
@@ -273,30 +286,30 @@ internal class Parser( List<Token> tokens ) {
 
     private Expr Primary( ) {
         if ( Match( FALSE ) ) {
-            return new LiteralExpression( false );
+            return new Literal( false );
         }
 
         if ( Match( TRUE ) ) {
-            return new LiteralExpression( true );
+            return new Literal( true );
         }
 
         if ( Match( NIL ) ) {
-            return new LiteralExpression( null );
+            return new Literal( null );
         }
 
         if ( Match( NUMBER , STRING ) ) {
-            return new LiteralExpression( Previous( ).Literal );
+            return new Literal( Previous( ).Literal );
         }
 
         if ( Match( IDENTIFIER ) ) {
-            return new VariableExpression( Previous( ) );
+            return new Variable( Previous( ) );
         }
 
         if ( Match( LEFT_PAREN ) ) {
             Expr expr = Expression( );
             Consume( RIGHT_PAREN , "Expect ')' after expression." );
 
-            return new GroupingExpression( expr );
+            return new Grouping( expr );
         }
 
         throw Error( Peek( ) , "Expect expression." );
