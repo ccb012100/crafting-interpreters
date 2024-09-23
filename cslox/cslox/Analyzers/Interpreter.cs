@@ -5,6 +5,7 @@ namespace cslox.Analyzers;
 
 internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     private Environment _environment = new( );
+    private class BreakException : Exception;
 
     #region Expr.IVisitor<object>
 
@@ -157,10 +158,13 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitWhileStmt( While stmt ) {
-        while ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
-            Execute( stmt.Body );
+        try {
+            while ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
+                Execute( stmt.Body );
+            }
+        } catch ( BreakException ) {
+            // do nothing
         }
-
         return ValueTuple.Create( );
     }
 
@@ -260,6 +264,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );
         }
+    }
+
+    public ValueTuple VisitBreakStmt( Break stmt ) {
+        throw new BreakException( );
     }
 
     #endregion

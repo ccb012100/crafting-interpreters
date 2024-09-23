@@ -1,9 +1,20 @@
-print 'first 21 elements of the Fibonacci sequence:';
 var a = 0;
-var temp;
+print a;
+while (true) {
+    a = 100;
+    print a;
+    if (a > 0) {
+        print a;
+        a = 200;
+        if (3 > 1) {
+            print a;
+            break;
+        }
+        a = 300;
+    }
 
-for (var b = 1; a < 10000; b = temp + b) {
-  print a;
-  temp = a;
-  a = b;
+    break;
+    a = 400;
 }
+print a; // should print '200'
+break;

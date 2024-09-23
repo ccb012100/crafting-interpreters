@@ -62,7 +62,7 @@ internal static class AstGenerator {
             writer.WriteLine( $"{tab}{tab}public {className} ({fieldList})" );
             writer.WriteLine( $"{tab}{tab}{{" );
 
-            string[ ] fields = fieldList.Split( ", " );
+            string[ ] fields = fieldList.Length > 0 ? fieldList.Split( ", " ) : [ ];
 
             // store params in fields
             foreach ( string field in fields ) {

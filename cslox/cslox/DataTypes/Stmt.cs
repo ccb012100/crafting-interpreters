@@ -10,6 +10,7 @@ internal abstract class Stmt {
         T VisitBlockStmt( Block stmt );
         T VisitIfStmt( If stmt );
         T VisitWhileStmt( While stmt );
+        T VisitBreakStmt( Break stmt );
     }
 
     public class ExpressionStmt( Expr expression ) : Stmt {
@@ -61,6 +62,12 @@ internal abstract class Stmt {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitWhileStmt( this );
+        }
+    }
+
+    public class Break( ) : Stmt {
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitBreakStmt( this );
         }
     }
 }

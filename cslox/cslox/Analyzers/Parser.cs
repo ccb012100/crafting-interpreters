@@ -7,6 +7,7 @@ internal class Parser( List<Token> tokens ) {
     public class ParseError : Exception;
 
     private int _current;
+    private int _loopDepth;
 
     public List<Stmt> Parse( ) {
         List<Stmt> statements = [ ];
@@ -25,6 +26,10 @@ internal class Parser( List<Token> tokens ) {
     #region Stmt
 
     private Stmt Statement( ) {
+        if ( Match( BREAK ) ) {
+            return BreakStatement( );
+        }
+
         if ( Match( FOR ) ) {
             return ForStatement( );
         }
@@ -45,6 +50,14 @@ internal class Parser( List<Token> tokens ) {
         }
 
         return ExpressionStatement( );
+    }
+
+    private Break BreakStatement( ) {
+        if ( _loopDepth == 0 ) {
+            throw Error( Previous( ) , "Must be inside a loop to use 'break'." );
+        }
+        Consume( SEMICOLON , "Expect ';' after 'break'." );
+        return new Break( );
     }
 
     private Stmt ForStatement( ) {
@@ -70,21 +83,26 @@ internal class Parser( List<Token> tokens ) {
         }
         Consume( RIGHT_PAREN , "Expect ')' after for clauses." );
 
-        Stmt body = Statement( );
+        try {
+            _loopDepth++;
+            Stmt body = Statement( );
 
-        if ( increment is not null ) {
-            body = new Block( [body , new ExpressionStmt( increment )] );
+            if ( increment is not null ) {
+                body = new Block( [body , new ExpressionStmt( increment )] );
+            }
+
+            condition ??= new Literal( true );
+
+            body = new While( condition , body );
+
+            if ( initializer is not null ) {
+                body = new Block( [initializer , body] );
+            }
+
+            return body;
+        } finally {
+            _loopDepth--;
         }
-
-        condition ??= new Literal( true );
-
-        body = new While( condition , body );
-
-        if ( initializer is not null ) {
-            body = new Block( [initializer , body] );
-        }
-
-        return body;
     }
 
     private If IfStatement( ) {
@@ -114,9 +132,16 @@ internal class Parser( List<Token> tokens ) {
         Consume( LEFT_PAREN , "Expect '(' after 'while'." );
         Expr condition = Expression( );
         Consume( RIGHT_PAREN , "Expect ')' after condition." );
-        Stmt body = Statement( );
 
-        return new While( condition , body );
+        try {
+            _loopDepth++;
+            Stmt body = Statement( );
+
+            return new While( condition , body );
+        } finally {
+            _loopDepth--;
+        }
+
     }
 
     private Var VarDeclaration( ) {

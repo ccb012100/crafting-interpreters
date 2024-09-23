@@ -37,14 +37,17 @@ book.
 │                   |   whileStmt                                            │░
 │                   |   block ;                                              │░
 │                                                                            │░
+│    breakStmt      →   "break" ";" ;                                        │░
+│                   |   statement ;                                          │░
+│                                                                            │░
 │    exprStmt       →   expression ";" ;                                     │░
 │    forStmt        →   "for" "(" ( varDecl | exprStmt | ";" )               │░
 │                       expression? ";"                                      │░
 │                       expression? ")" statement ;                          │░
-│    ifStmt         →   "if" "(" expression ")" statement                    │░
-│                       ( "else" statement )? ;                              │░
+│    ifStmt         →   "if" "(" expression ")" breakStmt                    │░
+│                       ( "else" breakStmt )? ;                              │░
 │    printStmt      →   "print" expression ";" ;                             │░
-│    whileStmt      →   "while" "(" expression ")" statement ;               │░
+│    whileStmt      →   "while" "(" expression ")" breakStmt ;               │░
 │    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
 │    expression     →   ternary ;                                            │░
