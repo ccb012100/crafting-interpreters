@@ -1,9 +1,20 @@
-// No initializers.
-var a;
-var b;
-var c = 12 + 1;
+var a = 0;
+print a;
+while (true) {
+    a = 100;
+    print a;
+    if (a > 0) {
+        print a;
+        a = 200;
+        if (3 > 1) {
+            print a;
+            break;
+        }
+        a = 300;
+    }
 
-a = "assigned";
-print a; // OK, was assigned first.
-print c; // OK, was assigned on declaration.
-print b; // Error!
+    break;
+    a = 400;
+}
+print a; // should print '200'
+break;

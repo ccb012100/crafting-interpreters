@@ -1,17 +1,17 @@
 namespace cslox.Analyzers;
 
 internal class Environment( Environment enclosing ) {
-    private readonly Dictionary<string , (object value , bool initialized)> _values = [];
+    private readonly Dictionary<string , (object value, bool initialized)> _values = [ ];
     private readonly Environment _enclosing = enclosing;
 
     public Environment( ) : this( null ) { }
 
     public void Define( string name , object value , bool initialized ) {
-        _values.Add( name , ( value , initialized ) );
+        _values.Add( name , (value, initialized) );
     }
 
     public object Get( Token name ) {
-        if ( _values.TryGetValue( name.Lexeme , out (object value , bool initialized) variable ) ) {
+        if ( _values.TryGetValue( name.Lexeme , out (object value, bool initialized) variable ) ) {
             if ( !variable.initialized ) {
                 throw new RuntimeError( name , $"Uninitialized variable '{name.Lexeme}'." );
             }
@@ -28,7 +28,7 @@ internal class Environment( Environment enclosing ) {
 
     public void Assign( Token name , object value , bool initialized ) {
         if ( _values.ContainsKey( name.Lexeme ) ) {
-            _values[name.Lexeme] = ( value , initialized );
+            _values[name.Lexeme] = (value, initialized);
         } else if ( _enclosing is not null ) {
             _enclosing.Assign( name , value , initialized );
         } else {

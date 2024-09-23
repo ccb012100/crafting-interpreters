@@ -6,6 +6,7 @@ internal class Scanner( string source ) {
     private static readonly Dictionary<string , TokenType> s_keywords = new( )
     {
         { "and", AND },
+        { "break", BREAK },
         { "class", CLASS },
         { "else", ELSE },
         { "false", FALSE },

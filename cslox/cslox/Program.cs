@@ -1,7 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using cslox.Extensions;
-
 namespace cslox;
 
 // ReSharper disable once ClassNeverInstantiated.Global
@@ -11,7 +9,8 @@ internal class Program {
         switch ( args.Length ) {
             case 0:
                 Console.WriteLine( "Enter code:" );
-                Lox.RunPrompt( );
+                // Lox.RunPrompt( );
+                Lox.RunFile( "test-code/test.lox" );
 
                 return;
             case 1:

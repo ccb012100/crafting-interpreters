@@ -30,22 +30,36 @@ book.
 │                   |   statement ;                                          │░
 │                                                                            │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
-│                                                                            │░
 │    statement      →   exprStmt                                             │░
+│                   |   forStmt                                              │░
+│                   |   ifStmt                                               │░
 │                   |   printStmt                                            │░
+│                   |   whileStmt                                            │░
 │                   |   block ;                                              │░
 │                                                                            │░
+│    breakStmt      →   "break" ";" ;                                        │░
+│                   |   statement ;                                          │░
+│                                                                            │░
 │    exprStmt       →   expression ";" ;                                     │░
+│    forStmt        →   "for" "(" ( varDecl | exprStmt | ";" )               │░
+│                       expression? ";"                                      │░
+│                       expression? ")" statement ;                          │░
+│    ifStmt         →   "if" "(" expression ")" breakStmt                    │░
+│                       ( "else" breakStmt )? ;                              │░
 │    printStmt      →   "print" expression ";" ;                             │░
+│    whileStmt      →   "while" "(" expression ")" breakStmt ;               │░
+│    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
 │    expression     →   ternary ;                                            │░
 │    ternary        →   comma ( "?" comma ":" comma )*;                      │░
 │    comma          →   "(" assignment ( "," assignment )* ;                 │░
 │    assignment     →   IDENTIFIER "=" assignment                            │░
-│                   |   equality ;                                           │░
-│    equality       →   comparison ( ( "!=" | "==" ) comparison )*;          │░
+│                   |   logic_or ;                                           │░
+│    logic_or       →   logic_and ( "or" logic_and )* ;                      │░
+│    logic_and      →   equality ( "and" equality )* ;                       │░
+│    equality       →   comparison ( ( "!=" | "==" ) comparison )* ;         │░
 │    comparison     →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;         │░
-│    term           →   factor ( ( "-" | "+" ) factor )*;                    │░
+│    term           →   factor ( ( "-" | "+" ) factor )* ;                   │░
 │    factor         →   unary ( ( "/" | "*" ) unary )* ;                     │░
 │    unary          →   ( "!" | "-" ) unary                                  │░
 │                   |   primary ;                                            │░

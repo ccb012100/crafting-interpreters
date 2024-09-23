@@ -7,6 +7,7 @@ internal class Parser( List<Token> tokens ) {
     public class ParseError : Exception;
 
     private int _current;
+    private int _loopDepth;
 
     public List<Stmt> Parse( ) {
         List<Stmt> statements = [ ];
@@ -25,26 +26,125 @@ internal class Parser( List<Token> tokens ) {
     #region Stmt
 
     private Stmt Statement( ) {
+        if ( Match( BREAK ) ) {
+            return BreakStatement( );
+        }
+
+        if ( Match( FOR ) ) {
+            return ForStatement( );
+        }
+        if ( Match( IF ) ) {
+            return IfStatement( );
+        }
+
         if ( Match( PRINT ) ) {
             return PrintStatement( );
         }
 
+        if ( Match( WHILE ) ) {
+            return WhileStatement( );
+        }
+
         if ( Match( LEFT_BRACE ) ) {
-            return new BlockStatement( Block( ) );
+            return new Block( Block( ) );
         }
 
         return ExpressionStatement( );
     }
 
-    private PrintStatement PrintStatement( ) {
+    private Break BreakStatement( ) {
+        if ( _loopDepth == 0 ) {
+            throw Error( Previous( ) , "Must be inside a loop to use 'break'." );
+        }
+        Consume( SEMICOLON , "Expect ';' after 'break'." );
+        return new Break( );
+    }
+
+    private Stmt ForStatement( ) {
+        Consume( LEFT_PAREN , "Expect '(' after 'for'." );
+        Stmt initializer;
+        if ( Match( SEMICOLON ) ) {
+            initializer = null;
+        } else if ( Match( VAR ) ) {
+            initializer = VarDeclaration( );
+        } else {
+            initializer = ExpressionStatement( );
+        }
+
+        Expr condition = Expression( );
+        if ( !Check( SEMICOLON ) ) {
+            condition = Expression( );
+        }
+        Consume( SEMICOLON , "Expect ';' after loop condition." );
+
+        Expr increment = null;
+        if ( !Check( RIGHT_PAREN ) ) {
+            increment = Expression( );
+        }
+        Consume( RIGHT_PAREN , "Expect ')' after for clauses." );
+
+        try {
+            _loopDepth++;
+            Stmt body = Statement( );
+
+            if ( increment is not null ) {
+                body = new Block( [body , new ExpressionStmt( increment )] );
+            }
+
+            condition ??= new Literal( true );
+
+            body = new While( condition , body );
+
+            if ( initializer is not null ) {
+                body = new Block( [initializer , body] );
+            }
+
+            return body;
+        } finally {
+            _loopDepth--;
+        }
+    }
+
+    private If IfStatement( ) {
+        Consume( LEFT_PAREN , "Expect '(' after 'if'." );
+        Expr condition = Expression( );
+        Consume( RIGHT_PAREN , "Expect ')' after if condition." );
+
+        Stmt thenBranch = Statement( );
+        Stmt elseBranch = null;
+
+        if ( Match( ELSE ) ) {
+            elseBranch = Statement( );
+        }
+
+        return new If( condition , thenBranch , elseBranch );
+    }
+
+    private Print PrintStatement( ) {
         Expr value = Expression( );
 
         Consume( SEMICOLON , "Expect ';' after value." );
 
-        return new PrintStatement( value );
+        return new Print( value );
     }
 
-    private VarStatement VarDeclaration( ) {
+    private While WhileStatement( ) {
+        Consume( LEFT_PAREN , "Expect '(' after 'while'." );
+        Expr condition = Expression( );
+        Consume( RIGHT_PAREN , "Expect ')' after condition." );
+
+        try {
+            _loopDepth++;
+            Stmt body = Statement( );
+
+            return new While( condition , body );
+        } finally {
+            _loopDepth--;
+        }
+
+    }
+
+    private Var VarDeclaration( ) {
         Token name = Consume( IDENTIFIER , "Expect variable name." );
 
         Expr initializer = null;
@@ -55,15 +155,15 @@ internal class Parser( List<Token> tokens ) {
 
         Consume( SEMICOLON , "Expect ';' after variable declaration." );
 
-        return new VarStatement( name , initializer );
+        return new Var( name , initializer );
     }
 
-    private ExpressionStatement ExpressionStatement( ) {
+    private ExpressionStmt ExpressionStatement( ) {
         Expr expr = Expression( );
 
         Consume( SEMICOLON , "Expect ';' after expression." );
 
-        return new ExpressionStatement( expr );
+        return new ExpressionStmt( expr );
     }
 
     private List<Stmt> Block( ) {
@@ -121,19 +221,45 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr Assignment( ) {
-        Expr expr = Equality( );
+        Expr expr = Or( );
 
         if ( Match( EQUAL ) ) {
             Token equals = Previous( );
             Expr value = Assignment( );
 
-            if ( expr is VariableExpression varExpr ) {
+            if ( expr is Variable varExpr ) {
                 Token name = varExpr.Name;
 
-                return new AssignExpression( name , value );
+                return new Assign( name , value );
             }
 
             Error( equals , "Invalid assignment target." );
+        }
+
+        return expr;
+    }
+
+    private Expr Or( ) {
+        Expr expr = And( );
+
+        while ( Match( OR ) ) {
+            Token @operator = Previous( );
+            Expr right = And( );
+
+            expr = new Logical( expr , @operator , right );
+        }
+
+        return expr;
+    }
+
+    private Expr And( ) {
+        Expr expr = Equality( );
+
+        while ( Match( AND ) ) {
+            Token @operator = Previous( );
+            Expr right = Equality( );
+
+            expr = new Logical( expr , @operator , right );
         }
 
         return expr;
@@ -152,7 +278,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( BANG_EQUAL , EQUAL_EQUAL ) ) {
             Token @operator = Previous( );
             Expr right = Comparison( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -171,7 +297,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( GREATER , GREATER_EQUAL , LESS , LESS_EQUAL ) ) {
             Token @operator = Previous( );
             Expr right = Term( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -190,7 +316,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( MINUS , PLUS ) ) {
             Token @operator = Previous( );
             Expr right = Factor( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -209,7 +335,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( SLASH , STAR ) ) {
             Token @operator = Previous( );
             Expr right = Unary( );
-            expr = new BinaryExpression( expr , @operator , right );
+            expr = new Binary( expr , @operator , right );
         }
 
         return expr;
@@ -220,7 +346,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = Unary( );
 
-            return new UnaryExpression( @operator , right );
+            return new Unary( @operator , right );
         }
 
         return Primary( );
@@ -228,30 +354,30 @@ internal class Parser( List<Token> tokens ) {
 
     private Expr Primary( ) {
         if ( Match( FALSE ) ) {
-            return new LiteralExpression( false );
+            return new Literal( false );
         }
 
         if ( Match( TRUE ) ) {
-            return new LiteralExpression( true );
+            return new Literal( true );
         }
 
         if ( Match( NIL ) ) {
-            return new LiteralExpression( null );
+            return new Literal( null );
         }
 
         if ( Match( NUMBER , STRING ) ) {
-            return new LiteralExpression( Previous( ).Literal );
+            return new Literal( Previous( ).Literal );
         }
 
         if ( Match( IDENTIFIER ) ) {
-            return new VariableExpression( Previous( ) );
+            return new Variable( Previous( ) );
         }
 
         if ( Match( LEFT_PAREN ) ) {
             Expr expr = Expression( );
             Consume( RIGHT_PAREN , "Expect ')' after expression." );
 
-            return new GroupingExpression( expr );
+            return new Grouping( expr );
         }
 
         throw Error( Peek( ) , "Expect expression." );
