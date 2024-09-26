@@ -148,6 +148,12 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return expr.Value;
     }
 
+    public object VisitConditionalExpr( Expr.Conditional expr ) {
+        object condition = Evaluate( expr.Condition );
+
+        return IsTruthy( condition ) ? Evaluate( expr.ThenBranch ) : Evaluate( expr.ElseBranch );
+    }
+
     public object VisitUnaryExpr( Expr.Unary expr ) {
         object right = Evaluate( expr.Right );
 
@@ -241,6 +247,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitBreakStmt( ) {
+        throw new BreakException( );
+    }
+
     #endregion
 
     #region private methods
@@ -297,10 +307,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );
         }
-    }
-
-    public ValueTuple VisitBreakStmt( ) {
-        throw new BreakException( );
     }
 
     #endregion

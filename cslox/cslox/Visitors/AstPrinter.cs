@@ -56,4 +56,8 @@ internal class AstPrinter : IVisitor<string> {
 
         return builder.Append( ')' ).ToString( );
     }
+
+    public string VisitConditionalExpr( Conditional expr ) {
+        throw new NotImplementedException( );
+    }
 }

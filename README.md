@@ -53,13 +53,13 @@ book.
 │    whileStmt      →   "while" "(" expression ")" breakStmt ;               │░
 │    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
-│    expression     →   ternary ;                                            │░
-│    ternary        →   comma ( "?" comma ":" comma )*;                      │░
+│    expression     →   comma ;                                              │░
 │    comma          →   "(" assignment ( "," assignment )* ;                 │░
 │                                                                            │░
 │    assignment     →   IDENTIFIER "=" assignment                            │░
-│                   |   logic_or ;                                           │░
+│                   |   conditional ;                                        │░
 │                                                                            │░
+│    conditional    →   logic_or ( "?" expression ":" conditional )*;        │░
 │    logic_or       →   logic_and ( "or" logic_and )* ;                      │░
 │    logic_and      →   equality ( "and" equality )* ;                       │░
 │    equality       →   comparison ( ( "!=" | "==" ) comparison )* ;         │░

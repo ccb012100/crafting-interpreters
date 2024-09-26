@@ -13,14 +13,15 @@ internal static class Program {
             outputDir ,
             "Expr" ,
             [
-                "Assign     : Token name, Expr value" ,
-                "Binary     : Expr left, Token oper, Expr right" ,
-                "Call       : Expr callee, Token paren, List<Expr> arguments" ,
-                "Grouping   : Expr expression" ,
-                "Literal    : object value" ,
-                "Logical    : Expr left, Token operator, Expr right" ,
-                "Unary      : Token oper, Expr right" ,
-                "Variable   : Token name"
+                "Assign      : Token name, Expr value" ,
+                "Binary      : Expr left, Token oper, Expr right" ,
+                "Call        : Expr callee, Token paren, List<Expr> arguments" ,
+                "Grouping    : Expr expression" ,
+                "Literal     : object value" ,
+                "Logical     : Expr left, Token operator, Expr right" ,
+                "Conditional : Expr condition, Expr thenBranch, Expr elseBranch",
+                "Unary       : Token oper, Expr right" ,
+                "Variable    : Token name"
             ]
         );
 

@@ -39,4 +39,8 @@ internal class RpnPrinter : Expr.IVisitor<string> {
     public string Print( Expr expr ) {
         return expr.Accept( this );
     }
+
+    public string VisitConditionalExpr( Expr.Conditional expr ) {
+        throw new NotImplementedException( );
+    }
 }

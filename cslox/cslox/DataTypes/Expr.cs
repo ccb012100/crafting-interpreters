@@ -10,6 +10,7 @@ internal abstract class Expr {
         T VisitGroupingExpr( Grouping expr );
         T VisitLiteralExpr( Literal expr );
         T VisitLogicalExpr( Logical expr );
+        T VisitConditionalExpr( Conditional expr );
         T VisitUnaryExpr( Unary expr );
         T VisitVariableExpr( Variable expr );
     }
@@ -66,6 +67,16 @@ internal abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitLogicalExpr( this );
+        }
+    }
+
+    public class Conditional( Expr condition , Expr thenBranch , Expr elseBranch ) : Expr {
+        public readonly Expr Condition = condition;
+        public readonly Expr ThenBranch = thenBranch;
+        public readonly Expr ElseBranch = elseBranch;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitConditionalExpr( this );
         }
     }
 

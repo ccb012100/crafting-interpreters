@@ -308,35 +308,24 @@ internal class Parser( List<Token> tokens ) {
     #region Expr
 
     private Expr Expression( ) {
-        return Ternary( );
-    }
-
-    private Expr Ternary( ) {
-        Expr expr = Comma( );
-
-        if ( Match( QUESTION_MARK ) ) {
-            _ = Ternary( );
-
-            Consume( COLON , "Expect ':' after expression." );
-
-            expr = Ternary( );
-        }
-
-        return expr;
+        return Comma( );
     }
 
     private Expr Comma( ) {
         Expr expr = Assignment( );
 
         while ( Match( COMMA ) ) {
-            expr = Assignment( );
+            Token @operator = Previous( );
+            Expr right = Assignment( );
+
+            expr = new Expr.Binary( expr , @operator , right );
         }
 
         return expr;
     }
 
     private Expr Assignment( ) {
-        Expr expr = Or( );
+        Expr expr = Conditional( );
 
         if ( Match( EQUAL ) ) {
             Token equals = Previous( );
@@ -349,6 +338,22 @@ internal class Parser( List<Token> tokens ) {
             }
 
             Error( equals , "Invalid assignment target." );
+        }
+
+        return expr;
+    }
+
+    private Expr Conditional( ) {
+        Expr expr = Or( );
+
+        if ( Match( QUESTION_MARK ) ) {
+            Expr thenBranch = Expression( );
+
+            Consume( COLON , "Expect ':' after expression." );
+
+            Expr elseBranch = Conditional( );
+
+            expr = new Expr.Conditional( expr , thenBranch , elseBranch );
         }
 
         return expr;
