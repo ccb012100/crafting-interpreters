@@ -1,4 +1,6 @@
-namespace cslox.Analyzers;
+using cslox.Analyzers;
+
+namespace cslox.LoxCallables;
 
 internal interface ILoxCallable {
     int Arity( );

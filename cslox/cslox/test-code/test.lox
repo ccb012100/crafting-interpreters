@@ -1,20 +1,5 @@
-var a = 0;
-print a;
-while (true) {
-    a = 100;
-    print a;
-    if (a > 0) {
-        print a;
-        a = 200;
-        if (3 > 1) {
-            print a;
-            break;
-        }
-        a = 300;
-    }
-
-    break;
-    a = 400;
+fun sayHi(first, last){
+    print "Hi, " + first + " " + last + "!";
 }
-print a; // should print '200'
-break;
+
+sayHi("Dear", "Reader");

@@ -1,5 +1,4 @@
-﻿using static cslox.DataTypes.Expr;
-using static cslox.DataTypes.Stmt;
+﻿using cslox.Extensions;
 
 namespace cslox.Analyzers;
 
@@ -123,20 +122,20 @@ internal class Parser( List<Token> tokens ) {
         }
 
         if ( Match( LEFT_BRACE ) ) {
-            return new Block( Block( ) );
+            return new Stmt.Block( Block( ) );
         }
 
         return ExpressionStatement( );
     }
 
-    private Break BreakStatement( ) {
+    private Stmt.Break BreakStatement( ) {
         if ( _loopDepth == 0 ) {
             throw Error( Previous( ) , "Must be inside a loop to use 'break'." );
         }
 
         Consume( SEMICOLON , "Expect ';' after 'break'." );
 
-        return new Break( );
+        return new Stmt.Break( );
     }
 
     private Stmt ForStatement( ) {
@@ -172,15 +171,15 @@ internal class Parser( List<Token> tokens ) {
             Stmt body = Statement( );
 
             if ( increment is not null ) {
-                body = new Block( [body , new ExpressionStmt( increment )] );
+                body = new Stmt.Block( [body , new Stmt.ExpressionStmt( increment )] );
             }
 
-            condition ??= new Literal( true );
+            condition ??= new Expr.Literal( true );
 
-            body = new While( condition , body );
+            body = new Stmt.While( condition , body );
 
             if ( initializer is not null ) {
-                body = new Block( [initializer , body] );
+                body = new Stmt.Block( [initializer , body] );
             }
 
             return body;
@@ -189,7 +188,7 @@ internal class Parser( List<Token> tokens ) {
         }
     }
 
-    private If IfStatement( ) {
+    private Stmt.If IfStatement( ) {
         Consume( LEFT_PAREN , "Expect '(' after 'if'." );
         Expr condition = Expression( );
         Consume( RIGHT_PAREN , "Expect ')' after if condition." );
@@ -201,18 +200,18 @@ internal class Parser( List<Token> tokens ) {
             elseBranch = Statement( );
         }
 
-        return new If( condition , thenBranch , elseBranch );
+        return new Stmt.If( condition , thenBranch , elseBranch );
     }
 
-    private Print PrintStatement( ) {
+    private Stmt.Print PrintStatement( ) {
         Expr value = Expression( );
 
         Consume( SEMICOLON , "Expect ';' after value." );
 
-        return new Print( value );
+        return new Stmt.Print( value );
     }
 
-    private While WhileStatement( ) {
+    private Stmt.While WhileStatement( ) {
         Consume( LEFT_PAREN , "Expect '(' after 'while'." );
         Expr condition = Expression( );
         Consume( RIGHT_PAREN , "Expect ')' after condition." );
@@ -221,13 +220,13 @@ internal class Parser( List<Token> tokens ) {
             _loopDepth++;
             Stmt body = Statement( );
 
-            return new While( condition , body );
+            return new Stmt.While( condition , body );
         } finally {
             _loopDepth--;
         }
     }
 
-    private Var VarDeclaration( ) {
+    private Stmt.Var VarDeclaration( ) {
         Token name = Consume( IDENTIFIER , "Expect variable name." );
 
         Expr initializer = null;
@@ -238,15 +237,15 @@ internal class Parser( List<Token> tokens ) {
 
         Consume( SEMICOLON , "Expect ';' after variable declaration." );
 
-        return new Var( name , initializer );
+        return new Stmt.Var( name , initializer );
     }
 
-    private ExpressionStmt ExpressionStatement( ) {
+    private Stmt.ExpressionStmt ExpressionStatement( ) {
         Expr expr = Expression( );
 
         Consume( SEMICOLON , "Expect ';' after expression." );
 
-        return new ExpressionStmt( expr );
+        return new Stmt.ExpressionStmt( expr );
     }
 
     private List<Stmt> Block( ) {
@@ -287,7 +286,7 @@ internal class Parser( List<Token> tokens ) {
         return Ternary( );
     }
 
-    private Function Function( string kind ) {
+    private Stmt.Function Function( string kind ) {
         Token name = Consume( IDENTIFIER , $"Expect {kind} name." );
 
         Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
@@ -309,7 +308,7 @@ internal class Parser( List<Token> tokens ) {
 
         List<Stmt> body = Block( );
 
-        return new Function( name , parameters , body );
+        return new Stmt.Function( name , parameters , body );
     }
 
     private Expr Ternary( ) {
@@ -343,10 +342,10 @@ internal class Parser( List<Token> tokens ) {
             Token equals = Previous( );
             Expr value = Assignment( );
 
-            if ( expr is Variable varExpr ) {
+            if ( expr is Expr.Variable varExpr ) {
                 Token name = varExpr.Name;
 
-                return new Assign( name , value );
+                return new Expr.Assign( name , value );
             }
 
             Error( equals , "Invalid assignment target." );
@@ -362,7 +361,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = And( );
 
-            expr = new Logical( expr , @operator , right );
+            expr = new Expr.Logical( expr , @operator , right );
         }
 
         return expr;
@@ -375,7 +374,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = Equality( );
 
-            expr = new Logical( expr , @operator , right );
+            expr = new Expr.Logical( expr , @operator , right );
         }
 
         return expr;
@@ -394,7 +393,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( BANG_EQUAL , EQUAL_EQUAL ) ) {
             Token @operator = Previous( );
             Expr right = Comparison( );
-            expr = new Binary( expr , @operator , right );
+            expr = new Expr.Binary( expr , @operator , right );
         }
 
         return expr;
@@ -413,7 +412,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( GREATER , GREATER_EQUAL , LESS , LESS_EQUAL ) ) {
             Token @operator = Previous( );
             Expr right = Term( );
-            expr = new Binary( expr , @operator , right );
+            expr = new Expr.Binary( expr , @operator , right );
         }
 
         return expr;
@@ -432,7 +431,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( MINUS , PLUS ) ) {
             Token @operator = Previous( );
             Expr right = Factor( );
-            expr = new Binary( expr , @operator , right );
+            expr = new Expr.Binary( expr , @operator , right );
         }
 
         return expr;
@@ -451,7 +450,7 @@ internal class Parser( List<Token> tokens ) {
         while ( Match( SLASH , STAR ) ) {
             Token @operator = Previous( );
             Expr right = Unary( );
-            expr = new Binary( expr , @operator , right );
+            expr = new Expr.Binary( expr , @operator , right );
         }
 
         return expr;
@@ -462,7 +461,7 @@ internal class Parser( List<Token> tokens ) {
             Token @operator = Previous( );
             Expr right = Unary( );
 
-            return new Unary( @operator , right );
+            return new Expr.Unary( @operator , right );
         }
 
         return Call( );
@@ -482,7 +481,7 @@ internal class Parser( List<Token> tokens ) {
         return expr;
     }
 
-    private Call FinishCall( Expr callee ) {
+    private Expr.Call FinishCall( Expr callee ) {
         List<Expr> arguments = [ ];
 
         if ( !Check( RIGHT_PAREN ) ) {
@@ -490,42 +489,42 @@ internal class Parser( List<Token> tokens ) {
                 if ( arguments.Count >= 255 ) {
                     Error( Peek( ) , "Can't have more than 255 arguments." );
                 }
-
-                arguments.Add( Expression( ) );
+                // FIXME: My implementation of the comma operator in Ch. 6 breaks this
+                // arguments.Add( Expression( ) );
+                arguments.Add( Assignment( ) );
             } while ( Match( COMMA ) );
         }
 
         Token paren = Consume( RIGHT_PAREN , "Expect ')' after arguments." );
-
-        return new Call( callee , paren , arguments );
+        return new Expr.Call( callee , paren , arguments );
     }
 
     private Expr Primary( ) {
         if ( Match( FALSE ) ) {
-            return new Literal( false );
+            return new Expr.Literal( false );
         }
 
         if ( Match( TRUE ) ) {
-            return new Literal( true );
+            return new Expr.Literal( true );
         }
 
         if ( Match( NIL ) ) {
-            return new Literal( null );
+            return new Expr.Literal( null );
         }
 
         if ( Match( NUMBER , STRING ) ) {
-            return new Literal( Previous( ).Literal );
+            return new Expr.Literal( Previous( ).Literal );
         }
 
         if ( Match( IDENTIFIER ) ) {
-            return new Variable( Previous( ) );
+            return new Expr.Variable( Previous( ) );
         }
 
         if ( Match( LEFT_PAREN ) ) {
             Expr expr = Expression( );
             Consume( RIGHT_PAREN , "Expect ')' after expression." );
 
-            return new Grouping( expr );
+            return new Expr.Grouping( expr );
         }
 
         throw Error( Peek( ) , "Expect expression." );

@@ -1,5 +1,5 @@
-using static cslox.DataTypes.Expr;
-using static cslox.DataTypes.Stmt;
+using cslox.Extensions;
+using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
@@ -31,18 +31,42 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    private class BreakException : Exception;
+    #region Execute
+
+    public object Evaluate( Expr expr ) {
+        return expr.Accept( this );
+    }
+
+    public void Execute( Stmt stmt ) {
+        stmt.Accept( this );
+    }
+
+    public void ExecuteBlock( List<Stmt> statements , Environment environment ) {
+        Environment previous = _environment;
+
+        try {
+            _environment = environment;
+
+            foreach ( Stmt stmt in statements ) {
+                Execute( stmt );
+            }
+        } finally {
+            _environment = previous;
+        }
+    }
+
+    #endregion
 
     #region Expr.IVisitor<object>
 
-    public object VisitAssignExpr( Assign expr ) {
+    public object VisitAssignExpr( Expr.Assign expr ) {
         object value = Evaluate( expr.Value );
         _environment.Assign( expr.Name , value , true );
 
         return value;
     }
 
-    public object VisitBinaryExpr( Binary expr ) {
+    public object VisitBinaryExpr( Expr.Binary expr ) {
         object left = Evaluate( expr.Left );
         object right = Evaluate( expr.Right );
 
@@ -101,9 +125,8 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    public object VisitCallExpr( Call expr ) {
+    public object VisitCallExpr( Expr.Call expr ) {
         object callee = Evaluate( expr.Callee );
-
         List<object> arguments = expr.Arguments.Select( Evaluate ).ToList( );
 
         if ( callee is not ILoxCallable function ) {
@@ -117,15 +140,15 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return function.Call( this , arguments );
     }
 
-    public object VisitGroupingExpr( Grouping expr ) {
+    public object VisitGroupingExpr( Expr.Grouping expr ) {
         return Evaluate( expr.Expression );
     }
 
-    public object VisitLiteralExpr( Literal expr ) {
+    public object VisitLiteralExpr( Expr.Literal expr ) {
         return expr.Value;
     }
 
-    public object VisitUnaryExpr( Unary expr ) {
+    public object VisitUnaryExpr( Expr.Unary expr ) {
         object right = Evaluate( expr.Right );
 
         switch ( expr.Operator.Type ) {
@@ -140,11 +163,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return null; // Unreachable
     }
 
-    public object VisitVariableExpr( Variable expr ) {
+    public object VisitVariableExpr( Expr.Variable expr ) {
         return _environment.Get( expr.Name );
     }
 
-    public object VisitLogicalExpr( Logical expr ) {
+    public object VisitLogicalExpr( Expr.Logical expr ) {
         object left = Evaluate( expr.Left );
 
         return expr.Operator.Type switch {
@@ -158,24 +181,27 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     #region Stmt.IVisitor<ValueTuple>
 
-    public ValueTuple VisitExpressionStmt( ExpressionStmt stmt ) {
+    public ValueTuple VisitExpressionStmt( Stmt.ExpressionStmt stmt ) {
         Evaluate( stmt.Expression );
 
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitFunctionStmt( Function stmt ) {
-        throw new NotImplementedException( );
+    public ValueTuple VisitFunctionStmt( Stmt.Function stmt ) {
+        LoxFunction function = new( stmt );
+        _environment.Define( stmt.Name.Lexeme , function , true );
+
+        return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitPrintStmt( Print stmt ) {
+    public ValueTuple VisitPrintStmt( Stmt.Print stmt ) {
         object value = Evaluate( stmt.Expression );
         Console.WriteLine( Stringify( value ) );
 
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitVarStmt( Var stmt ) {
+    public ValueTuple VisitVarStmt( Stmt.Var stmt ) {
         object value = null;
 
         if ( stmt.Initializer is not null ) {
@@ -187,13 +213,13 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitBlockStmt( Block stmt ) {
+    public ValueTuple VisitBlockStmt( Stmt.Block stmt ) {
         ExecuteBlock( stmt.Statements , new Environment( _environment ) );
 
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitIfStmt( If stmt ) {
+    public ValueTuple VisitIfStmt( Stmt.If stmt ) {
         if ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
             Execute( stmt.ThenBranch );
         } else if ( stmt.ElseBranch is not null ) {
@@ -203,7 +229,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitWhileStmt( While stmt ) {
+    public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
         try {
             while ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
                 Execute( stmt.Body );
@@ -218,28 +244,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     #endregion
 
     #region private methods
-
-    private object Evaluate( Expr expr ) {
-        return expr.Accept( this );
-    }
-
-    private void Execute( Stmt stmt ) {
-        stmt.Accept( this );
-    }
-
-    private void ExecuteBlock( List<Stmt> statements , Environment environment ) {
-        Environment previous = _environment;
-
-        try {
-            _environment = environment;
-
-            foreach ( Stmt stmt in statements ) {
-                Execute( stmt );
-            }
-        } finally {
-            _environment = previous;
-        }
-    }
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
@@ -312,4 +316,6 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             return "<native fn>";
         }
     }
+
+    private class BreakException : Exception;
 }
