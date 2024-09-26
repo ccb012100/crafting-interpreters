@@ -4,7 +4,14 @@ using static cslox.DataTypes.Stmt;
 namespace cslox.Analyzers;
 
 internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
-    private Environment _environment = new( );
+    private readonly Environment _globals = new( );
+    private Environment _environment;
+
+    public Interpreter( ) {
+        _environment = _globals;
+
+        _globals.Define( "clock" , new Clock( ) , true );
+    }
 
     public void Interpret( List<Stmt> statements ) {
         try {
@@ -289,4 +296,16 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     #endregion
+
+    private class Clock : ILoxCallable {
+        public int Arity( ) => 0;
+
+        public object Call( Interpreter interpreter , List<object> arguments ) {
+            return DateTime.UtcNow.Ticks / 1000.0;
+        }
+
+        public override string ToString( ) {
+            return "<native fn>";
+        }
+    }
 }
