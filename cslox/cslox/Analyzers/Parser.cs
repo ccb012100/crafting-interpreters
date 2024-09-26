@@ -278,14 +278,6 @@ internal class Parser( List<Token> tokens ) {
         }
     }
 
-    #endregion
-
-    #region Expr
-
-    private Expr Expression( ) {
-        return Ternary( );
-    }
-
     private Stmt.Function Function( string kind ) {
         Token name = Consume( IDENTIFIER , $"Expect {kind} name." );
 
@@ -309,6 +301,14 @@ internal class Parser( List<Token> tokens ) {
         List<Stmt> body = Block( );
 
         return new Stmt.Function( name , parameters , body );
+    }
+
+    #endregion
+
+    #region Expr
+
+    private Expr Expression( ) {
+        return Ternary( );
     }
 
     private Expr Ternary( ) {
