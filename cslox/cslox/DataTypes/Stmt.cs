@@ -30,8 +30,8 @@ internal abstract class Stmt {
     }
 
     public class Var( Token name , Expr initializer ) : Stmt {
-        public readonly Token Name = name;
         public readonly Expr Initializer = initializer;
+        public readonly Token Name = name;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitVarStmt( this );
@@ -48,8 +48,8 @@ internal abstract class Stmt {
 
     public class If( Expr condition , Stmt thenBranch , Stmt elseBranch ) : Stmt {
         public readonly Expr Condition = condition;
-        public readonly Stmt ThenBranch = thenBranch;
         public readonly Stmt ElseBranch = elseBranch;
+        public readonly Stmt ThenBranch = thenBranch;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitIfStmt( this );
@@ -57,15 +57,15 @@ internal abstract class Stmt {
     }
 
     public class While( Expr condition , Stmt body ) : Stmt {
-        public readonly Expr Condition = condition;
         public readonly Stmt Body = body;
+        public readonly Expr Condition = condition;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitWhileStmt( this );
         }
     }
 
-    public class Break( ) : Stmt {
+    public class Break : Stmt {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitBreakStmt( this );
         }

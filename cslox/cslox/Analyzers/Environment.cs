@@ -1,8 +1,8 @@
 namespace cslox.Analyzers;
 
 internal class Environment( Environment enclosing ) {
-    private readonly Dictionary<string , (object value, bool initialized)> _values = [ ];
     private readonly Environment _enclosing = enclosing;
+    private readonly Dictionary<string , (object value, bool initialized)> _values = [ ];
 
     public Environment( ) : this( null ) { }
 

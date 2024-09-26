@@ -3,25 +3,24 @@
 namespace cslox.Analyzers;
 
 internal class Scanner( string source ) {
-    private static readonly Dictionary<string , TokenType> s_keywords = new( )
-    {
-        { "and", AND },
-        { "break", BREAK },
-        { "class", CLASS },
-        { "else", ELSE },
-        { "false", FALSE },
-        { "for", FOR },
-        { "fun", FUN },
-        { "if", IF },
-        { "nil", NIL },
-        { "or", OR },
-        { "print", PRINT },
-        { "return", RETURN },
-        { "super", SUPER },
-        { "this", THIS },
-        { "true", TRUE },
-        { "var", VAR },
-        { "while", WHILE }
+    private static readonly Dictionary<string , TokenType> s_keywords = new( ) {
+        { "and" , AND } ,
+        { "break" , BREAK } ,
+        { "class" , CLASS } ,
+        { "else" , ELSE } ,
+        { "false" , FALSE } ,
+        { "for" , FOR } ,
+        { "fun" , FUN } ,
+        { "if" , IF } ,
+        { "nil" , NIL } ,
+        { "or" , OR } ,
+        { "print" , PRINT } ,
+        { "return" , RETURN } ,
+        { "super" , SUPER } ,
+        { "this" , THIS } ,
+        { "true" , TRUE } ,
+        { "var" , VAR } ,
+        { "while" , WHILE }
     };
 
     private readonly List<char> _scanningErrors = [ ];
@@ -193,7 +192,7 @@ internal class Scanner( string source ) {
                 } else if ( c.isAlpha( ) ) {
                     AddIdentifier( );
                 } else // Bad character encountered
-                  {
+                {
                     error = true;
                     _scanningErrors.Add( c );
                 }

@@ -5,6 +5,25 @@ namespace cslox.Analyzers;
 
 internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     private Environment _environment = new( );
+
+    public void Interpret( List<Stmt> statements ) {
+        try {
+            foreach ( Stmt statement in statements ) {
+                Execute( statement );
+            }
+        } catch ( RuntimeError e ) {
+            Lox.RuntimeError( e );
+        }
+    }
+
+    public void Eval( Expr expr ) {
+        try {
+            Console.WriteLine( Evaluate( expr ) );
+        } catch ( RuntimeError re ) {
+            Lox.RuntimeError( re );
+        }
+    }
+
     private class BreakException : Exception;
 
     #region Expr.IVisitor<object>
@@ -73,6 +92,22 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             default:
                 return null; // unreachable
         }
+    }
+
+    public object VisitCallExpr( Call expr ) {
+        object callee = Evaluate( expr.Callee );
+
+        List<object> arguments = expr.Arguments.Select( Evaluate ).ToList( );
+
+        if ( callee is not ILoxCallable function ) {
+            throw new RuntimeError( expr.Paren , "Can only call functions and classes." );
+        }
+
+        if ( arguments.Count != function.Arity( ) ) {
+            throw new RuntimeError( expr.Paren , $"Expected {function.Arity( )} arguments but got {arguments.Count}." );
+        }
+
+        return function.Call( this , arguments );
     }
 
     public object VisitGroupingExpr( Grouping expr ) {
@@ -165,28 +200,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         } catch ( BreakException ) {
             // do nothing
         }
+
         return ValueTuple.Create( );
     }
 
     #endregion
-
-    public void Interpret( List<Stmt> statements ) {
-        try {
-            foreach ( Stmt statement in statements ) {
-                Execute( statement );
-            }
-        } catch ( RuntimeError e ) {
-            Lox.RuntimeError( e );
-        }
-    }
-
-    public void Eval( Expr expr ) {
-        try {
-            Console.WriteLine( Evaluate( expr ) );
-        } catch ( RuntimeError re ) {
-            Lox.RuntimeError( re );
-        }
-    }
 
     #region private methods
 

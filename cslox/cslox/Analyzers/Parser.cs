@@ -4,8 +4,6 @@ using static cslox.DataTypes.Stmt;
 namespace cslox.Analyzers;
 
 internal class Parser( List<Token> tokens ) {
-    public class ParseError : Exception;
-
     private int _current;
     private int _loopDepth;
 
@@ -23,6 +21,84 @@ internal class Parser( List<Token> tokens ) {
         return Expression( );
     }
 
+    private bool Match( params TokenType[ ] types ) {
+        if ( !types.Any( Check ) ) {
+            return false;
+        }
+
+        Advance( );
+
+        return true;
+    }
+
+    private bool Check( TokenType type ) {
+        if ( IsAtEnd( ) ) {
+            return false;
+        }
+
+        return Peek( ).Type == type;
+    }
+
+    private Token Advance( ) {
+        if ( !IsAtEnd( ) ) {
+            _current++;
+        }
+
+        return Previous( );
+    }
+
+    private bool IsAtEnd( ) {
+        return Peek( ).Type == EOF;
+    }
+
+    private Token Peek( ) {
+        return tokens.ElementAt( _current );
+    }
+
+    private Token Previous( ) {
+        return tokens.ElementAt( _current - 1 );
+    }
+
+    private Token Consume( TokenType type , string message ) {
+        if ( Check( type ) ) {
+            return Advance( );
+        }
+
+        throw Error( Peek( ) , message );
+    }
+
+    private static ParseError Error( Token token , string message ) {
+        Lox.Error( token , message );
+
+        return new ParseError( );
+    }
+
+    private void Synchronize( ) {
+        Advance( );
+
+        while ( !IsAtEnd( ) ) {
+            if ( Previous( ).Type == SEMICOLON ) {
+                return;
+            }
+
+            switch ( Peek( ).Type ) {
+                case CLASS:
+                case FUN:
+                case VAR:
+                case FOR:
+                case IF:
+                case WHILE:
+                case PRINT:
+                case RETURN:
+                    return;
+            }
+
+            Advance( );
+        }
+    }
+
+    public class ParseError : Exception;
+
     #region Stmt
 
     private Stmt Statement( ) {
@@ -33,6 +109,7 @@ internal class Parser( List<Token> tokens ) {
         if ( Match( FOR ) ) {
             return ForStatement( );
         }
+
         if ( Match( IF ) ) {
             return IfStatement( );
         }
@@ -56,13 +133,16 @@ internal class Parser( List<Token> tokens ) {
         if ( _loopDepth == 0 ) {
             throw Error( Previous( ) , "Must be inside a loop to use 'break'." );
         }
+
         Consume( SEMICOLON , "Expect ';' after 'break'." );
+
         return new Break( );
     }
 
     private Stmt ForStatement( ) {
         Consume( LEFT_PAREN , "Expect '(' after 'for'." );
         Stmt initializer;
+
         if ( Match( SEMICOLON ) ) {
             initializer = null;
         } else if ( Match( VAR ) ) {
@@ -72,15 +152,19 @@ internal class Parser( List<Token> tokens ) {
         }
 
         Expr condition = Expression( );
+
         if ( !Check( SEMICOLON ) ) {
             condition = Expression( );
         }
+
         Consume( SEMICOLON , "Expect ';' after loop condition." );
 
         Expr increment = null;
+
         if ( !Check( RIGHT_PAREN ) ) {
             increment = Expression( );
         }
+
         Consume( RIGHT_PAREN , "Expect ')' after for clauses." );
 
         try {
@@ -141,7 +225,6 @@ internal class Parser( List<Token> tokens ) {
         } finally {
             _loopDepth--;
         }
-
     }
 
     private Var VarDeclaration( ) {
@@ -349,7 +432,39 @@ internal class Parser( List<Token> tokens ) {
             return new Unary( @operator , right );
         }
 
-        return Primary( );
+        return Call( );
+    }
+
+    private Expr Call( ) {
+        Expr expr = Primary( );
+
+        while ( true ) {
+            if ( Match( LEFT_PAREN ) ) {
+                expr = FinishCall( expr );
+            } else {
+                break;
+            }
+        }
+
+        return expr;
+    }
+
+    private Call FinishCall( Expr callee ) {
+        List<Expr> arguments = [ ];
+
+        if ( !Check( RIGHT_PAREN ) ) {
+            do {
+                if ( arguments.Count >= 255 ) {
+                    Error( Peek( ) , "Can't have more than 255 arguments." );
+                }
+
+                arguments.Add( Expression( ) );
+            } while ( Match( COMMA ) );
+        }
+
+        Token paren = Consume( RIGHT_PAREN , "Expect ')' after arguments." );
+
+        return new Call( callee , paren , arguments );
     }
 
     private Expr Primary( ) {
@@ -384,80 +499,4 @@ internal class Parser( List<Token> tokens ) {
     }
 
     #endregion
-
-    private bool Match( params TokenType[ ] types ) {
-        if ( !types.Any( Check ) ) {
-            return false;
-        }
-
-        Advance( );
-
-        return true;
-    }
-
-    private bool Check( TokenType type ) {
-        if ( IsAtEnd( ) ) {
-            return false;
-        }
-
-        return Peek( ).Type == type;
-    }
-
-    private Token Advance( ) {
-        if ( !IsAtEnd( ) ) {
-            _current++;
-        }
-
-        return Previous( );
-    }
-
-    private bool IsAtEnd( ) {
-        return Peek( ).Type == EOF;
-    }
-
-    private Token Peek( ) {
-        return tokens.ElementAt( _current );
-    }
-
-    private Token Previous( ) {
-        return tokens.ElementAt( _current - 1 );
-    }
-
-    private Token Consume( TokenType type , string message ) {
-        if ( Check( type ) ) {
-            return Advance( );
-        }
-
-        throw Error( Peek( ) , message );
-    }
-
-    private static ParseError Error( Token token , string message ) {
-        Lox.Error( token , message );
-
-        return new ParseError( );
-    }
-
-    private void Synchronize( ) {
-        Advance( );
-
-        while ( !IsAtEnd( ) ) {
-            if ( Previous( ).Type == SEMICOLON ) {
-                return;
-            }
-
-            switch ( Peek( ).Type ) {
-                case CLASS:
-                case FUN:
-                case VAR:
-                case FOR:
-                case IF:
-                case WHILE:
-                case PRINT:
-                case RETURN:
-                    return;
-            }
-
-            Advance( );
-        }
-    }
 }

@@ -17,6 +17,10 @@ internal class AstPrinter : IVisitor<string> {
         );
     }
 
+    public string VisitCallExpr( Call expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitGroupingExpr( Grouping expr ) {
         return Parenthesize( "group" , expr.Expression );
     }

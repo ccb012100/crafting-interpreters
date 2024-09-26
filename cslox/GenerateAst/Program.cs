@@ -15,6 +15,7 @@ internal static class Program {
             [
                 "Assign     : Token name, Expr value" ,
                 "Binary     : Expr left, Token oper, Expr right" ,
+                "Call       : Expr callee, Token paren, List<Expr> arguments" ,
                 "Grouping   : Expr expression" ,
                 "Literal    : object value" ,
                 "Logical    : Expr left, Token operator, Expr right" ,
@@ -28,7 +29,7 @@ internal static class Program {
             "Stmt" ,
             [
                 "Block          : List<Stmt> statements" ,
-                "Break          : ",
+                "Break          : " ,
                 "ExpressionStmt : Expr expression" ,
                 "If             : Expr condition, Stmt thenBranch, Stmt elseBranch" ,
                 "Print          : Expr expression" ,

@@ -12,6 +12,10 @@ internal class RpnPrinter : Expr.IVisitor<string> {
         return $"{expr.Left.Accept( this )} {expr.Right.Accept( this )} {expr.Operator.Lexeme}";
     }
 
+    public string VisitCallExpr( Expr.Call expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitGroupingExpr( Expr.Grouping expr ) {
         return expr.Expression.Accept( this );
     }
