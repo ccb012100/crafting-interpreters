@@ -26,9 +26,12 @@ book.
 ├────────────────────────────────────────────────────────────────────────────┤░
 │    program        →   declaration* EOF ;                                   │░
 │                                                                            │░
-│    declaration    →   varDecl                                              │░
+│    declaration    →   funDecl                                              │░
+│                   |   varDecl ;                                            │░
 │                   |   statement ;                                          │░
 │                                                                            │░
+│    funDecl        →   "fun" function ;                                     │░
+│    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │                                                                            │░
 │    statement      →   exprStmt                                             │░
@@ -66,10 +69,13 @@ book.
 │                                                                            │░
 │    unary          →   ( "!" | "-" ) unary | call ;                         │░
 │    call           →   primary ( "(" arguments? ")" )* ;                    │░
-│    arguments      →   expression ( "," expression )* ;                     │░
 │    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
 │                   |   "(" expression ")" ;                                 │░
 │                   |   IDENTIFIER ;                                         │░
+│                                                                            │░
+│    function       →   IDENTIFIER "(" parameters? ")" block ;               │░
+│    parameters     →   IDENTIFIER ( "," IDENTIFIER )* ;                     │░
+│    arguments      →   expression ( "," expression )* ;                     │░
 ╰────────────────────────────────────────────────────────────────────────────╯░
  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 

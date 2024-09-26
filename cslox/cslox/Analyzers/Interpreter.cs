@@ -164,6 +164,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitFunctionStmt( Function stmt ) {
+        throw new NotImplementedException( );
+    }
+
     public ValueTuple VisitPrintStmt( Print stmt ) {
         object value = Evaluate( stmt.Expression );
         Console.WriteLine( Stringify( value ) );
@@ -291,7 +295,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    public ValueTuple VisitBreakStmt( Break stmt ) {
+    public ValueTuple VisitBreakStmt( ) {
         throw new BreakException( );
     }
 

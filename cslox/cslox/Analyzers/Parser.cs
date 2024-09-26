@@ -263,7 +263,15 @@ internal class Parser( List<Token> tokens ) {
 
     private Stmt Declaration( ) {
         try {
-            return Match( VAR ) ? VarDeclaration( ) : Statement( );
+            if ( Match( FUN ) ) {
+                return Function( "function" );
+            }
+
+            if ( Match( VAR ) ) {
+                VarDeclaration( );
+            }
+
+            return Statement( );
         } catch ( ParseError ) {
             Synchronize( );
 
@@ -277,6 +285,31 @@ internal class Parser( List<Token> tokens ) {
 
     private Expr Expression( ) {
         return Ternary( );
+    }
+
+    private Function Function( string kind ) {
+        Token name = Consume( IDENTIFIER , $"Expect {kind} name." );
+
+        Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
+
+        List<Token> parameters = [ ];
+
+        if ( !Check( RIGHT_PAREN ) ) {
+            do {
+                if ( parameters.Count >= 255 ) {
+                    Error( Peek( ) , "Can't have more than 255 parameters." );
+                }
+
+                parameters.Add( Consume( IDENTIFIER , "Expect parameter name." ) );
+            } while ( Match( COMMA ) );
+        }
+
+        Consume( RIGHT_PAREN , "Expect ')' after parameters." );
+        Consume( LEFT_BRACE , $"Expect '{{' before {kind} body." );
+
+        List<Stmt> body = Block( );
+
+        return new Function( name , parameters , body );
     }
 
     private Expr Ternary( ) {
