@@ -267,7 +267,7 @@ internal class Parser( List<Token> tokens ) {
             }
 
             if ( Match( VAR ) ) {
-                VarDeclaration( );
+                return VarDeclaration( );
             }
 
             return Statement( );
