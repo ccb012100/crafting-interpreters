@@ -38,6 +38,7 @@ book.
 │                   |   forStmt                                              │░
 │                   |   ifStmt                                               │░
 │                   |   printStmt                                            │░
+│                   |   returnStmt                                           │░
 │                   |   whileStmt                                            │░
 │                   |   block ;                                              │░
 │                                                                            │░
@@ -50,6 +51,7 @@ book.
 │    ifStmt         →   "if" "(" expression ")" breakStmt                    │░
 │                       ( "else" breakStmt )? ;                              │░
 │    printStmt      →   "print" expression ";" ;                             │░
+│    returnStmt     →   "return" expression? ";" ;                           │░
 │    whileStmt      →   "while" "(" expression ")" breakStmt ;               │░
 │    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░

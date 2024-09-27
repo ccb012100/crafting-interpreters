@@ -25,7 +25,12 @@ internal class RpnPrinter : Expr.IVisitor<string> {
     }
 
     public string VisitUnaryExpr( Expr.Unary expr ) {
-        return $"{expr.Right.Accept( this )} {expr.Operator.Lexeme}";
+        string @operator = expr.Operator.Type switch {
+            MINUS => "~" , // use different symbol to differentiate unary and binary
+            _ => expr.Operator.Lexeme
+        };
+
+        return $"{expr.Right.Accept( this )} {@operator}";
     }
 
     public string VisitVariableExpr( Expr.Variable expr ) {

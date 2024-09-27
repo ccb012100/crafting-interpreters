@@ -1,13 +1,11 @@
-﻿using cslox.Extensions;
-
-namespace cslox.Analyzers;
+﻿namespace cslox.Analyzers;
 
 internal class Parser( List<Token> tokens ) {
     private int _current;
     private int _loopDepth;
 
     public List<Stmt> Parse( ) {
-        List<Stmt> statements = [ ];
+        List<Stmt> statements = [];
 
         while ( !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -117,6 +115,10 @@ internal class Parser( List<Token> tokens ) {
             return PrintStatement( );
         }
 
+        if ( Match( RETURN ) ) {
+            return ReturnStatement( );
+        }
+
         if ( Match( WHILE ) ) {
             return WhileStatement( );
         }
@@ -211,6 +213,19 @@ internal class Parser( List<Token> tokens ) {
         return new Stmt.Print( value );
     }
 
+    private Stmt ReturnStatement( ) {
+        Token keyword = Previous( );
+        Expr value = null;
+
+        if ( !Check( SEMICOLON ) ) {
+            value = Expression( );
+        }
+
+        Consume( SEMICOLON , "Expect ';' after return value." );
+
+        return new Stmt.Return( keyword , value );
+    }
+
     private Stmt.While WhileStatement( ) {
         Consume( LEFT_PAREN , "Expect '(' after 'while'." );
         Expr condition = Expression( );
@@ -249,7 +264,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private List<Stmt> Block( ) {
-        List<Stmt> statements = [ ];
+        List<Stmt> statements = [];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -283,7 +298,7 @@ internal class Parser( List<Token> tokens ) {
 
         Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
 
-        List<Token> parameters = [ ];
+        List<Token> parameters = [];
 
         if ( !Check( RIGHT_PAREN ) ) {
             do {
@@ -487,13 +502,14 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr.Call FinishCall( Expr callee ) {
-        List<Expr> arguments = [ ];
+        List<Expr> arguments = [];
 
         if ( !Check( RIGHT_PAREN ) ) {
             do {
                 if ( arguments.Count >= 255 ) {
                     Error( Peek( ) , "Can't have more than 255 arguments." );
                 }
+
                 // FIXME: My implementation of the comma operator in Ch. 6 breaks this
                 // arguments.Add( Expression( ) );
                 arguments.Add( Assignment( ) );
@@ -501,6 +517,7 @@ internal class Parser( List<Token> tokens ) {
         }
 
         Token paren = Consume( RIGHT_PAREN , "Expect ')' after arguments." );
+
         return new Expr.Call( callee , paren , arguments );
     }
 

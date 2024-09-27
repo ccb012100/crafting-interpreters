@@ -10,6 +10,7 @@ internal abstract class Stmt {
         T VisitFunctionStmt( Function stmt );
         T VisitIfStmt( If stmt );
         T VisitPrintStmt( Print stmt );
+        T VisitReturnStmt( Return stmt );
         T VisitVarStmt( Var stmt );
         T VisitWhileStmt( While stmt );
     }
@@ -61,6 +62,15 @@ internal abstract class Stmt {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitPrintStmt( this );
+        }
+    }
+
+    public class Return( Token name , Expr value ) : Stmt {
+        public readonly Token Name = name;
+        public readonly Expr Value = value;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitReturnStmt( this );
         }
     }
 

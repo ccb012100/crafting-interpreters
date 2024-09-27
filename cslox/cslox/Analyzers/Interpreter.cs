@@ -1,16 +1,17 @@
-using cslox.Extensions;
 using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
-internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
-    private readonly Environment _globals = new( );
+internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
+    private static readonly object s_unitialized = new( );
     private Environment _environment;
 
-    public Interpreter( ) {
-        _environment = _globals;
+    public readonly Environment Globals = new( );
 
-        _globals.Define( "clock" , new Clock( ) , true );
+    public Interpreter( ) {
+        _environment = Globals;
+
+        Globals.Define( "clock" , new Clock( ) );
     }
 
     public void Interpret( List<Stmt> statements ) {
@@ -30,6 +31,22 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             Lox.RuntimeError( re );
         }
     }
+
+    private class Clock : ILoxCallable {
+        public int Arity( ) {
+            return 0;
+        }
+
+        public object Call( Interpreter interpreter , List<object> arguments ) {
+            return DateTime.UtcNow.Ticks / 1000.0;
+        }
+
+        public override string ToString( ) {
+            return "<native fn>";
+        }
+    }
+
+    private class BreakException : Exception;
 
     #region Execute
 
@@ -61,7 +78,7 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     public object VisitAssignExpr( Expr.Assign expr ) {
         object value = Evaluate( expr.Value );
-        _environment.Assign( expr.Name , value , true );
+        _environment.Assign( expr.Name , value );
 
         return value;
     }
@@ -112,11 +129,11 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return (left, right) switch {
-                    (double dl, double dr ) => dl + dr,
-                    (string sl, double dr ) => sl + Stringify( dr ),
-                    (double dl, string sr ) => Stringify( dl ) + sr,
-                    (string sl, string sr ) => sl + sr,
+                return ( left , right ) switch {
+                    (double dl , double dr) => dl + dr ,
+                    (string sl , double dr) => sl + Stringify( dr ) ,
+                    (double dl , string sr) => Stringify( dl ) + sr ,
+                    (string sl , string sr) => sl + sr ,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -148,6 +165,16 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return expr.Value;
     }
 
+    public object VisitLogicalExpr( Expr.Logical expr ) {
+        object left = Evaluate( expr.Left );
+
+        return expr.Operator.Type switch {
+            OR when IsTruthy( left ) => left ,
+            AND when !IsTruthy( left ) => left ,
+            _ => Evaluate( expr.Right )
+        };
+    }
+
     public object VisitConditionalExpr( Expr.Conditional expr ) {
         object condition = Evaluate( expr.Condition );
 
@@ -170,22 +197,28 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public object VisitVariableExpr( Expr.Variable expr ) {
-        return _environment.Get( expr.Name );
-    }
+        object value = _environment.Get( expr.Name );
 
-    public object VisitLogicalExpr( Expr.Logical expr ) {
-        object left = Evaluate( expr.Left );
+        if ( value == s_unitialized ) {
+            throw new RuntimeError( expr.Name , "Variable must be initialized before use" );
+        }
 
-        return expr.Operator.Type switch {
-            OR when IsTruthy( left ) => left,
-            AND when !IsTruthy( left ) => left,
-            _ => Evaluate( expr.Right )
-        };
+        return value;
     }
 
     #endregion
 
     #region Stmt.IVisitor<ValueTuple>
+
+    public ValueTuple VisitBlockStmt( Stmt.Block stmt ) {
+        ExecuteBlock( stmt.Statements , new Environment( _environment ) );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitBreakStmt( ) {
+        throw new BreakException( );
+    }
 
     public ValueTuple VisitExpressionStmt( Stmt.ExpressionStmt stmt ) {
         Evaluate( stmt.Expression );
@@ -195,7 +228,17 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     public ValueTuple VisitFunctionStmt( Stmt.Function stmt ) {
         LoxFunction function = new( stmt );
-        _environment.Define( stmt.Name.Lexeme , function , true );
+        _environment.Define( stmt.Name.Lexeme , function );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitIfStmt( Stmt.If stmt ) {
+        if ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
+            Execute( stmt.ThenBranch );
+        } else if ( stmt.ElseBranch is not null ) {
+            Execute( stmt.ElseBranch );
+        }
 
         return ValueTuple.Create( );
     }
@@ -207,30 +250,24 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitVarStmt( Stmt.Var stmt ) {
+    public ValueTuple VisitReturnStmt( Stmt.Return stmt ) {
         object value = null;
+
+        if ( stmt.Value is not null ) {
+            value = Evaluate( stmt.Value );
+        }
+
+        throw new Return( value );
+    }
+
+    public ValueTuple VisitVarStmt( Stmt.Var stmt ) {
+        object value = s_unitialized;
 
         if ( stmt.Initializer is not null ) {
             value = Evaluate( stmt.Initializer );
         }
 
-        _environment.Define( stmt.Name.Lexeme , value , stmt.Initializer != null );
-
-        return ValueTuple.Create( );
-    }
-
-    public ValueTuple VisitBlockStmt( Stmt.Block stmt ) {
-        ExecuteBlock( stmt.Statements , new Environment( _environment ) );
-
-        return ValueTuple.Create( );
-    }
-
-    public ValueTuple VisitIfStmt( Stmt.If stmt ) {
-        if ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
-            Execute( stmt.ThenBranch );
-        } else if ( stmt.ElseBranch is not null ) {
-            Execute( stmt.ElseBranch );
-        }
+        _environment.Define( stmt.Name.Lexeme , value );
 
         return ValueTuple.Create( );
     }
@@ -247,18 +284,14 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
-    public ValueTuple VisitBreakStmt( ) {
-        throw new BreakException( );
-    }
-
     #endregion
 
     #region private methods
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false,
-            bool b => b,
+            null => false ,
+            bool b => b ,
             _ => true
         };
     }
@@ -277,10 +310,10 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             case null:
                 return "nil";
             case double d: {
-                    string str = d.ToString( "N2" );
+                string str = d.ToString( "N2" );
 
-                    return str.EndsWith( ".00" ) ? str[..^3] : str;
-                }
+                return str.EndsWith( ".00" ) ? str[..^3] : str;
+            }
             case string s:
                 return s;
             default:
@@ -297,12 +330,12 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch (left, right) {
-            case (double, double ):
+        switch ( left , right ) {
+            case (double , double):
                 return;
-            case (double, _ ):
+            case (double , _):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_, double ):
+            case (_ , double):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );
@@ -310,18 +343,4 @@ internal class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     #endregion
-
-    private class Clock : ILoxCallable {
-        public int Arity( ) => 0;
-
-        public object Call( Interpreter interpreter , List<object> arguments ) {
-            return DateTime.UtcNow.Ticks / 1000.0;
-        }
-
-        public override string ToString( ) {
-            return "<native fn>";
-        }
-    }
-
-    private class BreakException : Exception;
 }

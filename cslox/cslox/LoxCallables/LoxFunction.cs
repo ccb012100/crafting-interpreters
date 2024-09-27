@@ -1,4 +1,3 @@
-
 using cslox.Analyzers;
 
 using Environment = cslox.Analyzers.Environment;
@@ -12,13 +11,17 @@ internal class LoxFunction( Stmt.Function declaration ) : ILoxCallable {
     public int Arity( ) => _declaration.Parameters.Count;
 
     public object Call( Interpreter interpreter , List<object> arguments ) {
-        Environment environment = new( );
+        Environment environment = new( interpreter.Globals);
 
         for ( int i = 0 ; i < _declaration.Parameters.Count ; i++ ) {
-            environment.Define( _declaration.Parameters[i].Lexeme , arguments[i] , true );
+            environment.Define( _declaration.Parameters[i].Lexeme , arguments[i] );
         }
 
-        interpreter.ExecuteBlock( _declaration.Body , environment );
+        try {
+            interpreter.ExecuteBlock( _declaration.Body , environment );
+        } catch ( Return r ) {
+            return r.Value;
+        }
 
         return null;
     }
