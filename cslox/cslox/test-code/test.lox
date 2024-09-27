@@ -20,6 +20,20 @@ fun fib(n) {
   return fib(n - 2) + fib(n - 1);
 }
 
-for (var i = 0; i < 20; i = i + 1) {
-  print fib(i);
+for (var i = 0; i < 5; i = i + 1) {
+  print "fib(" + i + "):" + fib(i);
 }
+
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    return i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+print "counter: " + counter(); // "1".
+print "counter: " + counter(); // "2"

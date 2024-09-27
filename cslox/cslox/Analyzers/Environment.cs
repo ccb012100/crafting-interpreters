@@ -2,7 +2,7 @@ namespace cslox.Analyzers;
 
 internal class Environment( Environment enclosing ) {
     private readonly Environment _enclosing = enclosing;
-    private readonly Dictionary<string , object> _values = [];
+    private readonly Dictionary<string , object> _values = [ ];
 
     public Environment( ) : this( null ) { }
 
@@ -22,7 +22,7 @@ internal class Environment( Environment enclosing ) {
         throw new RuntimeError( name , $"Undefined variable '{name.Lexeme}'." );
     }
 
-    public void Assign( Token name , object value  ) {
+    public void Assign( Token name , object value ) {
         if ( _values.ContainsKey( name.Lexeme ) ) {
             _values[name.Lexeme] = value;
         } else if ( _enclosing is not null ) {

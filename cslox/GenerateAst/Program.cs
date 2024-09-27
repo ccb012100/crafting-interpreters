@@ -19,7 +19,7 @@ internal static class Program {
                 "Grouping    : Expr expression" ,
                 "Literal     : object value" ,
                 "Logical     : Expr left, Token operator, Expr right" ,
-                "Conditional : Expr condition, Expr thenBranch, Expr elseBranch",
+                "Conditional : Expr condition, Expr thenBranch, Expr elseBranch" ,
                 "Unary       : Token oper, Expr right" ,
                 "Variable    : Token name"
             ]
@@ -35,7 +35,7 @@ internal static class Program {
                 "Function       : Token name, List<Token> params, List<Stmt> body" ,
                 "If             : Expr condition, Stmt thenBranch, Stmt elseBranch" ,
                 "Print          : Expr expression" ,
-                "Return         : Token keyword, Expr value",
+                "Return         : Token keyword, Expr value" ,
                 "Var            : Token name, Expr initializer" ,
                 "While          : Expr condition, Stmt body"
             ]
