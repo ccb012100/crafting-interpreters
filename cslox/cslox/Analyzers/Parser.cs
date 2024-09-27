@@ -5,7 +5,7 @@ internal class Parser( List<Token> tokens ) {
     private int _loopDepth;
 
     public List<Stmt> Parse( ) {
-        List<Stmt> statements = [ ];
+        List<Stmt> statements = [];
 
         while ( !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -34,6 +34,17 @@ internal class Parser( List<Token> tokens ) {
         }
 
         return Peek( ).Type == type;
+    }
+
+    private bool CheckNext( TokenType type ) {
+        if ( IsAtEnd( ) ) {
+            return false;
+        }
+
+        return tokens[_current + 1].Type switch {
+            EOF => false ,
+            _ => tokens[_current + 1].Type == type
+        };
     }
 
     private Token Advance( ) {
@@ -264,7 +275,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private List<Stmt> Block( ) {
-        List<Stmt> statements = [ ];
+        List<Stmt> statements = [];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -277,7 +288,9 @@ internal class Parser( List<Token> tokens ) {
 
     private Stmt Declaration( ) {
         try {
-            if ( Match( FUN ) ) {
+            if ( Check( FUN ) && CheckNext( IDENTIFIER ) ) {
+                Consume( FUN , null );
+
                 return Function( "function" );
             }
 
@@ -293,12 +306,16 @@ internal class Parser( List<Token> tokens ) {
         }
     }
 
-    private Stmt.Function Function( string kind ) {
+    private Stmt.FunctionStmt Function( string kind ) {
         Token name = Consume( IDENTIFIER , $"Expect {kind} name." );
 
+        return new Stmt.FunctionStmt( name , FunctionBody( kind ) );
+    }
+
+    private Expr.Function FunctionBody( string kind ) {
         Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
 
-        List<Token> parameters = [ ];
+        List<Token> parameters = [];
 
         if ( !Check( RIGHT_PAREN ) ) {
             do {
@@ -315,7 +332,7 @@ internal class Parser( List<Token> tokens ) {
 
         List<Stmt> body = Block( );
 
-        return new Stmt.Function( name , parameters , body );
+        return new Expr.Function( parameters , body );
     }
 
     #endregion
@@ -502,7 +519,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr.Call FinishCall( Expr callee ) {
-        List<Expr> arguments = [ ];
+        List<Expr> arguments = [];
 
         if ( !Check( RIGHT_PAREN ) ) {
             do {
@@ -520,6 +537,10 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr Primary( ) {
+        if ( Match( FUN ) ) {
+            return FunctionBody( "function" );
+        }
+
         if ( Match( FALSE ) ) {
             return new Expr.Literal( false );
         }

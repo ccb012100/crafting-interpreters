@@ -55,7 +55,7 @@ book.
 │    whileStmt      →   "while" "(" expression ")" breakStmt ;               │░
 │    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
-│    expression     →   comma ;                                              │░
+│    expression     →   lambda ;                                             │░
 │    comma          →   "(" assignment ( "," assignment )* ;                 │░
 │                                                                            │░
 │    assignment     →   IDENTIFIER "=" assignment                            │░
@@ -69,12 +69,15 @@ book.
 │    term           →   factor ( ( "-" | "+" ) factor )* ;                   │░
 │    factor         →   unary ( ( "/" | "*" ) unary )* ;                     │░
 │                                                                            │░
-│    unary          →   ( "!" | "-" ) unary | call ;                         │░
+│    unary          →   ( "!" | "-" ) unary | lambda ;                       │░
+│                   |   lambda ;                                             │░
 │    call           →   primary ( "(" arguments? ")" )* ;                    │░
 │    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
 │                   |   "(" expression ")" ;                                 │░
+│                   |   lambda ;                                             │░
 │                   |   IDENTIFIER ;                                         │░
 │                                                                            │░
+│    lambda         →   "fun" "(" parameters? ")" block ;                    │░
 │    function       →   IDENTIFIER "(" parameters? ")" block ;               │░
 │    parameters     →   IDENTIFIER ( "," IDENTIFIER )* ;                     │░
 │    arguments      →   expression ( "," expression )* ;                     │░

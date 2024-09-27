@@ -7,6 +7,7 @@ internal abstract class Expr {
         T VisitAssignExpr( Assign expr );
         T VisitBinaryExpr( Binary expr );
         T VisitCallExpr( Call expr );
+        T VisitFunctionExpr( Function expr );
         T VisitGroupingExpr( Grouping expr );
         T VisitLiteralExpr( Literal expr );
         T VisitLogicalExpr( Logical expr );
@@ -41,6 +42,15 @@ internal abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitCallExpr( this );
+        }
+    }
+
+    public class Function( List<Token> parameters , List<Stmt> body ) : Expr {
+        public readonly List<Token> Parameters = parameters;
+        public readonly List<Stmt> Body = body;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitFunctionExpr( this );
         }
     }
 

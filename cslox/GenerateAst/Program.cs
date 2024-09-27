@@ -21,7 +21,8 @@ internal static class Program {
                 "Logical     : Expr left, Token operator, Expr right" ,
                 "Conditional : Expr condition, Expr thenBranch, Expr elseBranch" ,
                 "Unary       : Token oper, Expr right" ,
-                "Variable    : Token name"
+                "Variable    : Token name" ,
+                "Function    : List<Token> parameters, List<Stmt> body"
             ]
         );
 
@@ -32,7 +33,7 @@ internal static class Program {
                 "Block          : List<Stmt> statements" ,
                 "Break          : " ,
                 "ExpressionStmt : Expr expression" ,
-                "Function       : Token name, List<Token> params, List<Stmt> body" ,
+                "Function       : Token name, Expr.Function function" ,
                 "If             : Expr condition, Stmt thenBranch, Stmt elseBranch" ,
                 "Print          : Expr expression" ,
                 "Return         : Token keyword, Expr value" ,

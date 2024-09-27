@@ -7,7 +7,7 @@ internal abstract class Stmt {
         T VisitBlockStmt( Block stmt );
         T VisitBreakStmt( );
         T VisitExpressionStmt( ExpressionStmt stmt );
-        T VisitFunctionStmt( Function stmt );
+        T VisitFunctionStmt( FunctionStmt stmt );
         T VisitIfStmt( If stmt );
         T VisitPrintStmt( Print stmt );
         T VisitReturnStmt( Return stmt );
@@ -37,10 +37,9 @@ internal abstract class Stmt {
         }
     }
 
-    public class Function( Token name , List<Token> parameters , List<Stmt> body ) : Stmt {
-        public readonly List<Stmt> Body = body;
+    public class FunctionStmt( Token name , Expr.Function function ) : Stmt {
         public readonly Token Name = name;
-        public readonly List<Token> Parameters = parameters;
+        public readonly Expr.Function Function = function;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitFunctionStmt( this );
