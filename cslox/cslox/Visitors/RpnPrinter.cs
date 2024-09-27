@@ -12,6 +12,14 @@ internal class RpnPrinter : Expr.IVisitor<string> {
         return $"{expr.Left.Accept( this )} {expr.Right.Accept( this )} {expr.Operator.Lexeme}";
     }
 
+    public string VisitCallExpr( Expr.Call expr ) {
+        throw new NotImplementedException( );
+    }
+
+    public string VisitFunctionExpr( Expr.Function expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitGroupingExpr( Expr.Grouping expr ) {
         return expr.Expression.Accept( this );
     }
@@ -21,7 +29,12 @@ internal class RpnPrinter : Expr.IVisitor<string> {
     }
 
     public string VisitUnaryExpr( Expr.Unary expr ) {
-        return $"{expr.Right.Accept( this )} {expr.Operator.Lexeme}";
+        string @operator = expr.Operator.Type switch {
+            MINUS => "~" , // use different symbol to differentiate unary and binary
+            _ => expr.Operator.Lexeme
+        };
+
+        return $"{expr.Right.Accept( this )} {@operator}";
     }
 
     public string VisitVariableExpr( Expr.Variable expr ) {
@@ -32,7 +45,7 @@ internal class RpnPrinter : Expr.IVisitor<string> {
         throw new NotImplementedException( );
     }
 
-    public string Print( Expr expr ) {
-        return expr.Accept( this );
+    public string VisitConditionalExpr( Expr.Conditional expr ) {
+        throw new NotImplementedException( );
     }
 }

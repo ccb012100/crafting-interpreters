@@ -22,24 +22,28 @@ book.
 
 ```console
 ╭────────────────────────────────────────────────────────────────────────────╮
-│                       Expression Grammar                                   │░
+│                        EXPRESSION GRAMMAR                                  │░
 ├────────────────────────────────────────────────────────────────────────────┤░
 │    program        →   declaration* EOF ;                                   │░
 │                                                                            │░
-│    declaration    →   varDecl                                              │░
+│    declaration    →   funDecl                                              │░
+│                   |   varDecl ;                                            │░
 │                   |   statement ;                                          │░
 │                                                                            │░
+│    funDecl        →   "fun" function ;                                     │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
+│    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
+│                                                                            │░
 │    statement      →   exprStmt                                             │░
 │                   |   forStmt                                              │░
 │                   |   ifStmt                                               │░
 │                   |   printStmt                                            │░
+│                   |   returnStmt                                           │░
 │                   |   whileStmt                                            │░
 │                   |   block ;                                              │░
 │                                                                            │░
 │    breakStmt      →   "break" ";" ;                                        │░
 │                   |   statement ;                                          │░
-│                                                                            │░
 │    exprStmt       →   expression ";" ;                                     │░
 │    forStmt        →   "for" "(" ( varDecl | exprStmt | ";" )               │░
 │                       expression? ";"                                      │░
@@ -47,28 +51,50 @@ book.
 │    ifStmt         →   "if" "(" expression ")" breakStmt                    │░
 │                       ( "else" breakStmt )? ;                              │░
 │    printStmt      →   "print" expression ";" ;                             │░
+│    returnStmt     →   "return" expression? ";" ;                           │░
 │    whileStmt      →   "while" "(" expression ")" breakStmt ;               │░
 │    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
-│    expression     →   ternary ;                                            │░
-│    ternary        →   comma ( "?" comma ":" comma )*;                      │░
+│    expression     →   lambda ;                                             │░
 │    comma          →   "(" assignment ( "," assignment )* ;                 │░
+│                                                                            │░
 │    assignment     →   IDENTIFIER "=" assignment                            │░
-│                   |   logic_or ;                                           │░
+│                   |   conditional ;                                        │░
+│                                                                            │░
+│    conditional    →   logic_or ( "?" expression ":" conditional )*;        │░
 │    logic_or       →   logic_and ( "or" logic_and )* ;                      │░
 │    logic_and      →   equality ( "and" equality )* ;                       │░
 │    equality       →   comparison ( ( "!=" | "==" ) comparison )* ;         │░
 │    comparison     →   term ( ( ">" | ">=" | "<" | "<=" ) term )* ;         │░
 │    term           →   factor ( ( "-" | "+" ) factor )* ;                   │░
 │    factor         →   unary ( ( "/" | "*" ) unary )* ;                     │░
-│    unary          →   ( "!" | "-" ) unary                                  │░
-│                   |   primary ;                                            │░
+│                                                                            │░
+│    unary          →   ( "!" | "-" ) unary | lambda ;                       │░
+│                   |   lambda ;                                             │░
+│    call           →   primary ( "(" arguments? ")" )* ;                    │░
 │    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
 │                   |   "(" expression ")" ;                                 │░
+│                   |   lambda ;                                             │░
 │                   |   IDENTIFIER ;                                         │░
+│                                                                            │░
+│    lambda         →   "fun" "(" parameters? ")" block ;                    │░
+│    function       →   IDENTIFIER "(" parameters? ")" block ;               │░
+│    parameters     →   IDENTIFIER ( "," IDENTIFIER )* ;                     │░
+│    arguments      →   expression ( "," expression )* ;                     │░
 ╰────────────────────────────────────────────────────────────────────────────╯░
  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
+╭────────────────────────────────────────────────────────────────────────────╮
+│                          LEXICAL GRAMMAR                                   │░
+├────────────────────────────────────────────────────────────────────────────┤░
+│    NUMBER        →   DIGIT+ ("." DIGIT+ )? ;                               │░
+│    STRING        →   "\"" <any char except "\"">* "\"" ;                   │░
+│    IDENTIFIER    →   ALPHA ( ALPHA | DIGIT )* ;                            │░
+│    ALPHA         →   "a" ... "z" | "A" ... "Z" | "_" ;                     │░
+│    DIGIT         →   "0" ... "9" ;                                         │░
+╰────────────────────────────────────────────────────────────────────────────╯░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+ 
 ╔════════════════════════╦═══════════════════════════════════════════════════╗
 ║    Grammar notation    ║   Code representation                             ║░
 ╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░

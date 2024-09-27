@@ -13,13 +13,16 @@ internal static class Program {
             outputDir ,
             "Expr" ,
             [
-                "Assign     : Token name, Expr value" ,
-                "Binary     : Expr left, Token oper, Expr right" ,
-                "Grouping   : Expr expression" ,
-                "Literal    : object value" ,
-                "Logical    : Expr left, Token operator, Expr right" ,
-                "Unary      : Token oper, Expr right" ,
-                "Variable   : Token name"
+                "Assign      : Token name, Expr value" ,
+                "Binary      : Expr left, Token oper, Expr right" ,
+                "Call        : Expr callee, Token paren, List<Expr> arguments" ,
+                "Grouping    : Expr expression" ,
+                "Literal     : object value" ,
+                "Logical     : Expr left, Token operator, Expr right" ,
+                "Conditional : Expr condition, Expr thenBranch, Expr elseBranch" ,
+                "Unary       : Token oper, Expr right" ,
+                "Variable    : Token name" ,
+                "Function    : List<Token> parameters, List<Stmt> body"
             ]
         );
 
@@ -28,10 +31,12 @@ internal static class Program {
             "Stmt" ,
             [
                 "Block          : List<Stmt> statements" ,
-                "Break          : ",
+                "Break          : " ,
                 "ExpressionStmt : Expr expression" ,
+                "Function       : Token name, Expr.Function function" ,
                 "If             : Expr condition, Stmt thenBranch, Stmt elseBranch" ,
                 "Print          : Expr expression" ,
+                "Return         : Token keyword, Expr value" ,
                 "Var            : Token name, Expr initializer" ,
                 "While          : Expr condition, Stmt body"
             ]

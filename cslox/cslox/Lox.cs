@@ -43,6 +43,7 @@ internal static class Lox {
     public static void RunPrompt( ) {
         while ( Console.ReadLine( ) is { } line ) {
             s_hadError = false; // reset the state
+
             if ( string.IsNullOrEmpty( line ) ) {
                 break;
             }
