@@ -2,11 +2,11 @@ using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
-public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
-    private static readonly object s_unitialized = new( );
-    private Environment _environment;
-
+public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
+    private static readonly object s_uninitialized = new( );
     private readonly Environment _globals = new( );
+    private Environment _environment;
+    private readonly Dictionary<Expr , int> _locals = new( );
 
     public Interpreter( ) {
         _environment = _globals;
@@ -30,6 +30,10 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         } catch ( RuntimeError re ) {
             Lox.RuntimeError( re );
         }
+    }
+
+    public void Resolve( Expr expr , int depth ) {
+        _locals.Add( expr , depth );
     }
 
     private class Clock : ILoxCallable {
@@ -78,7 +82,12 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
     public object VisitAssignExpr( Expr.Assign expr ) {
         object value = Evaluate( expr.Value );
-        _environment.Assign( expr.Name , value );
+
+        if ( _locals.TryGetValue( expr , out int distance ) ) {
+            _environment.AssignAt( distance , expr.Name , value );
+        } else {
+            _globals.Assign( expr.Name , value );
+        }
 
         return value;
     }
@@ -129,11 +138,11 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return ( left , right ) switch {
-                    (double dl , double dr) => dl + dr ,
-                    (string sl , double dr) => sl + Stringify( dr ) ,
-                    (double dl , string sr) => Stringify( dl ) + sr ,
-                    (string sl , string sr) => sl + sr ,
+                return (left, right) switch {
+                    (double dl, double dr ) => dl + dr,
+                    (string sl, double dr ) => sl + Stringify( dr ),
+                    (double dl, string sr ) => Stringify( dl ) + sr,
+                    (string sl, string sr ) => sl + sr,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -173,8 +182,8 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         object left = Evaluate( expr.Left );
 
         return expr.Operator.Type switch {
-            OR when IsTruthy( left ) => left ,
-            AND when !IsTruthy( left ) => left ,
+            OR when IsTruthy( left ) => left,
+            AND when !IsTruthy( left ) => left,
             _ => Evaluate( expr.Right )
         };
     }
@@ -203,11 +212,17 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     public object VisitVariableExpr( Expr.Variable expr ) {
         object value = _environment.Get( expr.Name );
 
-        if ( value == s_unitialized ) {
+        if ( value == s_uninitialized ) {
             throw new RuntimeError( expr.Name , "Variable must be initialized before use" );
         }
 
-        return value;
+        return LookUpVariable( expr.Name , expr );
+    }
+
+    private object LookUpVariable( Token name , Expr expr ) {
+        return _locals.TryGetValue( expr , out int distance )
+            ? _environment.GetAt( distance , name.Lexeme )
+            : _globals.Get( name );
     }
 
     #endregion
@@ -265,7 +280,7 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitVarStmt( Stmt.Var stmt ) {
-        object value = s_unitialized;
+        object value = s_uninitialized;
 
         if ( stmt.Initializer is not null ) {
             value = Evaluate( stmt.Initializer );
@@ -294,8 +309,8 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false ,
-            bool b => b ,
+            null => false,
+            bool b => b,
             _ => true
         };
     }
@@ -314,10 +329,10 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
             case null:
                 return "nil";
             case double d: {
-                string str = d.ToString( "N2" );
+                    string str = d.ToString( "N2" );
 
-                return str.EndsWith( ".00" ) ? str[..^3] : str;
-            }
+                    return str.EndsWith( ".00" ) ? str[..^3] : str;
+                }
             case string s:
                 return s;
             default:
@@ -334,12 +349,12 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch ( left , right ) {
-            case (double , double):
+        switch (left, right) {
+            case (double, double ):
                 return;
-            case (double , _):
+            case (double, _ ):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_ , double):
+            case (_, double ):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );
@@ -347,8 +362,4 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     #endregion
-
-    public void Resolve( Expr expr , int x ) {
-        throw new NotImplementedException( );
-    }
 }

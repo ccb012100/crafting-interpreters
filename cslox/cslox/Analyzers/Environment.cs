@@ -31,4 +31,22 @@ public class Environment( Environment enclosing ) {
             throw new RuntimeError( name , $"Undefined variable '{name.Lexeme}'" );
         }
     }
+
+    public object GetAt( int distance , string name ) {
+        return Ancestor( distance )._values[name];
+    }
+
+    private Environment Ancestor( int distance ) {
+        Environment environment = this;
+
+        for ( int i = 0 ; i < distance ; i++ ) {
+            environment = environment._enclosing;
+        }
+
+        return environment;
+    }
+
+    public void AssignAt( int distance , Token name , object value ) {
+        Ancestor( distance )._values.Add( name.Lexeme , value );
+    }
 }

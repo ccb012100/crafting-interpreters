@@ -1,6 +1,6 @@
 namespace cslox.Analyzers;
 
-public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , Stmt.IVisitor<ValueTuple> {
+public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, Stmt.IVisitor<ValueTuple> {
     private readonly Stack<Dictionary<string , bool>> _scopes = new( );
     private readonly Interpreter _interpreter = interpreter;
 
@@ -214,7 +214,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         _scopes.Pop( );
     }
 
-    private void Resolve( List<Stmt> statements ) {
+    public void Resolve( List<Stmt> statements ) {
         foreach ( Stmt stmt in statements ) {
             Resolve( stmt );
         }

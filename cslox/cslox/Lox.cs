@@ -29,6 +29,8 @@ internal static class Lox {
             return;
         }
 
+        new Resolver( s_interpreter ).Resolve( statements );
+
         s_interpreter.Interpret( statements );
 
         if ( s_hadError ) {
