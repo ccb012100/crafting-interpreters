@@ -1,9 +1,9 @@
 namespace cslox.DataTypes;
 
-internal abstract class Expr {
+public abstract class Expr {
     public abstract T Accept<T>( IVisitor<T> visitor );
 
-    internal interface IVisitor<out T> {
+    public interface IVisitor<out T> {
         T VisitAssignExpr( Assign expr );
         T VisitBinaryExpr( Binary expr );
         T VisitCallExpr( Call expr );

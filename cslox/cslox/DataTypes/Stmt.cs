@@ -1,9 +1,9 @@
 namespace cslox.DataTypes;
 
-internal abstract class Stmt {
+public abstract class Stmt {
     public abstract T Accept<T>( IVisitor<T> visitor );
 
-    internal interface IVisitor<out T> {
+    public interface IVisitor<out T> {
         T VisitBlockStmt( Block stmt );
         T VisitBreakStmt( );
         T VisitExpressionStmt( ExpressionStmt stmt );

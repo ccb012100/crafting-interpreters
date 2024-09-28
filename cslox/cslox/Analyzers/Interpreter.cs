@@ -2,16 +2,16 @@ using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
-internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
+public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     private static readonly object s_unitialized = new( );
     private Environment _environment;
 
-    public readonly Environment Globals = new( );
+    private readonly Environment _globals = new( );
 
     public Interpreter( ) {
-        _environment = Globals;
+        _environment = _globals;
 
-        Globals.Define( "clock" , new Clock( ) );
+        _globals.Define( "clock" , new Clock( ) );
     }
 
     public void Interpret( List<Stmt> statements ) {
@@ -347,4 +347,8 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     #endregion
+
+    public void Resolve( Expr expr , int x ) {
+        throw new NotImplementedException( );
+    }
 }
