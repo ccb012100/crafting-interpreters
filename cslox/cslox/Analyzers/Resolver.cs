@@ -1,8 +1,8 @@
 namespace cslox.Analyzers;
 
-public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, Stmt.IVisitor<ValueTuple> {
-    private readonly Stack<Dictionary<string , bool>> _scopes = new( );
+public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , Stmt.IVisitor<ValueTuple> {
     private readonly Interpreter _interpreter = interpreter;
+    private readonly Stack<Dictionary<string , Variable>> _scopes = new( );
     private FunctionType _currentFunction = FunctionType.None;
 
     public void Resolve( List<Stmt> statements ) {
@@ -11,11 +11,27 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         }
     }
 
+    private enum FunctionType {
+        None ,
+        Function
+    }
+
+    private enum VariableState {
+        Declared ,
+        Defined ,
+        Read
+    }
+
+    private class Variable( Token name , VariableState state ) {
+        public readonly Token Name = name;
+        public VariableState State = state;
+    }
+
     #region Expr.IVisitor
 
     public ValueTuple VisitAssignExpr( Expr.Assign expr ) {
         Resolve( expr.Value );
-        ResolveLocal( expr , expr.Name );
+        ResolveLocal( expr , expr.Name , false );
 
         return ValueTuple.Create( );
     }
@@ -84,26 +100,31 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
     public ValueTuple VisitVariableExpr( Expr.Variable expr ) {
         if ( _scopes.Count > 0
-            && _scopes.Peek( ).TryGetValue( expr.Name.Lexeme , out bool value )
-            && value == false ) {
+            && _scopes.Peek( ).TryGetValue( expr.Name.Lexeme , out Variable variable )
+            && variable.State == VariableState.Declared ) {
             Lox.Error( expr.Name , "Can't read local variable in its own initializer." );
         }
 
-        ResolveLocal( expr , expr.Name );
+        ResolveLocal( expr , expr.Name , true );
 
         return ValueTuple.Create( );
     }
 
-    private void ResolveLocal( Expr expr , Token name ) {
+    private void ResolveLocal( Expr expr , Token name , bool isRead ) {
         for ( int i = _scopes.Count - 1 ; i >= 0 ; i-- ) {
-            if ( !_scopes.ElementAt( i ).ContainsKey( name.Lexeme ) ) {
+            if ( !_scopes.ElementAt( i ).TryGetValue( name.Lexeme , out Variable variable ) ) {
                 continue;
             }
 
             _interpreter.Resolve( expr , _scopes.Count - 1 - i );
 
+            if ( isRead ) {
+                variable.State = VariableState.Read;
+            }
+
             return;
         }
+        // Not found; assume it's global.
     }
 
     private void Resolve( Expr expr ) {
@@ -198,26 +219,26 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
-    private void Define( Token name ) {
-        if ( _scopes.Count == 0 ) {
-            return;
-        }
-
-        _scopes.Peek( ).Add( name.Lexeme , true );
-    }
-
     private void Declare( Token name ) {
         if ( _scopes.Count == 0 ) {
             return;
         }
 
-        var scope = _scopes.Peek( );
+        Dictionary<string , Variable> scope = _scopes.Peek( );
 
         if ( scope.ContainsKey( name.Lexeme ) ) {
             Lox.Error( name , "Already a variable with this name in the scope." );
         }
 
-        scope.Add( name.Lexeme , false );
+        scope.Add( name.Lexeme , new Variable( name , VariableState.Declared ) );
+    }
+
+    private void Define( Token name ) {
+        if ( _scopes.Count == 0 ) {
+            return;
+        }
+
+        _scopes.Peek( )[name.Lexeme].State = VariableState.Defined;
     }
 
     public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
@@ -228,11 +249,15 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     }
 
     private void BeginScope( ) {
-        _scopes.Push( new Dictionary<string , bool>( ) );
+        _scopes.Push( new Dictionary<string , Variable>( ) );
     }
 
     private void EndScope( ) {
-        _scopes.Pop( );
+        Dictionary<string , Variable> scope = _scopes.Pop( );
+
+        foreach ( Variable variable in scope.Values.Where( variable => variable.State == VariableState.Defined ) ) {
+            Lox.Error( variable.Name , "Local variable is not used." );
+        }
     }
 
     private void Resolve( Stmt stmt ) {
@@ -240,9 +265,4 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     }
 
     #endregion
-}
-
-internal enum FunctionType {
-    None,
-    Function
 }
