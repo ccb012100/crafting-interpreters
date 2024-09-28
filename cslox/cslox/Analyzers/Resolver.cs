@@ -226,11 +226,10 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
 
         Dictionary<string , Variable> scope = _scopes.Peek( );
 
-        if ( scope.ContainsKey( name.Lexeme ) ) {
+        // scope.ContainsKey( name.Lexeme )
+        if ( !scope.TryAdd( name.Lexeme , new Variable( name , VariableState.Declared ) ) ) {
             Lox.Error( name , "Already a variable with this name in the scope." );
         }
-
-        scope.Add( name.Lexeme , new Variable( name , VariableState.Declared ) );
     }
 
     private void Define( Token name ) {
