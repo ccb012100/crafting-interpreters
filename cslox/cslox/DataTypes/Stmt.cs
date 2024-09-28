@@ -64,8 +64,8 @@ public abstract class Stmt {
         }
     }
 
-    public class Return( Token name , Expr value ) : Stmt {
-        public readonly Token Name = name;
+    public class Return( Token keyword , Expr value ) : Stmt {
+        public readonly Token Keyword = keyword;
         public readonly Expr Value = value;
 
         public override T Accept<T>( IVisitor<T> visitor ) {

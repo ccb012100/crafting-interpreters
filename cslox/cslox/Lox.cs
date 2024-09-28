@@ -31,6 +31,10 @@ internal static class Lox {
 
         new Resolver( s_interpreter ).Resolve( statements );
 
+        if ( s_hadError ) {
+            return;
+        }
+
         s_interpreter.Interpret( statements );
 
         if ( s_hadError ) {

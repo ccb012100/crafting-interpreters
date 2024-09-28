@@ -3,6 +3,13 @@ namespace cslox.Analyzers;
 public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, Stmt.IVisitor<ValueTuple> {
     private readonly Stack<Dictionary<string , bool>> _scopes = new( );
     private readonly Interpreter _interpreter = interpreter;
+    private FunctionType _currentFunction = FunctionType.None;
+
+    public void Resolve( List<Stmt> statements ) {
+        foreach ( Stmt stmt in statements ) {
+            Resolve( stmt );
+        }
+    }
 
     #region Expr.IVisitor
 
@@ -129,12 +136,15 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         Declare( stmt.Name );
         Define( stmt.Name );
 
-        ResolveFunction( stmt );
+        ResolveFunction( stmt , FunctionType.Function );
 
         return ValueTuple.Create( );
     }
 
-    private void ResolveFunction( Stmt.FunctionStmt function ) {
+    private void ResolveFunction( Stmt.FunctionStmt function , FunctionType type ) {
+        FunctionType enclosingFunction = _currentFunction;
+        _currentFunction = type;
+
         BeginScope( );
 
         foreach ( Token param in function.Function.Parameters ) {
@@ -144,6 +154,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
         Resolve( function.Function.Body );
         EndScope( );
+        _currentFunction = enclosingFunction;
     }
 
     public ValueTuple VisitIfStmt( Stmt.If stmt ) {
@@ -164,6 +175,10 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     }
 
     public ValueTuple VisitReturnStmt( Stmt.Return stmt ) {
+        if ( _currentFunction == FunctionType.None ) {
+            Lox.Error( stmt.Keyword , "Can't return from top-level-code." );
+        }
+
         if ( stmt.Value is not null ) {
             Resolve( stmt.Value );
         }
@@ -196,7 +211,13 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
             return;
         }
 
-        _scopes.Peek( ).Add( name.Lexeme , false );
+        var scope = _scopes.Peek( );
+
+        if ( scope.ContainsKey( name.Lexeme ) ) {
+            Lox.Error( name , "Already a variable with this name in the scope." );
+        }
+
+        scope.Add( name.Lexeme , false );
     }
 
     public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
@@ -214,15 +235,14 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         _scopes.Pop( );
     }
 
-    public void Resolve( List<Stmt> statements ) {
-        foreach ( Stmt stmt in statements ) {
-            Resolve( stmt );
-        }
-    }
-
     private void Resolve( Stmt stmt ) {
         stmt.Accept( this );
     }
 
     #endregion
+}
+
+internal enum FunctionType {
+    None,
+    Function
 }
