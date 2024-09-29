@@ -15,7 +15,7 @@ internal class LoxFunction( string name , Expr.Function declaration , Environmen
         Environment environment = new( _closure );
 
         for ( int i = 0 ; i < _declaration.Parameters.Count ; i++ ) {
-            environment.Define( _declaration.Parameters[i].Lexeme , arguments[i] );
+            environment.Define( arguments[i] );
         }
 
         try {

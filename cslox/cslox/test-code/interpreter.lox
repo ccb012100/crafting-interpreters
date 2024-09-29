@@ -1,3 +1,8 @@
+/*
+ *  Code to test out the Interpreter.
+ *
+ *  There are multiple snippets in order to act as regression tests as new functionality is added.
+ */
 fun sayHi(first, last){
     print "Hi, " + first + " " + last + "!";
 }

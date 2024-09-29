@@ -2,16 +2,15 @@ using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
-public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
+public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     private static readonly object s_uninitialized = new( );
-    private readonly Environment _globals = new( );
-    private Environment _environment;
+    private readonly Dictionary<string , object> _globals = new( );
     private readonly Dictionary<Expr , int> _locals = new( );
+    private readonly Dictionary<Expr , int> _slots = new( );
+    private Environment _environment;
 
     public Interpreter( ) {
-        _environment = _globals;
-
-        _globals.Define( "clock" , new Clock( ) );
+        _globals.Add( "clock" , new Clock( ) );
     }
 
     public void Interpret( List<Stmt> statements ) {
@@ -32,8 +31,31 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    public void Resolve( Expr expr , int depth ) {
+    public void Resolve( Expr expr , int depth , int slot ) {
         _locals.Add( expr , depth );
+        _slots.Add( expr , slot );
+    }
+
+    private object Evaluate( Expr expr ) {
+        return expr.Accept( this );
+    }
+
+    private void Execute( Stmt stmt ) {
+        stmt.Accept( this );
+    }
+
+    public void ExecuteBlock( List<Stmt> statements , Environment environment ) {
+        Environment previous = _environment;
+
+        try {
+            _environment = environment;
+
+            foreach ( Stmt stmt in statements ) {
+                Execute( stmt );
+            }
+        } finally {
+            _environment = previous;
+        }
     }
 
     private class Clock : ILoxCallable {
@@ -52,41 +74,17 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     private class BreakException : Exception;
 
-    #region Execute
-
-    public object Evaluate( Expr expr ) {
-        return expr.Accept( this );
-    }
-
-    public void Execute( Stmt stmt ) {
-        stmt.Accept( this );
-    }
-
-    public void ExecuteBlock( List<Stmt> statements , Environment environment ) {
-        Environment previous = _environment;
-
-        try {
-            _environment = environment;
-
-            foreach ( Stmt stmt in statements ) {
-                Execute( stmt );
-            }
-        } finally {
-            _environment = previous;
-        }
-    }
-
-    #endregion
-
     #region Expr.IVisitor<object>
 
     public object VisitAssignExpr( Expr.Assign expr ) {
         object value = Evaluate( expr.Value );
 
         if ( _locals.TryGetValue( expr , out int distance ) ) {
-            _environment.AssignAt( distance , expr.Name , value );
+            _environment.AssignAt( distance , _slots[expr] , value );
+        } else if ( _globals.ContainsKey( expr.Name.Lexeme ) ) {
+            _globals[expr.Name.Lexeme] = value;
         } else {
-            _globals.Assign( expr.Name , value );
+            throw new RuntimeError( expr.Name , $"VisitAssignExpr -> Undefined variable '{expr.Name.Lexeme}.'" );
         }
 
         return value;
@@ -138,11 +136,11 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return (left, right) switch {
-                    (double dl, double dr ) => dl + dr,
-                    (string sl, double dr ) => sl + Stringify( dr ),
-                    (double dl, string sr ) => Stringify( dl ) + sr,
-                    (string sl, string sr ) => sl + sr,
+                return ( left , right ) switch {
+                    (double dl , double dr) => dl + dr ,
+                    (string sl , double dr) => sl + Stringify( dr ) ,
+                    (double dl , string sr) => Stringify( dl ) + sr ,
+                    (string sl , string sr) => sl + sr ,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -182,8 +180,8 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         object left = Evaluate( expr.Left );
 
         return expr.Operator.Type switch {
-            OR when IsTruthy( left ) => left,
-            AND when !IsTruthy( left ) => left,
+            OR when IsTruthy( left ) => left ,
+            AND when !IsTruthy( left ) => left ,
             _ => Evaluate( expr.Right )
         };
     }
@@ -210,19 +208,19 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public object VisitVariableExpr( Expr.Variable expr ) {
-        object value = _environment.Get( expr.Name );
-
-        if ( value == s_uninitialized ) {
-            throw new RuntimeError( expr.Name , "Variable must be initialized before use" );
-        }
-
         return LookUpVariable( expr.Name , expr );
     }
 
     private object LookUpVariable( Token name , Expr expr ) {
-        return _locals.TryGetValue( expr , out int distance )
-            ? _environment.GetAt( distance , name.Lexeme )
-            : _globals.Get( name );
+        if ( _locals.TryGetValue( expr , out int distance ) ) {
+            return _environment.GetAt( distance , _slots[expr] );
+        }
+
+        if ( _globals.TryGetValue( name.Lexeme , out object value ) ) {
+            return value;
+        }
+
+        throw new RuntimeError( name , $"Undefined variable '{name.Lexeme}'." );
     }
 
     #endregion
@@ -246,8 +244,8 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitFunctionStmt( Stmt.FunctionStmt stmt ) {
-        string fnName = stmt.Name.Lexeme;
-        _environment.Define( fnName , new LoxFunction( fnName , stmt.Function , _environment ) );
+        LoxFunction function = new( stmt.Name.Lexeme , stmt.Function , _environment );
+        Define( stmt.Name , function );
 
         return ValueTuple.Create( );
     }
@@ -286,7 +284,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             value = Evaluate( stmt.Initializer );
         }
 
-        _environment.Define( stmt.Name.Lexeme , value );
+        Define( stmt.Name , value );
 
         return ValueTuple.Create( );
     }
@@ -303,14 +301,22 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
+    private void Define( Token name , object value ) {
+        if ( _environment is not null ) {
+            _environment.Define( value );
+        } else {
+            _globals.Add( name.Lexeme , value );
+        }
+    }
+
     #endregion
 
     #region private methods
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false,
-            bool b => b,
+            null => false ,
+            bool b => b ,
             _ => true
         };
     }
@@ -329,10 +335,10 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             case null:
                 return "nil";
             case double d: {
-                    string str = d.ToString( "N2" );
+                string str = d.ToString( "N2" );
 
-                    return str.EndsWith( ".00" ) ? str[..^3] : str;
-                }
+                return str.EndsWith( ".00" ) ? str[..^3] : str;
+            }
             case string s:
                 return s;
             default:
@@ -349,12 +355,12 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch (left, right) {
-            case (double, double ):
+        switch ( left , right ) {
+            case (double , double):
                 return;
-            case (double, _ ):
+            case (double , _):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_, double ):
+            case (_ , double):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );

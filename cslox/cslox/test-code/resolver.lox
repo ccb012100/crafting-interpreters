@@ -1,0 +1,13 @@
+/* Test the Resolver */
+var a = "outer";
+{
+  var a = a; // Error at 'a': Can't read local variable in its own initializer.
+  // Error at 'a': Local variable is not used.
+}
+
+return "at top level"; // Error at 'return': Can't return from top-level-code.
+
+fun bad() {
+  var a = "first";
+  var a = "second";
+}

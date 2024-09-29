@@ -27,9 +27,14 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         Read
     }
 
-    private class Variable( Token name , VariableState state ) {
+    private class Variable( Token name , int slot , VariableState state ) {
         public readonly Token Name = name;
+        public readonly int Slot = slot;
         public VariableState State = state;
+
+        public override string ToString( ) {
+            return $"Variable Name={Name}, Slot={Slot}, State={State}";
+        }
     }
 
     #region Expr.IVisitor
@@ -118,10 +123,13 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     private void ResolveLocal( Expr expr , Token name , bool isRead ) {
         // This differs from the Java implementation because indexing in Stack type in C# is the opposite (0 = Top).
         for ( int i = 0 ; i < _scopes.Count ; i++ ) {
+            var scope = _scopes.ElementAt( i );
+
+            if ( !scope.TryGetValue( name.Lexeme , out Variable variable ) ) {
                 continue;
             }
 
-            _interpreter.Resolve( expr , i );
+            _interpreter.Resolve( expr , i , variable.Slot );
 
             if ( isRead ) {
                 variable.State = VariableState.Read;
@@ -231,8 +239,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
 
         Dictionary<string , Variable> scope = _scopes.Peek( );
 
-        // scope.ContainsKey( name.Lexeme )
-        if ( !scope.TryAdd( name.Lexeme , new Variable( name , VariableState.Declared ) ) ) {
+        // instead of if (scope.ContainsKey( name.Lexeme ))
+        if ( !scope.TryAdd( name.Lexeme , new Variable( name , scope.Count , VariableState.Declared ) ) ) {
             Lox.Error( name , "Already a variable with this name in the scope." );
         }
     }
@@ -259,8 +267,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     private void EndScope( ) {
         Dictionary<string , Variable> scope = _scopes.Pop( );
 
-        foreach ( Variable variable in scope.Values.Where( variable => variable.State == VariableState.Defined ) ) {
-            Lox.Error( variable.Name , "Local variable is not used." );
+        foreach ( ( string _ , Variable v ) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
+            Lox.Error( v.Name , "Local variable is not used." );
         }
     }
 
