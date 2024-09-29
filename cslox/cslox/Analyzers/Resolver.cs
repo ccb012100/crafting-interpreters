@@ -2,6 +2,11 @@ namespace cslox.Analyzers;
 
 public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , Stmt.IVisitor<ValueTuple> {
     private readonly Interpreter _interpreter = interpreter;
+
+    /*
+     * IMPORTANT:   C#'s Stack indexing does not work like Java:
+     *              stack[0] will always return the TOP of the stack (not the bottom)
+     */
     private readonly Stack<Dictionary<string , Variable>> _scopes = new( );
     private FunctionType _currentFunction = FunctionType.None;
 
@@ -111,12 +116,12 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     }
 
     private void ResolveLocal( Expr expr , Token name , bool isRead ) {
-        for ( int i = _scopes.Count - 1 ; i >= 0 ; i-- ) {
-            if ( !_scopes.ElementAt( i ).TryGetValue( name.Lexeme , out Variable variable ) ) {
+        // This differs from the Java implementation because indexing in Stack type in C# is the opposite (0 = Top).
+        for ( int i = 0 ; i < _scopes.Count ; i++ ) {
                 continue;
             }
 
-            _interpreter.Resolve( expr , _scopes.Count - 1 - i );
+            _interpreter.Resolve( expr , i );
 
             if ( isRead ) {
                 variable.State = VariableState.Read;
