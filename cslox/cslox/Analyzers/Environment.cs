@@ -2,7 +2,7 @@ namespace cslox.Analyzers;
 
 public class Environment( Environment enclosing ) {
     private readonly Environment _enclosing = enclosing;
-    private readonly List<object> _values = [];
+    private readonly List<object> _values = [ ];
 
     public void Define( object value ) {
         _values.Add( value );

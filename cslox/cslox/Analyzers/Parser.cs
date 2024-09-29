@@ -288,6 +288,10 @@ internal class Parser( List<Token> tokens ) {
 
     private Stmt Declaration( ) {
         try {
+            if ( Match( CLASS ) ) {
+                return ClassDeclaration( );
+            }
+
             if ( Check( FUN ) && CheckNext( IDENTIFIER ) ) {
                 Consume( FUN , null );
 
@@ -304,6 +308,21 @@ internal class Parser( List<Token> tokens ) {
 
             return null;
         }
+    }
+
+    private Stmt.Class ClassDeclaration( ) {
+        Token name = Consume( IDENTIFIER , "Expect class name." );
+        Consume( LEFT_BRACE , "Excpect '{' before class body." );
+
+        List<Stmt.FunctionStmt> methods = [ ];
+
+        while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
+            methods.Add( Function( "method" ) );
+        }
+
+        Consume( RIGHT_BRACE , "Expect '}' after class body." );
+
+        return new Stmt.Class( name , methods );
     }
 
     private Stmt.FunctionStmt Function( string kind ) {

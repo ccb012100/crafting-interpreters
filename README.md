@@ -26,10 +26,12 @@ book.
 ├────────────────────────────────────────────────────────────────────────────┤░
 │    program        →   declaration* EOF ;                                   │░
 │                                                                            │░
-│    declaration    →   funDecl                                              │░
+│    declaration    →   classDecl                                            │░
+│                   |   funDecl ;                                            │░
 │                   |   varDecl ;                                            │░
 │                   |   statement ;                                          │░
 │                                                                            │░
+│    classDecl      →   "class" IDENTIFIER "(" parameters? ")" block ;       │░
 │    funDecl        →   "fun" function ;                                     │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░

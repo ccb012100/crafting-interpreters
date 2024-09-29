@@ -6,6 +6,7 @@ public abstract class Stmt {
     public interface IVisitor<out T> {
         T VisitBlockStmt( Block stmt );
         T VisitBreakStmt( );
+        T VisitClassStmt( Class stmt );
         T VisitExpressionStmt( ExpressionStmt stmt );
         T VisitFunctionStmt( FunctionStmt stmt );
         T VisitIfStmt( If stmt );
@@ -37,6 +38,19 @@ public abstract class Stmt {
         }
     }
 
+    public class Class( Token name , List<FunctionStmt> methods ) : Stmt {
+        public readonly Token Name = name;
+        public readonly List<FunctionStmt> Methods = methods;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitClassStmt( this );
+        }
+
+        public override string ToString( ) {
+            return $"Class Name=<{Name}> Methods=<{string.Join( " , " , Methods )}>";
+        }
+    }
+
     public class ExpressionStmt( Expr expression ) : Stmt {
         public readonly Expr Expression = expression;
 
@@ -45,7 +59,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"ExpressionStmt Expression={Expression}";
+            return $"ExpressionStmt Expression=<{Expression}>";
         }
     }
 

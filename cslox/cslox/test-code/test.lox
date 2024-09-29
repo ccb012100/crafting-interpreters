@@ -68,3 +68,11 @@ fun named(a) { print a; }
 whichFn(named);
 // <fn>
 // <fn named>
+
+class DevonshireCream {
+  serveOn() {
+    return "Scones";
+  }
+}
+
+print DevonshireCream; // Prints "DevonshireCream".

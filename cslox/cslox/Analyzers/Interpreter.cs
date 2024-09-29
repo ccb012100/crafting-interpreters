@@ -2,7 +2,7 @@ using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
-public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
+public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     private static readonly object s_uninitialized = new( );
     private readonly Dictionary<string , object> _globals = new( );
     private readonly Dictionary<Expr , int> _locals = new( );
@@ -136,11 +136,11 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
                 return IsEqual( left , right );
             case PLUS:
-                return ( left , right ) switch {
-                    (double dl , double dr) => dl + dr ,
-                    (string sl , double dr) => sl + Stringify( dr ) ,
-                    (double dl , string sr) => Stringify( dl ) + sr ,
-                    (string sl , string sr) => sl + sr ,
+                return (left, right) switch {
+                    (double dl, double dr ) => dl + dr,
+                    (string sl, double dr ) => sl + Stringify( dr ),
+                    (double dl, string sr ) => Stringify( dl ) + sr,
+                    (string sl, string sr ) => sl + sr,
                     _ => throw new RuntimeError( expr.Operator , "Operands must be number or strings." )
                 };
 
@@ -180,8 +180,8 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         object left = Evaluate( expr.Left );
 
         return expr.Operator.Type switch {
-            OR when IsTruthy( left ) => left ,
-            AND when !IsTruthy( left ) => left ,
+            OR when IsTruthy( left ) => left,
+            AND when !IsTruthy( left ) => left,
             _ => Evaluate( expr.Right )
         };
     }
@@ -235,6 +235,19 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
     public ValueTuple VisitBreakStmt( ) {
         throw new BreakException( );
+    }
+
+    public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
+        Define( stmt.Name , null );
+        LoxClass klass = new( stmt.Name.Lexeme );
+
+        if ( _globals.ContainsKey( stmt.Name.Lexeme ) ) {
+            _globals[stmt.Name.Lexeme] = klass;
+        } else {
+            throw new RuntimeError( stmt.Name , $"Undefined class '{stmt.Name.Lexeme}.'" );
+        }
+
+        return ValueTuple.Create( );
     }
 
     public ValueTuple VisitExpressionStmt( Stmt.ExpressionStmt stmt ) {
@@ -315,8 +328,8 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
 
     private static bool IsTruthy( object obj ) {
         return obj switch {
-            null => false ,
-            bool b => b ,
+            null => false,
+            bool b => b,
             _ => true
         };
     }
@@ -335,10 +348,10 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
             case null:
                 return "nil";
             case double d: {
-                string str = d.ToString( "N2" );
+                    string str = d.ToString( "N2" );
 
-                return str.EndsWith( ".00" ) ? str[..^3] : str;
-            }
+                    return str.EndsWith( ".00" ) ? str[..^3] : str;
+                }
             case string s:
                 return s;
             default:
@@ -355,12 +368,12 @@ public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     private static void CheckNumberOperands( Token @operator , object left , object right ) {
-        switch ( left , right ) {
-            case (double , double):
+        switch (left, right) {
+            case (double, double ):
                 return;
-            case (double , _):
+            case (double, _ ):
                 throw new RuntimeError( @operator , "Right operand must be a number." );
-            case (_ , double):
+            case (_, double ):
                 throw new RuntimeError( @operator , "Left operand must be a number." );
             default:
                 throw new RuntimeError( @operator , "Operands must be numbers." );

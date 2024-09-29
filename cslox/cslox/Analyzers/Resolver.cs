@@ -1,6 +1,6 @@
 namespace cslox.Analyzers;
 
-public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , Stmt.IVisitor<ValueTuple> {
+public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, Stmt.IVisitor<ValueTuple> {
     private readonly Interpreter _interpreter = interpreter;
 
     /*
@@ -17,13 +17,13 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     }
 
     private enum FunctionType {
-        None ,
+        None,
         Function
     }
 
     private enum VariableState {
-        Declared ,
-        Defined ,
+        Declared,
+        Defined,
         Read
     }
 
@@ -160,6 +160,13 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
+        Declare( stmt.Name );
+        Define( stmt.Name );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitExpressionStmt( Stmt.ExpressionStmt stmt ) {
         Resolve( stmt.Expression );
 
@@ -267,7 +274,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     private void EndScope( ) {
         Dictionary<string , Variable> scope = _scopes.Pop( );
 
-        foreach ( ( string _ , Variable v ) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
+        foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
             Lox.Error( v.Name , "Local variable is not used." );
         }
     }

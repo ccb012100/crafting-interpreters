@@ -32,6 +32,7 @@ internal static class Program {
             [
                 "Block          : List<Stmt> statements" ,
                 "Break          : " ,
+                "Class          : Token name, List<Stmt.Function> methods" ,
                 "ExpressionStmt : Expr expression" ,
                 "Function       : Token name, Expr.Function function" ,
                 "If             : Expr condition, Stmt thenBranch, Stmt elseBranch" ,
