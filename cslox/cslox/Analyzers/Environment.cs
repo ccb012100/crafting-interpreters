@@ -1,34 +1,40 @@
 namespace cslox.Analyzers;
 
-internal class Environment( Environment enclosing ) {
+public class Environment( Environment enclosing ) {
     private readonly Environment _enclosing = enclosing;
-    private readonly Dictionary<string , object> _values = [ ];
+    private readonly List<object> _values = [];
 
-    public Environment( ) : this( null ) { }
-
-    public void Define( string name , object value ) {
-        _values.Add( name , value );
+    public void Define( object value ) {
+        _values.Add( value );
     }
 
-    public object Get( Token name ) {
-        if ( _values.TryGetValue( name.Lexeme , out object value ) ) {
-            return value;
+    public object GetAt( int distance , int slot ) {
+        Environment environment = this;
+
+        for ( int i = 0 ; i < distance ; i++ ) {
+            environment = environment._enclosing;
         }
 
-        if ( _enclosing is not null ) {
-            return _enclosing.Get( name );
-        }
-
-        throw new RuntimeError( name , $"Undefined variable '{name.Lexeme}'." );
+        return environment._values[slot];
     }
 
-    public void Assign( Token name , object value ) {
-        if ( _values.ContainsKey( name.Lexeme ) ) {
-            _values[name.Lexeme] = value;
-        } else if ( _enclosing is not null ) {
-            _enclosing.Assign( name , value );
-        } else {
-            throw new RuntimeError( name , $"Undefined variable '{name.Lexeme}'" );
+    public void AssignAt( int distance , int slot , object value ) {
+        Environment environment = this;
+
+        for ( int i = 0 ; i < distance ; i++ ) {
+            environment = environment._enclosing;
         }
+
+        environment._values[slot] = value;
+    }
+
+    public override string ToString( ) {
+        string values = _values.Count > 0
+            ? string.Join( " , " , _values )
+            : "[ ]";
+
+        return _enclosing is not null
+            ? $"{values} -> {_enclosing}"
+            : values;
     }
 }

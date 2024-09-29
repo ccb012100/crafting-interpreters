@@ -1,9 +1,9 @@
 namespace cslox.DataTypes;
 
-internal abstract class Expr {
+public abstract class Expr {
     public abstract T Accept<T>( IVisitor<T> visitor );
 
-    internal interface IVisitor<out T> {
+    public interface IVisitor<out T> {
         T VisitAssignExpr( Assign expr );
         T VisitBinaryExpr( Binary expr );
         T VisitCallExpr( Call expr );
@@ -23,6 +23,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitAssignExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"AssignExpr => Name=<{Name}>, Value=<{Value}>";
+        }
     }
 
     public class Binary( Expr left , Token @operator , Expr right ) : Expr {
@@ -32,6 +36,10 @@ internal abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitBinaryExpr( this );
+        }
+
+        public override string ToString( ) {
+            return $"Binary => Left=<{Left}>, Operator=<{Operator}>, Right=<{Right}>";
         }
     }
 
@@ -43,6 +51,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitCallExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Call => Arguments=[{string.Join( "\n" , Arguments )}] Callee=<{Callee}>, Paren=<{Paren}>";
+        }
     }
 
     public class Function( List<Token> parameters , List<Stmt> body ) : Expr {
@@ -52,6 +64,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitFunctionExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Function => Parameters=[{string.Join( "\n" , Parameters )}], Body={{{string.Join( "\n" , Body )}}} ";
+        }
     }
 
     public class Grouping( Expr expression ) : Expr {
@@ -60,6 +76,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitGroupingExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Grouping=({Expression})";
+        }
     }
 
     public class Literal( object value ) : Expr {
@@ -67,6 +87,10 @@ internal abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitLiteralExpr( this );
+        }
+
+        public override string ToString( ) {
+            return $"Literal=<{Value}>";
         }
     }
 
@@ -78,6 +102,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitLogicalExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Logical Left=<{Left}>, Operator=<{Operator}>, Right=<{Right}>";
+        }
     }
 
     public class Conditional( Expr condition , Expr thenBranch , Expr elseBranch ) : Expr {
@@ -88,6 +116,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitConditionalExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Conditional: Condition={Condition}, ThenBranch={ThenBranch}, ElseBranch=<{ElseBranch}>";
+        }
     }
 
     public class Unary( Token @operator , Expr right ) : Expr {
@@ -97,6 +129,10 @@ internal abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitUnaryExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Unary Operator=<{Operator}>, Right=<{Right}>";
+        }
     }
 
     public class Variable( Token name ) : Expr {
@@ -104,6 +140,10 @@ internal abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitVariableExpr( this );
+        }
+
+        public override string ToString( ) {
+            return $"Variable Name=<{Name}>";
         }
     }
 }

@@ -30,7 +30,7 @@ internal class RpnPrinter : Expr.IVisitor<string> {
 
     public string VisitUnaryExpr( Expr.Unary expr ) {
         string @operator = expr.Operator.Type switch {
-            MINUS => "~" , // use different symbol to differentiate unary and binary
+            MINUS => "~", // use different symbol to differentiate unary and binary
             _ => expr.Operator.Lexeme
         };
 

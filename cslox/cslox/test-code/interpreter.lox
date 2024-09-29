@@ -1,0 +1,75 @@
+/*
+ *  Code to test out the Interpreter.
+ *
+ *  There are multiple snippets in order to act as regression tests as new functionality is added.
+ */
+fun sayHi(first, last){
+    print "Hi, " + first + " " + last + "!";
+}
+
+sayHi("Dear", "Reader"); // Hi, Dear Reader!
+
+var a = 2;
+var b = 3;
+var c;
+
+c = 5, b = c + a, a = 1, c = c - 1;
+print 'a=' + a; // 1
+print 'b=' + b; // 7
+print 'c=' + c; // 4
+
+print a > b ? "never" : b == 7 ? 1 < 0 ? "nope" : "yep" : "no"; //  yep
+
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+
+for (var i = 0; i < 5; i = i + 1) {
+  print "fib(" + i + "): " + fib(i);
+}
+// fib(0): 0
+// fib(1): 1
+// fib(2): 1
+// fib(3): 2
+// fib(4): 3
+
+fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    return i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+print "counter: " + counter(); // counter: "1".
+print "counter: " + counter(); // counter: "2"
+
+fun thrice(fn) {
+  for (var i = 1; i <= 3; i = i + 1) {
+    fn(i);
+  }
+}
+
+thrice(fun (a) {
+  print a;
+});
+// "1".
+// "2".
+// "3".
+
+fun whichFn(fn) {
+  print fn;
+}
+
+whichFn(fun (b) {
+ print b;
+});
+
+fun named(a) { print a; }
+whichFn(named);
+// <fn>
+// <fn named>

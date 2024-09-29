@@ -1,9 +1,9 @@
 namespace cslox.DataTypes;
 
-internal abstract class Stmt {
+public abstract class Stmt {
     public abstract T Accept<T>( IVisitor<T> visitor );
 
-    internal interface IVisitor<out T> {
+    public interface IVisitor<out T> {
         T VisitBlockStmt( Block stmt );
         T VisitBreakStmt( );
         T VisitExpressionStmt( ExpressionStmt stmt );
@@ -21,11 +21,19 @@ internal abstract class Stmt {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitBlockStmt( this );
         }
+
+        public override string ToString( ) {
+            return $"Block Statements=[ {string.Join( " , " , Statements )} ]";
+        }
     }
 
     public class Break : Stmt {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitBreakStmt( );
+        }
+
+        public override string ToString( ) {
+            return "Break";
         }
     }
 
@@ -35,6 +43,10 @@ internal abstract class Stmt {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitExpressionStmt( this );
         }
+
+        public override string ToString( ) {
+            return $"ExpressionStmt Expression={Expression}";
+        }
     }
 
     public class FunctionStmt( Token name , Expr.Function function ) : Stmt {
@@ -43,6 +55,10 @@ internal abstract class Stmt {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitFunctionStmt( this );
+        }
+
+        public override string ToString( ) {
+            return $"Function Name=<{Name}> Function=<{Function}>";
         }
     }
 
@@ -54,6 +70,10 @@ internal abstract class Stmt {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitIfStmt( this );
         }
+
+        public override string ToString( ) {
+            return $"Condition=<{Condition}> ElseBranch=<{ElseBranch}> ThenBranch=<{ThenBranch}>";
+        }
     }
 
     public class Print( Expr expression ) : Stmt {
@@ -62,23 +82,35 @@ internal abstract class Stmt {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitPrintStmt( this );
         }
+
+        public override string ToString( ) {
+            return $"Print Expression=<{Expression}>";
+        }
     }
 
-    public class Return( Token name , Expr value ) : Stmt {
-        public readonly Token Name = name;
+    public class Return( Token keyword , Expr value ) : Stmt {
+        public readonly Token Keyword = keyword;
         public readonly Expr Value = value;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitReturnStmt( this );
         }
+
+        public override string ToString( ) {
+            return $"Return keyword=<{Keyword}> Value=<{Value}>";
+        }
     }
 
     public class Var( Token name , Expr initializer ) : Stmt {
-        public readonly Expr Initializer = initializer;
         public readonly Token Name = name;
+        public readonly Expr Initializer = initializer;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitVarStmt( this );
+        }
+
+        public override string ToString( ) {
+            return $"Var Name=<{Name}> Initializer=<{Initializer}>";
         }
     }
 
@@ -88,6 +120,10 @@ internal abstract class Stmt {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitWhileStmt( this );
+        }
+
+        public override string ToString( ) {
+            return $"While Body={{{Body}}} Condition=<{Condition}>";
         }
     }
 }

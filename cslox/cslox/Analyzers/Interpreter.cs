@@ -2,16 +2,15 @@ using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
 
-internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
-    private static readonly object s_unitialized = new( );
+public class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
+    private static readonly object s_uninitialized = new( );
+    private readonly Dictionary<string , object> _globals = new( );
+    private readonly Dictionary<Expr , int> _locals = new( );
+    private readonly Dictionary<Expr , int> _slots = new( );
     private Environment _environment;
 
-    public readonly Environment Globals = new( );
-
     public Interpreter( ) {
-        _environment = Globals;
-
-        Globals.Define( "clock" , new Clock( ) );
+        _globals.Add( "clock" , new Clock( ) );
     }
 
     public void Interpret( List<Stmt> statements ) {
@@ -32,29 +31,16 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    private class Clock : ILoxCallable {
-        public int Arity( ) {
-            return 0;
-        }
-
-        public object Call( Interpreter interpreter , List<object> arguments ) {
-            return DateTime.UtcNow.Ticks / 1000.0;
-        }
-
-        public override string ToString( ) {
-            return "<native fn>";
-        }
+    public void Resolve( Expr expr , int depth , int slot ) {
+        _locals.Add( expr , depth );
+        _slots.Add( expr , slot );
     }
 
-    private class BreakException : Exception;
-
-    #region Execute
-
-    public object Evaluate( Expr expr ) {
+    private object Evaluate( Expr expr ) {
         return expr.Accept( this );
     }
 
-    public void Execute( Stmt stmt ) {
+    private void Execute( Stmt stmt ) {
         stmt.Accept( this );
     }
 
@@ -72,13 +58,34 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         }
     }
 
-    #endregion
+    private class Clock : ILoxCallable {
+        public int Arity( ) {
+            return 0;
+        }
+
+        public object Call( Interpreter interpreter , List<object> arguments ) {
+            return DateTime.UtcNow.Ticks / 1000.0;
+        }
+
+        public override string ToString( ) {
+            return "<native fn>";
+        }
+    }
+
+    private class BreakException : Exception;
 
     #region Expr.IVisitor<object>
 
     public object VisitAssignExpr( Expr.Assign expr ) {
         object value = Evaluate( expr.Value );
-        _environment.Assign( expr.Name , value );
+
+        if ( _locals.TryGetValue( expr , out int distance ) ) {
+            _environment.AssignAt( distance , _slots[expr] , value );
+        } else if ( _globals.ContainsKey( expr.Name.Lexeme ) ) {
+            _globals[expr.Name.Lexeme] = value;
+        } else {
+            throw new RuntimeError( expr.Name , $"VisitAssignExpr -> Undefined variable '{expr.Name.Lexeme}.'" );
+        }
 
         return value;
     }
@@ -201,13 +208,19 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     public object VisitVariableExpr( Expr.Variable expr ) {
-        object value = _environment.Get( expr.Name );
+        return LookUpVariable( expr.Name , expr );
+    }
 
-        if ( value == s_unitialized ) {
-            throw new RuntimeError( expr.Name , "Variable must be initialized before use" );
+    private object LookUpVariable( Token name , Expr expr ) {
+        if ( _locals.TryGetValue( expr , out int distance ) ) {
+            return _environment.GetAt( distance , _slots[expr] );
         }
 
-        return value;
+        if ( _globals.TryGetValue( name.Lexeme , out object value ) ) {
+            return value;
+        }
+
+        throw new RuntimeError( name , $"Undefined variable '{name.Lexeme}'." );
     }
 
     #endregion
@@ -231,8 +244,8 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitFunctionStmt( Stmt.FunctionStmt stmt ) {
-        string fnName = stmt.Name.Lexeme;
-        _environment.Define( fnName , new LoxFunction( fnName , stmt.Function , _environment ) );
+        LoxFunction function = new( stmt.Name.Lexeme , stmt.Function , _environment );
+        Define( stmt.Name , function );
 
         return ValueTuple.Create( );
     }
@@ -265,13 +278,13 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitVarStmt( Stmt.Var stmt ) {
-        object value = s_unitialized;
+        object value = s_uninitialized;
 
         if ( stmt.Initializer is not null ) {
             value = Evaluate( stmt.Initializer );
         }
 
-        _environment.Define( stmt.Name.Lexeme , value );
+        Define( stmt.Name , value );
 
         return ValueTuple.Create( );
     }
@@ -286,6 +299,14 @@ internal class Interpreter : Expr.IVisitor<object> , Stmt.IVisitor<ValueTuple> {
         }
 
         return ValueTuple.Create( );
+    }
+
+    private void Define( Token name , object value ) {
+        if ( _environment is not null ) {
+            _environment.Define( value );
+        } else {
+            _globals.Add( name.Lexeme , value );
+        }
     }
 
     #endregion

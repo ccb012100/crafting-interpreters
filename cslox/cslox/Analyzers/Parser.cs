@@ -5,7 +5,7 @@ internal class Parser( List<Token> tokens ) {
     private int _loopDepth;
 
     public List<Stmt> Parse( ) {
-        List<Stmt> statements = [];
+        List<Stmt> statements = [ ];
 
         while ( !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -42,7 +42,7 @@ internal class Parser( List<Token> tokens ) {
         }
 
         return tokens[_current + 1].Type switch {
-            EOF => false ,
+            EOF => false,
             _ => tokens[_current + 1].Type == type
         };
     }
@@ -275,7 +275,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private List<Stmt> Block( ) {
-        List<Stmt> statements = [];
+        List<Stmt> statements = [ ];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
             statements.Add( Declaration( ) );
@@ -315,7 +315,7 @@ internal class Parser( List<Token> tokens ) {
     private Expr.Function FunctionBody( string kind ) {
         Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
 
-        List<Token> parameters = [];
+        List<Token> parameters = [ ];
 
         if ( !Check( RIGHT_PAREN ) ) {
             do {
@@ -519,7 +519,7 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr.Call FinishCall( Expr callee ) {
-        List<Expr> arguments = [];
+        List<Expr> arguments = [ ];
 
         if ( !Check( RIGHT_PAREN ) ) {
             do {
