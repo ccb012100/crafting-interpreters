@@ -123,7 +123,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     private void ResolveLocal( Expr expr , Token name , bool isRead ) {
         // This differs from the Java implementation because indexing in Stack type in C# is the opposite (0 = Top).
         for ( int i = 0 ; i < _scopes.Count ; i++ ) {
-            var scope = _scopes.ElementAt( i );
+            Dictionary<string , Variable> scope = _scopes.ElementAt( i );
 
             if ( !scope.TryGetValue( name.Lexeme , out Variable variable ) ) {
                 continue;
