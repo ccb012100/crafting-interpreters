@@ -1,3 +1,5 @@
+using cslox.Extensions;
+
 namespace cslox.DataTypes;
 
 public abstract class Stmt {
@@ -24,7 +26,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Block Statements=[ {string.Join( " , " , Statements )} ]";
+            return $"Block Statements=[ {Statements.ToPrintString()} ]";
         }
     }
 
@@ -47,7 +49,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Class Name=<{Name}> Methods=<{string.Join( " , " , Methods )}>";
+            return $"Class Name=<{Name}> Methods=<{Methods.ToPrintString()}>";
         }
     }
 

@@ -1,3 +1,5 @@
+using cslox.Extensions;
+
 namespace cslox.DataTypes;
 
 public abstract class Expr {
@@ -56,7 +58,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Call => Arguments=[{string.Join( "\n" , Arguments )}] Callee=<{Callee}>, Paren=<{Paren}>";
+            return $"Call => Arguments=[{Arguments.ToPrintString( )}] Callee=<{Callee}>, Paren=<{Paren}>";
         }
     }
 
@@ -69,7 +71,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Function => Parameters=[{string.Join( "\n" , Parameters )}], Body={{{string.Join( "\n" , Body )}}} ";
+            return $"Function => Parameters=[{Parameters.ToPrintString( )}], Body={{{Body.ToPrintString( )}}} ";
         }
     }
 
