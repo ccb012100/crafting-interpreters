@@ -187,9 +187,9 @@ internal class Scanner( string source ) {
 
                 break;
             default:
-                if ( c.isDigit( ) ) {
+                if ( c.IsDigit( ) ) {
                     AddNumber( );
-                } else if ( c.isAlpha( ) ) {
+                } else if ( c.IsAlpha( ) ) {
                     AddIdentifier( );
                 } else // Bad character encountered
                 {
@@ -261,16 +261,16 @@ internal class Scanner( string source ) {
     }
 
     private void AddNumber( ) {
-        while ( Peek( ).isDigit( ) ) {
+        while ( Peek( ).IsDigit( ) ) {
             Advance( );
         }
 
         // Look for a fractional part.
-        if ( Peek( ) == '.' && PeekNext( ).isDigit( ) ) {
+        if ( Peek( ) == '.' && PeekNext( ).IsDigit( ) ) {
             // Consume the "."
             Advance( );
 
-            while ( Peek( ).isDigit( ) ) {
+            while ( Peek( ).IsDigit( ) ) {
                 Advance( );
             }
         }
@@ -279,7 +279,7 @@ internal class Scanner( string source ) {
     }
 
     private void AddIdentifier( ) {
-        while ( Peek( ).isAlphaNumeric( ) ) {
+        while ( Peek( ).IsAlphaNumeric( ) ) {
             Advance( );
         }
 

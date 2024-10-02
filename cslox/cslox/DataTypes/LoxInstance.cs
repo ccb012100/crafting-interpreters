@@ -3,8 +3,8 @@ using cslox.LoxCallables;
 namespace cslox.DataTypes;
 
 public class LoxInstance( LoxClass klass ) {
-    private readonly LoxClass _klass = klass;
     private readonly Dictionary<string , object> _fields = [ ];
+    private readonly LoxClass _klass = klass;
 
     public override string ToString( ) {
         return $"{_klass.Name} instance";
@@ -19,7 +19,7 @@ public class LoxInstance( LoxClass klass ) {
         LoxFunction method = _klass.FindMethod( name.Lexeme );
 
         if ( method is not null ) {
-            return method;
+            return method.Bind( name.Lexeme , this );
         }
 
         throw new RuntimeError( name , $"Undefined property '{name.Lexeme}'." );

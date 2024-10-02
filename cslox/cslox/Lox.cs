@@ -48,7 +48,7 @@ internal static class Lox {
 
                 break;
             case Visitor.Ast:
-                var ast = new AstPrinter( );
+                AstPrinter ast = new AstPrinter( );
 
                 foreach ( Stmt s in statements ) {
                     Console.WriteLine( ast.Print( s ) );

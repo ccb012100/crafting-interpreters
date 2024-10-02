@@ -8,12 +8,18 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
      *              stack[0] will always return the TOP of the stack (not the bottom)
      */
     private readonly Stack<Dictionary<string , Variable>> _scopes = new( );
+    private ClassType _currentClass = ClassType.None;
     private FunctionType _currentFunction = FunctionType.None;
 
     public void Resolve( List<Stmt> statements ) {
         foreach ( Stmt stmt in statements ) {
             Resolve( stmt );
         }
+    }
+
+    private enum ClassType {
+        None,
+        Class
     }
 
     private enum FunctionType {
@@ -116,6 +122,18 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitThisExpr( Expr.This expr ) {
+        if ( _currentClass == ClassType.None ) {
+            Lox.Error( expr.Keyword , "Can't use 'this' keyword outside of a class." );
+
+            return ValueTuple.Create( );
+        }
+
+        ResolveLocal( expr , expr.Keyword , true );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitUnaryExpr( Expr.Unary expr ) {
         Resolve( expr.Right );
 
@@ -175,13 +193,24 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     }
 
     public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
+        ClassType enclosingClass = _currentClass;
+        _currentClass = ClassType.Class;
+
         Declare( stmt.Name );
         Define( stmt.Name );
 
+        BeginScope( );
+
+        _scopes.Peek( ).Add( "this" , new Variable( stmt.Name , _scopes.Count , VariableState.Read ) );
+
+        const FunctionType declaration = FunctionType.Method;
+
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
-            FunctionType declaration = FunctionType.Method;
             ResolveFunction( method , declaration );
         }
+
+        EndScope( );
+        _currentClass = enclosingClass;
 
         return ValueTuple.Create( );
     }
@@ -294,7 +323,10 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         Dictionary<string , Variable> scope = _scopes.Pop( );
 
         foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
-            Lox.Error( v.Name , "Local variable is not used." );
+            Lox.Error(
+                v.Name ,
+                $"Local variable is not used in scope=<{string.Join( ", " , scope )} count={scope.Count}>."
+            );
         }
     }
 

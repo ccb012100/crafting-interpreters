@@ -36,6 +36,10 @@ internal class RpnPrinter : Expr.IVisitor<string> {
         throw new NotImplementedException( );
     }
 
+    public string VisitThisExpr( Expr.This expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitUnaryExpr( Expr.Unary expr ) {
         string @operator = expr.Operator.Type switch {
             MINUS => "~", // use different symbol to differentiate unary and binary

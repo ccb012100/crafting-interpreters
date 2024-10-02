@@ -91,3 +91,60 @@ bagel.y = "foobar";
 
 print bagel.x; // Prints "12"
 print bagel.y; // Prints "foobar"
+
+class Box {}
+
+fun notMethod(argument) {
+  print "called function with '" + argument + "'";
+}
+
+var box = Box();
+box.function = notMethod;
+box.function("foo bar baz"); // Prints "called function with 'foo bar baz'"
+
+class Person {
+  sayName() {
+    print this.name;
+  }
+}
+
+var jane = Person();
+jane.name = "Jane";
+
+var bill = Person();
+bill.name = "Bill";
+
+bill.sayName = jane.sayName;
+bill.sayName(); // Prints "Bill"
+
+class Bacon {
+  eat() {
+    print "Crunch crunch crunch!";
+  }
+}
+
+Bacon().eat(); // Prints "Crunch crunch crunch!".
+
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+var callback = Thing().getCallback();
+callback(); // Prints "Thing instance"

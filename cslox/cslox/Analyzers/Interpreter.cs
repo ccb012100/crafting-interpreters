@@ -214,6 +214,10 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return value;
     }
 
+    public object VisitThisExpr( Expr.This expr ) {
+        return LookUpVariable( expr.Keyword , expr );
+    }
+
     public object VisitUnaryExpr( Expr.Unary expr ) {
         object right = Evaluate( expr.Right );
 
@@ -224,9 +228,9 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
                 CheckNumberOperand( expr.Operator , right );
 
                 return -( double ) right;
-        }
 
-        return null; // Unreachable
+            default: return null; // Unreachable
+        }
     }
 
     public object VisitVariableExpr( Expr.Variable expr ) {
@@ -235,7 +239,9 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     private object LookUpVariable( Token name , Expr expr ) {
         if ( _locals.TryGetValue( expr , out int distance ) ) {
-            return _environment.GetAt( distance , _slots[expr] );
+            return name.Lexeme == "this"
+                ? _environment.GetThis( distance )
+                : _environment.GetAt( distance , _slots[expr] );
         }
 
         if ( _globals.TryGetValue( name.Lexeme , out object value ) ) {

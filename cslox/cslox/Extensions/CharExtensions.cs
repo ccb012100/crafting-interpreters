@@ -1,15 +1,15 @@
 ﻿namespace cslox.Extensions;
 
 internal static class CharExtensions {
-    public static bool isDigit( this char c ) {
+    public static bool IsDigit( this char c ) {
         return c is >= '0' and <= '9';
     }
 
-    public static bool isAlpha( this char c ) {
+    public static bool IsAlpha( this char c ) {
         return c is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or '_';
     }
 
-    public static bool isAlphaNumeric( this char c ) {
-        return c.isAlpha( ) || c.isDigit( );
+    public static bool IsAlphaNumeric( this char c ) {
+        return c.IsAlpha( ) || c.IsDigit( );
     }
 }

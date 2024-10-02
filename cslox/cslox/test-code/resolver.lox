@@ -11,3 +11,9 @@ fun bad() {
   var a = "first";
   var a = "second";
 }
+
+print this;
+
+fun notAMethod() {
+  print this;
+}

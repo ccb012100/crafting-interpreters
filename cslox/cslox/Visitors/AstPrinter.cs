@@ -13,6 +13,77 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
         return stmt.Accept( this );
     }
 
+    private string Function( Function function , Token name = null ) {
+        StringBuilder sb = new( "(fun " );
+
+        if ( name is not null ) {
+            sb.Append( name.Lexeme );
+        }
+
+        sb.Append( '(' );
+
+        foreach ( Token parameter in function.Parameters ) {
+            if ( parameter != function.Parameters[0] ) {
+                sb.Append( ' ' );
+            }
+
+            sb.Append( parameter.Lexeme );
+        }
+
+        sb.Append( ") " );
+
+        foreach ( Stmt bodyStmt in function.Body ) {
+            sb.Append( bodyStmt.Accept( this ) );
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
+    private string Parenthesize( string name , params Expr[ ] exprs ) {
+        StringBuilder sb = new StringBuilder( )
+            .Append( '(' )
+            .Append( name );
+
+        foreach ( Expr expr in exprs ) {
+            sb.Append( ' ' ).Append( expr.Accept( this ) );
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
+    private string ParenthesizeObjects( string name , params object[ ] parts ) {
+        StringBuilder sb = new StringBuilder( "(" ).Append( name );
+
+        foreach ( object part in parts ) {
+            sb.Append( ' ' );
+
+            switch ( part ) {
+                case Expr expression: {
+                        sb.Append( expression.Accept( this ) );
+
+                        break;
+                    }
+                case Stmt stmt: {
+                        sb.Append( stmt.Accept( this ) );
+
+                        break;
+                    }
+                case Token token: {
+                        sb.Append( token.Lexeme );
+
+                        break;
+                    }
+                default: {
+                        sb.Append( part );
+
+                        break;
+                    }
+            }
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
     #region Expr.IVisitor<string>
 
     public string VisitAssignExpr( Assign expr ) {
@@ -49,6 +120,10 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
 
     public string VisitSetExpr( Set expr ) {
         return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Object );
+    }
+
+    public string VisitThisExpr( This expr ) {
+        return $"this {expr.Keyword}";
     }
 
     public string VisitUnaryExpr( Unary expr ) {
@@ -128,75 +203,4 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
     }
 
     #endregion
-
-    private string Function( Function function , Token name = null ) {
-        StringBuilder sb = new( "(fun " );
-
-        if ( name is not null ) {
-            sb.Append( name.Lexeme );
-        }
-
-        sb.Append( '(' );
-
-        foreach ( Token parameter in function.Parameters ) {
-            if ( parameter != function.Parameters[0] ) {
-                sb.Append( ' ' );
-            }
-
-            sb.Append( parameter.Lexeme );
-        }
-
-        sb.Append( ") " );
-
-        foreach ( Stmt bodyStmt in function.Body ) {
-            sb.Append( bodyStmt.Accept( this ) );
-        }
-
-        return sb.Append( ')' ).ToString( );
-    }
-
-    private string Parenthesize( string name , params Expr[ ] exprs ) {
-        StringBuilder sb = new StringBuilder( )
-            .Append( '(' )
-            .Append( name );
-
-        foreach ( Expr expr in exprs ) {
-            sb.Append( ' ' ).Append( expr.Accept( this ) );
-        }
-
-        return sb.Append( ')' ).ToString( );
-    }
-
-    private string ParenthesizeObjects( string name , params object[ ] parts ) {
-        StringBuilder sb = new StringBuilder( "(" ).Append( name );
-
-        foreach ( object part in parts ) {
-            sb.Append( ' ' );
-
-            switch ( part ) {
-                case Expr expression: {
-                        sb.Append( expression.Accept( this ) );
-
-                        break;
-                    }
-                case Stmt stmt: {
-                        sb.Append( stmt.Accept( this ) );
-
-                        break;
-                    }
-                case Token token: {
-                        sb.Append( token.Lexeme );
-
-                        break;
-                    }
-                default: {
-                        sb.Append( part );
-
-                        break;
-                    }
-            }
-        }
-
-        return sb.Append( ')' ).ToString( );
-    }
 }

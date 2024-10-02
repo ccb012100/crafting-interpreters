@@ -4,10 +4,12 @@ using cslox.LoxCallables;
 namespace cslox.DataTypes;
 
 public class LoxClass( string name , Dictionary<string , LoxFunction> methods ) : ILoxCallable {
-    public readonly string Name = name;
     private readonly Dictionary<string , LoxFunction> _methods = methods;
+    public readonly string Name = name;
 
-    public int Arity( ) => 0;
+    public int Arity( ) {
+        return 0;
+    }
 
     public object Call( Interpreter interpreter , List<object> arguments ) {
         return new LoxInstance( this );

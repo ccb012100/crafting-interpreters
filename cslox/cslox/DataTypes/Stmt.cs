@@ -39,8 +39,8 @@ public abstract class Stmt {
     }
 
     public class Class( Token name , List<FunctionStmt> methods ) : Stmt {
-        public readonly Token Name = name;
         public readonly List<FunctionStmt> Methods = methods;
+        public readonly Token Name = name;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitClassStmt( this );
@@ -64,8 +64,8 @@ public abstract class Stmt {
     }
 
     public class FunctionStmt( Token name , Expr.Function function ) : Stmt {
-        public readonly Token Name = name;
         public readonly Expr.Function Function = function;
+        public readonly Token Name = name;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitFunctionStmt( this );
@@ -116,8 +116,8 @@ public abstract class Stmt {
     }
 
     public class Var( Token name , Expr initializer ) : Stmt {
-        public readonly Token Name = name;
         public readonly Expr Initializer = initializer;
+        public readonly Token Name = name;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitVarStmt( this );
