@@ -40,7 +40,11 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
     }
 
     public string VisitLiteralExpr( Literal expr ) {
-        return expr.Value == null ? "nil" : expr.Value.ToString( );
+        if ( expr is null ) {
+            return "nil";
+        }
+
+        return expr.Value is string s ? $"\"{s}\"" : expr.Value.ToString( );
     }
 
     public string VisitSetExpr( Set expr ) {

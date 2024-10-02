@@ -7,18 +7,18 @@ fun sayHi(first, last){
     print "Hi, " + first + " " + last + "!";
 }
 
-sayHi("Dear", "Reader"); // Hi, Dear Reader!
+sayHi("Dear", "Reader"); // Prints "Hi, Dear Reader!"
 
 var a = 2;
 var b = 3;
 var c;
 
 c = 5, b = c + a, a = 1, c = c - 1;
-print 'a=' + a; // 1
-print 'b=' + b; // 7
-print 'c=' + c; // 4
+print 'a=' + a; // Prints "a=1"
+print 'b=' + b; // Prints "b=7"
+print 'c=' + c; // Prints "c=4"
 
-print a > b ? "never" : b == 7 ? 1 < 0 ? "nope" : "yep" : "no"; //  yep
+print a > b ? "never" : b == 7 ? 1 < 0 ? "nope" : "yep" : "no"; //  Prints "yep"
 
 fun fib(n) {
   if (n <= 1) return n;
@@ -45,8 +45,8 @@ fun makeCounter() {
 }
 
 var counter = makeCounter();
-print "counter: " + counter(); // counter: "1".
-print "counter: " + counter(); // counter: "2"
+print "counter: " + counter(); // Prints counter: "1".
+print "counter: " + counter(); // Prints counter: "2"
 
 fun thrice(fn) {
   for (var i = 1; i <= 3; i = i + 1) {
@@ -73,3 +73,21 @@ fun named(a) { print a; }
 whichFn(named);
 // <fn>
 // <fn named>
+
+class DevonshireCream {
+  serveOn() {
+    return "Scones";
+  }
+}
+
+print DevonshireCream; // Prints "DevonshireCream".
+
+class Bagel {}
+var bagel = Bagel();
+print bagel; // Prints "Bagel instance".
+
+bagel.x = 12;
+bagel.y = "foobar";
+
+print bagel.x; // Prints "12"
+print bagel.y; // Prints "foobar"

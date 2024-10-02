@@ -4,10 +4,17 @@ using Environment = cslox.Analyzers.Environment;
 
 namespace cslox.LoxCallables;
 
-internal class LoxFunction( string name , Expr.Function declaration , Environment closure ) : ILoxCallable {
+public class LoxFunction( string name , Expr.Function declaration , Environment closure ) : ILoxCallable {
     private readonly Expr.Function _declaration = declaration;
     private readonly string _fnNamePrintableForm = name is null ? "<fn>" : $"<fn {name}>";
     private readonly Environment _closure = closure;
+
+    public LoxFunction( Stmt.FunctionStmt functionStmt , Environment closure ) : this(
+        functionStmt.Name.Lexeme ,
+        functionStmt.Function ,
+        closure
+    ) {
+    }
 
     public int Arity( ) => _declaration.Parameters.Count;
 

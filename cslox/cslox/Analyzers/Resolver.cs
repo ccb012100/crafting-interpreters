@@ -18,7 +18,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
     private enum FunctionType {
         None,
-        Function
+        Function,
+        Method
     }
 
     private enum VariableState {
@@ -176,6 +177,11 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
         Declare( stmt.Name );
         Define( stmt.Name );
+
+        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            FunctionType declaration = FunctionType.Method;
+            ResolveFunction( method , declaration );
+        }
 
         return ValueTuple.Create( );
     }

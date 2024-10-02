@@ -261,7 +261,15 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
         Define( stmt.Name , null );
-        LoxClass klass = new( stmt.Name.Lexeme );
+
+        Dictionary<string , LoxFunction> methods = [ ];
+
+        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            LoxFunction function = new( method , _environment );
+            methods.Add( method.Name.Lexeme , function );
+        }
+
+        LoxClass klass = new( stmt.Name.Lexeme , methods );
 
         if ( _globals.ContainsKey( stmt.Name.Lexeme ) ) {
             _globals[stmt.Name.Lexeme] = klass;
@@ -279,7 +287,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitFunctionStmt( Stmt.FunctionStmt stmt ) {
-        LoxFunction function = new( stmt.Name.Lexeme , stmt.Function , _environment );
+        LoxFunction function = new( stmt , _environment );
         Define( stmt.Name , function );
 
         return ValueTuple.Create( );
