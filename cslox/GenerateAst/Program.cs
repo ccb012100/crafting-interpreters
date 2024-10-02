@@ -16,10 +16,12 @@ internal static class Program {
                 "Assign      : Token name, Expr value" ,
                 "Binary      : Expr left, Token oper, Expr right" ,
                 "Call        : Expr callee, Token paren, List<Expr> arguments" ,
+                "Get         : Expr object, Token name" ,
                 "Grouping    : Expr expression" ,
                 "Literal     : object value" ,
                 "Logical     : Expr left, Token operator, Expr right" ,
                 "Conditional : Expr condition, Expr thenBranch, Expr elseBranch" ,
+                "Set         : Expr object, Token name, Expr value" ,
                 "Unary       : Token oper, Expr right" ,
                 "Variable    : Token name" ,
                 "Function    : List<Token> parameters, List<Stmt> body"

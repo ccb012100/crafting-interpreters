@@ -77,6 +77,12 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitGetExpr( Expr.Get expr ) {
+        Resolve( expr.Object );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitGroupingExpr( Expr.Grouping expr ) {
         Resolve( expr.Expression );
 
@@ -98,6 +104,13 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         Resolve( expr.Condition );
         Resolve( expr.ThenBranch );
         Resolve( expr.ElseBranch );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitSetExpr( Expr.Set expr ) {
+        Resolve( expr.Value );
+        Resolve( expr.Object );
 
         return ValueTuple.Create( );
     }
@@ -246,7 +259,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
         Dictionary<string , Variable> scope = _scopes.Peek( );
 
-        // instead of if (scope.ContainsKey( name.Lexeme ))
+        // instead of if `(!scope.ContainsKey( name.Lexeme )) { scope.Add() }, we use TryAdd
         if ( !scope.TryAdd( name.Lexeme , new Variable( name , scope.Count , VariableState.Declared ) ) ) {
             Lox.Error( name , "Already a variable with this name in the scope." );
         }

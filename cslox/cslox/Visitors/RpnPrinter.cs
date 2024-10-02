@@ -20,12 +20,20 @@ internal class RpnPrinter : Expr.IVisitor<string> {
         throw new NotImplementedException( );
     }
 
+    public string VisitGetExpr( Expr.Get expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitGroupingExpr( Expr.Grouping expr ) {
         return expr.Expression.Accept( this );
     }
 
     public string VisitLiteralExpr( Expr.Literal expr ) {
         return expr.Value == null ? "nil" : expr.Value.ToString( );
+    }
+
+    public string VisitSetExpr( Expr.Set expr ) {
+        throw new NotImplementedException( );
     }
 
     public string VisitUnaryExpr( Expr.Unary expr ) {

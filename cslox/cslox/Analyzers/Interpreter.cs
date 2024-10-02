@@ -168,6 +168,15 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return new LoxFunction( null , expr , _environment );
     }
 
+    public object VisitGetExpr( Expr.Get expr ) {
+        object obj = Evaluate( expr.Object );
+
+        return obj switch {
+            LoxInstance instance => instance.Get( expr.Name ),
+            _ => throw new RuntimeError( expr.Name , "Only instances have properties." )
+        };
+    }
+
     public object VisitGroupingExpr( Expr.Grouping expr ) {
         return Evaluate( expr.Expression );
     }
@@ -190,6 +199,19 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         object condition = Evaluate( expr.Condition );
 
         return IsTruthy( condition ) ? Evaluate( expr.ThenBranch ) : Evaluate( expr.ElseBranch );
+    }
+
+    public object VisitSetExpr( Expr.Set expr ) {
+        object @object = Evaluate( expr.Object );
+
+        if ( @object is not LoxInstance instance ) {
+            throw new RuntimeError( expr.Name , "Only instances have fields." );
+        }
+
+        object value = Evaluate( expr.Value );
+        instance.Set( expr.Name , value );
+
+        return value;
     }
 
     public object VisitUnaryExpr( Expr.Unary expr ) {

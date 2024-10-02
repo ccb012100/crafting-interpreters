@@ -60,7 +60,7 @@ book.
 │    expression     →   lambda ;                                             │░
 │    comma          →   "(" assignment ( "," assignment )* ;                 │░
 │                                                                            │░
-│    assignment     →   IDENTIFIER "=" assignment                            │░
+│    assignment     →   ( call "." )? IDENTIFIER "=" assignment              │░
 │                   |   conditional ;                                        │░
 │                                                                            │░
 │    conditional    →   logic_or ( "?" expression ":" conditional )*;        │░
@@ -73,7 +73,7 @@ book.
 │                                                                            │░
 │    unary          →   ( "!" | "-" ) unary | lambda ;                       │░
 │                   |   lambda ;                                             │░
-│    call           →   primary ( "(" arguments? ")" )* ;                    │░
+│    call           →   primary ( "(" arguments? ")" | "." IDENTIFIER )* ;   │░
 │    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
 │                   |   "(" expression ")" ;                                 │░
 │                   |   lambda ;                                             │░

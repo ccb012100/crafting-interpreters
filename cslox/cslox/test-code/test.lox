@@ -80,3 +80,9 @@ print DevonshireCream; // Prints "DevonshireCream".
 class Bagel {}
 var bagel = Bagel();
 print bagel; // Prints "Bagel instance".
+
+bagel.x = 12;
+bagel.y = "foobar";
+
+print bagel.x; // Prints "12"
+print bagel.y; // Prints "foobar"

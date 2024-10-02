@@ -8,10 +8,12 @@ public abstract class Expr {
         T VisitBinaryExpr( Binary expr );
         T VisitCallExpr( Call expr );
         T VisitFunctionExpr( Function expr );
+        T VisitGetExpr( Get expr );
         T VisitGroupingExpr( Grouping expr );
         T VisitLiteralExpr( Literal expr );
         T VisitLogicalExpr( Logical expr );
         T VisitConditionalExpr( Conditional expr );
+        T VisitSetExpr( Set expr );
         T VisitUnaryExpr( Unary expr );
         T VisitVariableExpr( Variable expr );
     }
@@ -70,6 +72,15 @@ public abstract class Expr {
         }
     }
 
+    public class Get( Expr @object , Token name ) : Expr {
+        public readonly Expr Object = @object;
+        public readonly Token Name = name;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitGetExpr( this );
+        }
+    }
+
     public class Grouping( Expr expression ) : Expr {
         public readonly Expr Expression = expression;
 
@@ -119,6 +130,16 @@ public abstract class Expr {
 
         public override string ToString( ) {
             return $"Conditional: Condition={Condition}, ThenBranch={ThenBranch}, ElseBranch=<{ElseBranch}>";
+        }
+    }
+
+    public class Set( Expr @object , Token name , Expr value ) : Expr {
+        public readonly Expr Object = @object;
+        public readonly Token Name = name;
+        public readonly Expr Value = value;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitSetExpr( this );
         }
     }
 

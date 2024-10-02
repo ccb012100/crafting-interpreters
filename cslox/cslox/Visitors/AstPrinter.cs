@@ -25,12 +25,20 @@ internal class AstPrinter : IVisitor<string> {
         throw new NotImplementedException( );
     }
 
+    public string VisitGetExpr( Get expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitGroupingExpr( Grouping expr ) {
         return Parenthesize( "group" , expr.Expression );
     }
 
     public string VisitLiteralExpr( Literal expr ) {
         return expr.Value == null ? "nil" : expr.Value.ToString( );
+    }
+
+    public string VisitSetExpr( Set expr ) {
+        throw new NotImplementedException( );
     }
 
     public string VisitUnaryExpr( Unary expr ) {

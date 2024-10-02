@@ -382,13 +382,21 @@ internal class Parser( List<Token> tokens ) {
             Token equals = Previous( );
             Expr value = Assignment( );
 
-            if ( expr is Expr.Variable varExpr ) {
-                Token name = varExpr.Name;
+            switch ( expr ) {
+                case Expr.Variable varExpr: {
+                        Token name = varExpr.Name;
 
-                return new Expr.Assign( name , value );
+                        return new Expr.Assign( name , value );
+                    }
+                case Expr.Get getExpr: {
+                        return new Expr.Set( getExpr.Object , getExpr.Name , value );
+                    }
+                default: {
+                        Error( equals , "Invalid assignment target." );
+
+                        break;
+                    }
             }
-
-            Error( equals , "Invalid assignment target." );
         }
 
         return expr;
@@ -529,6 +537,9 @@ internal class Parser( List<Token> tokens ) {
         while ( true ) {
             if ( Match( LEFT_PAREN ) ) {
                 expr = FinishCall( expr );
+            } else if ( Match( DOT ) ) {
+                Token name = Consume( IDENTIFIER , "Expect property name after '.'." );
+                expr = new Expr.Get( expr , name );
             } else {
                 break;
             }
