@@ -25,6 +25,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     private enum FunctionType {
         None,
         Function,
+        Initializer,
         Method
     }
 
@@ -203,9 +204,11 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
         _scopes.Peek( ).Add( "this" , new Variable( stmt.Name , _scopes.Count , VariableState.Read ) );
 
-        const FunctionType declaration = FunctionType.Method;
-
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            FunctionType declaration = method.Name.Lexeme.Equals( "init" )
+                ? FunctionType.Initializer
+                : FunctionType.Method;
+
             ResolveFunction( method , declaration );
         }
 
@@ -269,6 +272,10 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         }
 
         if ( stmt.Value is not null ) {
+            if ( _currentFunction == FunctionType.Initializer ) {
+                Lox.Error( stmt.Keyword , "Can't return a value from an initializer ." );
+            }
+
             Resolve( stmt.Value );
         }
 

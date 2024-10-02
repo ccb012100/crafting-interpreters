@@ -165,7 +165,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public object VisitFunctionExpr( Expr.Function expr ) {
-        return new LoxFunction( null , expr , _environment );
+        return new LoxFunction( null , expr , _environment , false );
     }
 
     public object VisitGetExpr( Expr.Get expr ) {
@@ -239,7 +239,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     private object LookUpVariable( Token name , Expr expr ) {
         if ( _locals.TryGetValue( expr , out int distance ) ) {
-            return name.Lexeme == "this"
+            return name.Lexeme.Equals( "this" )
                 ? _environment.GetThis( distance )
                 : _environment.GetAt( distance , _slots[expr] );
         }
@@ -271,7 +271,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         Dictionary<string , LoxFunction> methods = [ ];
 
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
-            LoxFunction function = new( method , _environment );
+            LoxFunction function = new( method , _environment , method.Name.Lexeme.Equals( "init" ) );
             methods.Add( method.Name.Lexeme , function );
         }
 
@@ -293,7 +293,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitFunctionStmt( Stmt.FunctionStmt stmt ) {
-        LoxFunction function = new( stmt , _environment );
+        LoxFunction function = new( stmt , _environment , false );
         Define( stmt.Name , function );
 
         return ValueTuple.Create( );

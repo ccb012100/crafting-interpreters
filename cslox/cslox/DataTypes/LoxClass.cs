@@ -8,11 +8,18 @@ public class LoxClass( string name , Dictionary<string , LoxFunction> methods ) 
     public readonly string Name = name;
 
     public int Arity( ) {
-        return 0;
+        LoxFunction initializer = FindMethod( "init" );
+
+        return initializer?.Arity( ) ?? 0;
     }
 
     public object Call( Interpreter interpreter , List<object> arguments ) {
-        return new LoxInstance( this );
+        LoxInstance instance = new( this );
+        LoxFunction initializer = FindMethod( "init" );
+
+        initializer?.Bind( "init" , instance ).Call( interpreter , arguments );
+
+        return instance;
     }
 
     public override string ToString( ) {

@@ -55,3 +55,15 @@ class Thing {
 
 var callback = Thing().getCallback();
 callback(); // Prints "Thing instance"
+
+class Foo {
+  init() {
+    print this;
+    return;
+  }
+}
+
+var foo = Foo(); // Prints "Foo instance"
+print foo.init();
+// "Foo instance" (the init method)
+// "Foo instance" (the print call - init() returns `this`)

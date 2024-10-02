@@ -26,7 +26,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Block Statements=[ {Statements.ToPrintString()} ]";
+            return $"Block Statements=[ {Statements.ToPrintString( )} ]";
         }
     }
 
@@ -49,7 +49,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Class Name=<{Name}> Methods=<{Methods.ToPrintString()}>";
+            return $"Class Name=<{Name}> Methods=<{Methods.ToPrintString( )}>";
         }
     }
 
