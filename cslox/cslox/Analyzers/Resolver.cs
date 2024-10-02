@@ -200,6 +200,14 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         Declare( stmt.Name );
         Define( stmt.Name );
 
+        if ( stmt.Superclass is not null ) {
+            if ( stmt.Name.Lexeme.Equals( stmt.Superclass.Name.Lexeme ) ) {
+                Lox.Error( stmt.Superclass.Name , "A class can't inherit from itself." );
+            }
+
+            Resolve( stmt.Superclass );
+        }
+
         BeginScope( );
 
         _scopes.Peek( ).Add( "this" , new Variable( stmt.Name , _scopes.Count , VariableState.Read ) );
@@ -329,7 +337,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     private void EndScope( ) {
         Dictionary<string , Variable> scope = _scopes.Pop( );
 
-        foreach ( ( string _ , Variable v ) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
+        foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
             Lox.Error( v.Name , "Local variable is not used in scope." );
         }
     }

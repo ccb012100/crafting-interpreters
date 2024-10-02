@@ -40,9 +40,10 @@ public abstract class Stmt {
         }
     }
 
-    public class Class( Token name , List<FunctionStmt> methods ) : Stmt {
+    public class Class( Token name , Expr.Variable superclass , List<FunctionStmt> methods ) : Stmt {
         public readonly List<FunctionStmt> Methods = methods;
         public readonly Token Name = name;
+        public readonly Expr.Variable Superclass = superclass;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitClassStmt( this );

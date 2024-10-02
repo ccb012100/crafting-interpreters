@@ -266,6 +266,16 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
+        object superclass = null;
+
+        if ( stmt.Superclass is not null ) {
+            superclass = Evaluate( stmt.Superclass );
+
+            if ( superclass is not LoxClass ) {
+                throw new RuntimeError( stmt.Superclass.Name , "Superclass must be a class." );
+            }
+        }
+
         Define( stmt.Name , null );
 
         Dictionary<string , LoxFunction> methods = [ ];
@@ -275,7 +285,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             methods.Add( method.Name.Lexeme , function );
         }
 
-        LoxClass klass = new( stmt.Name.Lexeme , methods );
+        LoxClass klass = new( stmt.Name.Lexeme , superclass as LoxClass , methods );
 
         if ( _globals.ContainsKey( stmt.Name.Lexeme ) ) {
             _globals[stmt.Name.Lexeme] = klass;

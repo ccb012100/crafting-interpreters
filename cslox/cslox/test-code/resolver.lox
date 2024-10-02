@@ -23,3 +23,5 @@ class Foo {
     return "something else";
   }
 }
+
+class Oops < Oops {} // A class can't inherit from itself.

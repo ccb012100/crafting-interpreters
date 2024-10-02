@@ -67,3 +67,7 @@ var foo = Foo(); // Prints "Foo instance"
 print foo.init();
 // "Foo instance" (the init method)
 // "Foo instance" (the print call - init() returns `this`)
+
+var NotAClass = "I am totally not a class";
+
+class Subclass < NotAClass {} // RuntimeError: Superclass must be a class.

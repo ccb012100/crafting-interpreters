@@ -31,7 +31,8 @@ book.
 │                   |   varDecl ;                                            │░
 │                   |   statement ;                                          │░
 │                                                                            │░
-│    classDecl      →   "class" IDENTIFIER "(" parameters? ")" block ;       │░
+│    classDecl      →   "class" IDENTIFIER ( "<" IDENTIFIER)?                │░
+│                       "{" function "}" ;                                   │░
 │    funDecl        →   "fun" function ;                                     │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
