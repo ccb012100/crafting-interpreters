@@ -1,3 +1,5 @@
+using cslox.Extensions;
+
 namespace cslox.DataTypes;
 
 public abstract class Stmt {
@@ -6,6 +8,7 @@ public abstract class Stmt {
     public interface IVisitor<out T> {
         T VisitBlockStmt( Block stmt );
         T VisitBreakStmt( );
+        T VisitClassStmt( Class stmt );
         T VisitExpressionStmt( ExpressionStmt stmt );
         T VisitFunctionStmt( FunctionStmt stmt );
         T VisitIfStmt( If stmt );
@@ -23,7 +26,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Block Statements=[ {string.Join( " , " , Statements )} ]";
+            return $"Block Statements=[ {Statements.ToPrintString( )} ]";
         }
     }
 
@@ -37,6 +40,19 @@ public abstract class Stmt {
         }
     }
 
+    public class Class( Token name , List<FunctionStmt> methods ) : Stmt {
+        public readonly List<FunctionStmt> Methods = methods;
+        public readonly Token Name = name;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitClassStmt( this );
+        }
+
+        public override string ToString( ) {
+            return $"Class Name=<{Name}> Methods=<{Methods.ToPrintString( )}>";
+        }
+    }
+
     public class ExpressionStmt( Expr expression ) : Stmt {
         public readonly Expr Expression = expression;
 
@@ -45,13 +61,13 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"ExpressionStmt Expression={Expression}";
+            return $"ExpressionStmt Expression=<{Expression}>";
         }
     }
 
     public class FunctionStmt( Token name , Expr.Function function ) : Stmt {
-        public readonly Token Name = name;
         public readonly Expr.Function Function = function;
+        public readonly Token Name = name;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitFunctionStmt( this );
@@ -102,8 +118,8 @@ public abstract class Stmt {
     }
 
     public class Var( Token name , Expr initializer ) : Stmt {
-        public readonly Token Name = name;
         public readonly Expr Initializer = initializer;
+        public readonly Token Name = name;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitVarStmt( this );

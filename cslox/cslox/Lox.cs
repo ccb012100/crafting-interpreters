@@ -1,6 +1,7 @@
 ﻿using System.Text;
 
 using cslox.Analyzers;
+using cslox.Visitors;
 
 using Environment = System.Environment;
 
@@ -13,7 +14,13 @@ internal static class Lox {
 
     #region Run
 
-    public static void RunFile( string path ) {
+    public enum Visitor {
+        Interpreter,
+        Ast,
+        Rpn
+    }
+
+    public static void RunFile( string path , Visitor visitor ) {
         if ( path is "" ) {
             Console.WriteLine( "File parameter is empty; aborting..." );
             Environment.Exit( 66 );
@@ -35,7 +42,24 @@ internal static class Lox {
             return;
         }
 
-        s_interpreter.Interpret( statements );
+        switch ( visitor ) {
+            case Visitor.Interpreter:
+                s_interpreter.Interpret( statements );
+
+                break;
+            case Visitor.Ast:
+                AstPrinter ast = new( );
+
+                foreach ( Stmt s in statements ) {
+                    Console.WriteLine( ast.Print( s ) );
+                }
+
+                break;
+            case Visitor.Rpn:
+                throw new NotImplementedException( "Need to update RpnPrinter" );
+            default:
+                throw new ArgumentOutOfRangeException( nameof( visitor ) , visitor , null );
+        }
 
         if ( s_hadError ) {
             Environment.Exit( 65 );

@@ -1,70 +1,69 @@
-fun sayHi(first, last){
-    print "Hi, " + first + " " + last + "!";
+/* scratch script for testing out functionality */
+class Box {}
+
+fun notMethod(argument) {
+  print "called function with '" + argument + "'";
 }
 
-sayHi("Dear", "Reader"); // Hi, Dear Reader!
+var box = Box();
+box.function = notMethod;
+box.function("foo bar baz"); // Prints "called function with 'foo bar baz'"
 
-var a = 2;
-var b = 3;
-var c;
-
-c = 5, b = c + a, a = 1, c = c - 1;
-print 'a=' + a; // 1
-print 'b=' + b; // 7
-print 'c=' + c; // 4
-
-print a > b ? "never" : b == 7 ? 1 < 0 ? "nope" : "yep" : "no"; //  yep
-
-fun fib(n) {
-  if (n <= 1) return n;
-  return fib(n - 2) + fib(n - 1);
-}
-
-for (var i = 0; i < 5; i = i + 1) {
-  print "fib(" + i + "): " + fib(i);
-}
-// fib(0): 0
-// fib(1): 1
-// fib(2): 1
-// fib(3): 2
-// fib(4): 3
-
-fun makeCounter() {
-  var i = 0;
-  fun count() {
-    i = i + 1;
-    return i;
-  }
-
-  return count;
-}
-
-var counter = makeCounter();
-print "counter: " + counter(); // counter: "1".
-print "counter: " + counter(); // counter: "2"
-
-fun thrice(fn) {
-  for (var i = 1; i <= 3; i = i + 1) {
-    fn(i);
+class Person {
+  sayName() {
+    print this.name;
   }
 }
 
-thrice(fun (a) {
-  print a;
-});
-// "1".
-// "2".
-// "3".
+var jane = Person();
+jane.name = "Jane";
 
-fun whichFn(fn) {
-  print fn;
+var bill = Person();
+bill.name = "Bill";
+
+bill.sayName = jane.sayName;
+bill.sayName(); // Prints "Bill"
+
+class Bacon {
+  eat() {
+    print "Crunch crunch crunch!";
+  }
 }
 
-whichFn(fun (b) {
- print b;
-});
+Bacon().eat(); // Prints "Crunch crunch crunch!".
 
-fun named(a) { print a; }
-whichFn(named);
-// <fn>
-// <fn named>
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+var callback = Thing().getCallback();
+callback(); // Prints "Thing instance"
+
+class Foo {
+  init() {
+    print this;
+    return;
+  }
+}
+
+var foo = Foo(); // Prints "Foo instance"
+print foo.init();
+// "Foo instance" (the init method)
+// "Foo instance" (the print call - init() returns `this`)

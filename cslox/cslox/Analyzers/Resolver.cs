@@ -1,6 +1,6 @@
 namespace cslox.Analyzers;
 
-public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , Stmt.IVisitor<ValueTuple> {
+public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, Stmt.IVisitor<ValueTuple> {
     private readonly Interpreter _interpreter = interpreter;
 
     /*
@@ -8,6 +8,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
      *              stack[0] will always return the TOP of the stack (not the bottom)
      */
     private readonly Stack<Dictionary<string , Variable>> _scopes = new( );
+    private ClassType _currentClass = ClassType.None;
     private FunctionType _currentFunction = FunctionType.None;
 
     public void Resolve( List<Stmt> statements ) {
@@ -16,14 +17,21 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         }
     }
 
+    private enum ClassType {
+        None,
+        Class
+    }
+
     private enum FunctionType {
-        None ,
-        Function
+        None,
+        Function,
+        Initializer,
+        Method
     }
 
     private enum VariableState {
-        Declared ,
-        Defined ,
+        Declared,
+        Defined,
         Read
     }
 
@@ -77,6 +85,12 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitGetExpr( Expr.Get expr ) {
+        Resolve( expr.Object );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitGroupingExpr( Expr.Grouping expr ) {
         Resolve( expr.Expression );
 
@@ -102,6 +116,25 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitSetExpr( Expr.Set expr ) {
+        Resolve( expr.Value );
+        Resolve( expr.Object );
+
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitThisExpr( Expr.This expr ) {
+        if ( _currentClass == ClassType.None ) {
+            Lox.Error( expr.Keyword , "Can't use 'this' keyword outside of a class." );
+
+            return ValueTuple.Create( );
+        }
+
+        ResolveLocal( expr , expr.Keyword , true );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitUnaryExpr( Expr.Unary expr ) {
         Resolve( expr.Right );
 
@@ -123,7 +156,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     private void ResolveLocal( Expr expr , Token name , bool isRead ) {
         // This differs from the Java implementation because indexing in Stack type in C# is the opposite (0 = Top).
         for ( int i = 0 ; i < _scopes.Count ; i++ ) {
-            var scope = _scopes.ElementAt( i );
+            Dictionary<string , Variable> scope = _scopes.ElementAt( i );
 
             if ( !scope.TryGetValue( name.Lexeme , out Variable variable ) ) {
                 continue;
@@ -157,6 +190,31 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     }
 
     public ValueTuple VisitBreakStmt( ) {
+        return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
+        ClassType enclosingClass = _currentClass;
+        _currentClass = ClassType.Class;
+
+        Declare( stmt.Name );
+        Define( stmt.Name );
+
+        BeginScope( );
+
+        _scopes.Peek( ).Add( "this" , new Variable( stmt.Name , _scopes.Count , VariableState.Read ) );
+
+        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            FunctionType declaration = method.Name.Lexeme.Equals( "init" )
+                ? FunctionType.Initializer
+                : FunctionType.Method;
+
+            ResolveFunction( method , declaration );
+        }
+
+        EndScope( );
+        _currentClass = enclosingClass;
+
         return ValueTuple.Create( );
     }
 
@@ -214,6 +272,10 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
         }
 
         if ( stmt.Value is not null ) {
+            if ( _currentFunction == FunctionType.Initializer ) {
+                Lox.Error( stmt.Keyword , "Can't return a value from an initializer ." );
+            }
+
             Resolve( stmt.Value );
         }
 
@@ -239,7 +301,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
 
         Dictionary<string , Variable> scope = _scopes.Peek( );
 
-        // instead of if (scope.ContainsKey( name.Lexeme ))
+        // instead of if `(!scope.ContainsKey( name.Lexeme )) { scope.Add() }, we use TryAdd
         if ( !scope.TryAdd( name.Lexeme , new Variable( name , scope.Count , VariableState.Declared ) ) ) {
             Lox.Error( name , "Already a variable with this name in the scope." );
         }
@@ -267,8 +329,11 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple> , S
     private void EndScope( ) {
         Dictionary<string , Variable> scope = _scopes.Pop( );
 
-        foreach ( ( string _ , Variable v ) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
-            Lox.Error( v.Name , "Local variable is not used." );
+        foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
+            Lox.Error(
+                v.Name ,
+                $"Local variable is not used in scope=<{string.Join( ", " , scope )} count={scope.Count}>."
+            );
         }
     }
 

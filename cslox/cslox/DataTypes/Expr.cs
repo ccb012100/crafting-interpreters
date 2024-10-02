@@ -1,3 +1,5 @@
+using cslox.Extensions;
+
 namespace cslox.DataTypes;
 
 public abstract class Expr {
@@ -8,10 +10,13 @@ public abstract class Expr {
         T VisitBinaryExpr( Binary expr );
         T VisitCallExpr( Call expr );
         T VisitFunctionExpr( Function expr );
+        T VisitGetExpr( Get expr );
         T VisitGroupingExpr( Grouping expr );
         T VisitLiteralExpr( Literal expr );
         T VisitLogicalExpr( Logical expr );
         T VisitConditionalExpr( Conditional expr );
+        T VisitSetExpr( Set expr );
+        T VisitThisExpr( This expr );
         T VisitUnaryExpr( Unary expr );
         T VisitVariableExpr( Variable expr );
     }
@@ -53,20 +58,29 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Call => Arguments=[{string.Join( "\n" , Arguments )}] Callee=<{Callee}>, Paren=<{Paren}>";
+            return $"Call => Arguments=[{Arguments.ToPrintString( )}] Callee=<{Callee}>, Paren=<{Paren}>";
         }
     }
 
     public class Function( List<Token> parameters , List<Stmt> body ) : Expr {
-        public readonly List<Token> Parameters = parameters;
         public readonly List<Stmt> Body = body;
+        public readonly List<Token> Parameters = parameters;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitFunctionExpr( this );
         }
 
         public override string ToString( ) {
-            return $"Function => Parameters=[{string.Join( "\n" , Parameters )}], Body={{{string.Join( "\n" , Body )}}} ";
+            return $"Function => Parameters=[{Parameters.ToPrintString( )}], Body={{{Body.ToPrintString( )}}} ";
+        }
+    }
+
+    public class Get( Expr @object , Token name ) : Expr {
+        public readonly Token Name = name;
+        public readonly Expr Object = @object;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitGetExpr( this );
         }
     }
 
@@ -110,8 +124,8 @@ public abstract class Expr {
 
     public class Conditional( Expr condition , Expr thenBranch , Expr elseBranch ) : Expr {
         public readonly Expr Condition = condition;
-        public readonly Expr ThenBranch = thenBranch;
         public readonly Expr ElseBranch = elseBranch;
+        public readonly Expr ThenBranch = thenBranch;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitConditionalExpr( this );
@@ -119,6 +133,24 @@ public abstract class Expr {
 
         public override string ToString( ) {
             return $"Conditional: Condition={Condition}, ThenBranch={ThenBranch}, ElseBranch=<{ElseBranch}>";
+        }
+    }
+
+    public class Set( Expr @object , Token name , Expr value ) : Expr {
+        public readonly Token Name = name;
+        public readonly Expr Object = @object;
+        public readonly Expr Value = value;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitSetExpr( this );
+        }
+    }
+
+    public class This( Token keyword ) : Expr {
+        public readonly Token Keyword = keyword;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitThisExpr( this );
         }
     }
 

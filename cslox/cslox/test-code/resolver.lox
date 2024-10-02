@@ -11,3 +11,15 @@ fun bad() {
   var a = "first";
   var a = "second";
 }
+
+print this;
+
+fun notAMethod() {
+  print this;
+}
+
+class Foo {
+  init() {
+    return "something else";
+  }
+}

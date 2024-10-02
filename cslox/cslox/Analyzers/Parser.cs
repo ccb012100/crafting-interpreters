@@ -288,6 +288,10 @@ internal class Parser( List<Token> tokens ) {
 
     private Stmt Declaration( ) {
         try {
+            if ( Match( CLASS ) ) {
+                return ClassDeclaration( );
+            }
+
             if ( Check( FUN ) && CheckNext( IDENTIFIER ) ) {
                 Consume( FUN , null );
 
@@ -304,6 +308,21 @@ internal class Parser( List<Token> tokens ) {
 
             return null;
         }
+    }
+
+    private Stmt.Class ClassDeclaration( ) {
+        Token name = Consume( IDENTIFIER , "Expect class name." );
+        Consume( LEFT_BRACE , "Excpect '{' before class body." );
+
+        List<Stmt.FunctionStmt> methods = [ ];
+
+        while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
+            methods.Add( Function( "method" ) );
+        }
+
+        Consume( RIGHT_BRACE , "Expect '}' after class body." );
+
+        return new Stmt.Class( name , methods );
     }
 
     private Stmt.FunctionStmt Function( string kind ) {
@@ -363,13 +382,21 @@ internal class Parser( List<Token> tokens ) {
             Token equals = Previous( );
             Expr value = Assignment( );
 
-            if ( expr is Expr.Variable varExpr ) {
-                Token name = varExpr.Name;
+            switch ( expr ) {
+                case Expr.Variable varExpr: {
+                        Token name = varExpr.Name;
 
-                return new Expr.Assign( name , value );
+                        return new Expr.Assign( name , value );
+                    }
+                case Expr.Get getExpr: {
+                        return new Expr.Set( getExpr.Object , getExpr.Name , value );
+                    }
+                default: {
+                        Error( equals , "Invalid assignment target." );
+
+                        break;
+                    }
             }
-
-            Error( equals , "Invalid assignment target." );
         }
 
         return expr;
@@ -510,6 +537,9 @@ internal class Parser( List<Token> tokens ) {
         while ( true ) {
             if ( Match( LEFT_PAREN ) ) {
                 expr = FinishCall( expr );
+            } else if ( Match( DOT ) ) {
+                Token name = Consume( IDENTIFIER , "Expect property name after '.'." );
+                expr = new Expr.Get( expr , name );
             } else {
                 break;
             }
@@ -555,6 +585,10 @@ internal class Parser( List<Token> tokens ) {
 
         if ( Match( NUMBER , STRING ) ) {
             return new Expr.Literal( Previous( ).Literal );
+        }
+
+        if ( Match( THIS ) ) {
+            return new Expr.This( Previous( ) );
         }
 
         if ( Match( IDENTIFIER ) ) {

@@ -26,10 +26,12 @@ book.
 ├────────────────────────────────────────────────────────────────────────────┤░
 │    program        →   declaration* EOF ;                                   │░
 │                                                                            │░
-│    declaration    →   funDecl                                              │░
+│    declaration    →   classDecl                                            │░
+│                   |   funDecl ;                                            │░
 │                   |   varDecl ;                                            │░
 │                   |   statement ;                                          │░
 │                                                                            │░
+│    classDecl      →   "class" IDENTIFIER "(" parameters? ")" block ;       │░
 │    funDecl        →   "fun" function ;                                     │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
@@ -58,7 +60,7 @@ book.
 │    expression     →   lambda ;                                             │░
 │    comma          →   "(" assignment ( "," assignment )* ;                 │░
 │                                                                            │░
-│    assignment     →   IDENTIFIER "=" assignment                            │░
+│    assignment     →   ( call "." )? IDENTIFIER "=" assignment              │░
 │                   |   conditional ;                                        │░
 │                                                                            │░
 │    conditional    →   logic_or ( "?" expression ":" conditional )*;        │░
@@ -71,7 +73,7 @@ book.
 │                                                                            │░
 │    unary          →   ( "!" | "-" ) unary | lambda ;                       │░
 │                   |   lambda ;                                             │░
-│    call           →   primary ( "(" arguments? ")" )* ;                    │░
+│    call           →   primary ( "(" arguments? ")" | "." IDENTIFIER )* ;   │░
 │    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
 │                   |   "(" expression ")" ;                                 │░
 │                   |   lambda ;                                             │░

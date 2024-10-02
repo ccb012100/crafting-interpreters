@@ -4,25 +4,106 @@ using static cslox.DataTypes.Expr;
 
 namespace cslox.Visitors;
 
-internal class AstPrinter : IVisitor<string> {
+internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
+    public string Print( Expr expr ) {
+        return expr.Accept( this );
+    }
+
+    public string Print( Stmt stmt ) {
+        return stmt.Accept( this );
+    }
+
+    private string Function( Function function , Token name = null ) {
+        StringBuilder sb = new( "(fun " );
+
+        if ( name is not null ) {
+            sb.Append( name.Lexeme );
+        }
+
+        sb.Append( '(' );
+
+        foreach ( Token parameter in function.Parameters ) {
+            if ( parameter != function.Parameters[0] ) {
+                sb.Append( ' ' );
+            }
+
+            sb.Append( parameter.Lexeme );
+        }
+
+        sb.Append( ") " );
+
+        foreach ( Stmt bodyStmt in function.Body ) {
+            sb.Append( bodyStmt.Accept( this ) );
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
+    private string Parenthesize( string name , params Expr[ ] exprs ) {
+        StringBuilder sb = new StringBuilder( )
+            .Append( '(' )
+            .Append( name );
+
+        foreach ( Expr expr in exprs ) {
+            sb.Append( ' ' ).Append( expr.Accept( this ) );
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
+    private string ParenthesizeObjects( string name , params object[ ] parts ) {
+        StringBuilder sb = new StringBuilder( "(" ).Append( name );
+
+        foreach ( object part in parts ) {
+            sb.Append( ' ' );
+
+            switch ( part ) {
+                case Expr expression: {
+                        sb.Append( expression.Accept( this ) );
+
+                        break;
+                    }
+                case Stmt stmt: {
+                        sb.Append( stmt.Accept( this ) );
+
+                        break;
+                    }
+                case Token token: {
+                        sb.Append( token.Lexeme );
+
+                        break;
+                    }
+                default: {
+                        sb.Append( part );
+
+                        break;
+                    }
+            }
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
+    #region Expr.IVisitor<string>
+
     public string VisitAssignExpr( Assign expr ) {
-        throw new NotImplementedException( );
+        return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Value );
     }
 
     public string VisitBinaryExpr( Binary expr ) {
-        return Parenthesize(
-            expr.Operator.Lexeme ,
-            expr.Left ,
-            expr.Right
-        );
+        return Parenthesize( expr.Operator.Lexeme , expr.Left , expr.Right );
     }
 
     public string VisitCallExpr( Call expr ) {
-        throw new NotImplementedException( );
+        return ParenthesizeObjects( "call" , [expr.Callee , .. expr.Arguments] );
     }
 
     public string VisitFunctionExpr( Function expr ) {
-        throw new NotImplementedException( );
+        return Function( expr );
+    }
+
+    public string VisitGetExpr( Get expr ) {
+        return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Object );
     }
 
     public string VisitGroupingExpr( Grouping expr ) {
@@ -30,7 +111,19 @@ internal class AstPrinter : IVisitor<string> {
     }
 
     public string VisitLiteralExpr( Literal expr ) {
-        return expr.Value == null ? "nil" : expr.Value.ToString( );
+        if ( expr is null ) {
+            return "nil";
+        }
+
+        return expr.Value is string s ? $"\"{s}\"" : expr.Value.ToString( );
+    }
+
+    public string VisitSetExpr( Set expr ) {
+        return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Object );
+    }
+
+    public string VisitThisExpr( This expr ) {
+        return $"this {expr.Keyword}";
     }
 
     public string VisitUnaryExpr( Unary expr ) {
@@ -38,30 +131,76 @@ internal class AstPrinter : IVisitor<string> {
     }
 
     public string VisitVariableExpr( Variable expr ) {
-        throw new NotImplementedException( );
+        return expr.Name.Lexeme;
     }
 
     public string VisitLogicalExpr( Logical expr ) {
-        throw new NotImplementedException( );
-    }
-
-    public string Print( Expr expr ) {
-        return expr.Accept( this );
-    }
-
-    private string Parenthesize( string name , params Expr[ ] exprs ) {
-        StringBuilder builder = new StringBuilder( )
-            .Append( '(' )
-            .Append( name );
-
-        foreach ( Expr expr in exprs ) {
-            builder.Append( ' ' ).Append( expr.Accept( this ) );
-        }
-
-        return builder.Append( ')' ).ToString( );
+        return Parenthesize( expr.Operator.Lexeme , expr.Left , expr.Right );
     }
 
     public string VisitConditionalExpr( Conditional expr ) {
-        throw new NotImplementedException( );
+        return ParenthesizeObjects( "if-else" , expr.Condition , expr.ThenBranch , expr.ElseBranch );
     }
+
+    #endregion
+
+    #region Stmt.IVisitor<string>
+
+    public string VisitBlockStmt( Stmt.Block stmt ) {
+        StringBuilder sb = new( "(block" );
+
+        foreach ( Stmt s in stmt.Statements ) {
+            sb.Append( s.Accept( this ) );
+        }
+
+        return sb.Append( ')' ).ToString( );
+    }
+
+    public string VisitBreakStmt( ) {
+        return "(break)";
+    }
+
+    public string VisitClassStmt( Stmt.Class stmt ) {
+        StringBuilder sb = new StringBuilder( "class " ).Append( stmt.Name ).Append( "{ " );
+
+        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            sb.Append( method.Accept( this ) );
+        }
+
+        return ParenthesizeObjects( $"class {stmt.Name}" );
+    }
+
+    public string VisitExpressionStmt( Stmt.ExpressionStmt stmt ) {
+        return Parenthesize( ";" , stmt.Expression );
+    }
+
+    public string VisitFunctionStmt( Stmt.FunctionStmt stmt ) {
+        return Function( stmt.Function , stmt.Name );
+    }
+
+    public string VisitIfStmt( Stmt.If stmt ) {
+        return stmt.ElseBranch is null
+            ? ParenthesizeObjects( "if" , stmt.Condition , stmt.ThenBranch )
+            : ParenthesizeObjects( "if-else" , stmt.Condition , stmt.ThenBranch , stmt.ElseBranch );
+    }
+
+    public string VisitPrintStmt( Stmt.Print stmt ) {
+        return Parenthesize( "print" , stmt.Expression );
+    }
+
+    public string VisitReturnStmt( Stmt.Return stmt ) {
+        return stmt.Value is null ? "(return)" : Parenthesize( "return" , stmt.Value );
+    }
+
+    public string VisitVarStmt( Stmt.Var stmt ) {
+        return stmt.Initializer is null
+            ? ParenthesizeObjects( "var" , stmt.Name )
+            : ParenthesizeObjects( "var" , stmt.Name , "=" , stmt.Initializer );
+    }
+
+    public string VisitWhileStmt( Stmt.While stmt ) {
+        return ParenthesizeObjects( "while" , stmt.Condition , stmt.Body );
+    }
+
+    #endregion
 }
