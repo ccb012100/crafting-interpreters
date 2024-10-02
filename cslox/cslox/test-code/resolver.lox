@@ -8,19 +8,19 @@ var a = "outer";
 return "at top level"; // Error at 'return': Can't return from top-level-code.
 
 fun bad() {
-  var a = "first";
-  var a = "second";
+  var a = "first"; // Error at 'a': Local variable is not used in scope.
+  var a = "second"; // Error at 'a': Already a variable with this name in the scope.s
 }
 
-print this;
+print this; // Error at 'this': Can't use 'this' keyword outside of a class.
 
 fun notAMethod() {
-  print this;
+  print this; // Error at 'this': Can't use 'this' keyword outside of a class.
 }
 
 class Foo {
   init() {
-    return "something else";
+    return "something else"; // Error at 'return': Can't return a value from an initializer.
   }
 }
 
