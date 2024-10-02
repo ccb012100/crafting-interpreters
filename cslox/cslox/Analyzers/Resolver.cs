@@ -273,7 +273,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
         if ( stmt.Value is not null ) {
             if ( _currentFunction == FunctionType.Initializer ) {
-                Lox.Error( stmt.Keyword , "Can't return a value from an initializer ." );
+                Lox.Error( stmt.Keyword , "Can't return a value from an initializer." );
             }
 
             Resolve( stmt.Value );
@@ -329,11 +329,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     private void EndScope( ) {
         Dictionary<string , Variable> scope = _scopes.Pop( );
 
-        foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
-            Lox.Error(
-                v.Name ,
-                $"Local variable is not used in scope=<{string.Join( ", " , scope )} count={scope.Count}>."
-            );
+        foreach ( ( string _ , Variable v ) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
+            Lox.Error( v.Name , "Local variable is not used in scope." );
         }
     }
 

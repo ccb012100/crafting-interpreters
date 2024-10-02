@@ -25,7 +25,6 @@ public class LoxFunction( string name , Expr.Function declaration , Environment 
 
     public object Call( Interpreter interpreter , List<object> arguments ) {
         Environment environment = new( _closure );
-        Console.WriteLine( $"\t>> Call {_fnNamePrintableForm}: _isInitializer:{_isInitializer}" );
 
         for ( int i = 0 ; i < _declaration.Parameters.Count ; i++ ) {
             environment.Define( arguments[i] );
