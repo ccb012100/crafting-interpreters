@@ -10,19 +10,6 @@ public class Environment( Environment enclosing ) {
         _values.Add( value );
     }
 
-    public object GetThis( ) {
-        Environment environment = this;
-
-        object instance = environment._values.SingleOrDefault( v => v.GetType( ) == typeof( LoxInstance ) );
-
-        Debug.Assert(
-            instance is not null ,
-            $"Expected to find a LoxInstance in environment=<{environment}>. The Resolver should have caught this"
-        );
-
-        return instance;
-    }
-
     public object GetAt( int distance , int slot ) {
         Environment environment = this;
 

@@ -35,18 +35,14 @@ public class LoxFunction( string name , Expr.Function declaration , Environment 
         try {
             interpreter.ExecuteBlock( _declaration.Body , environment );
         } catch ( Return r ) {
-            if ( _isInitializer ) {
-                return _closure.GetThis( );
-            } else {
-                return r.Value;
-            }
+            /*
+             * _closure.GetAt(0,0) returns the `this` Instance
+             * (this works because the closure Environment has only a single variable: the instance that the initializer was called on).
+            */
+            return _isInitializer ? _closure.GetAt( 0 , 0 ) : r.Value;
         }
 
-        if ( _isInitializer ) {
-            return _closure.GetThis( );
-        } else {
-            return null;
-        }
+        return _isInitializer ? _closure.GetAt( 0 , 0 ) : null;
     }
 
     public override string ToString( ) {
