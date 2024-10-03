@@ -18,7 +18,7 @@ public class LoxClass( string name , LoxClass superclass , Dictionary<string , L
         LoxInstance instance = new( this );
 
         LoxFunction initializer = FindMethod( "init" );
-        initializer?.Bind( "init" , instance ).Call( interpreter , arguments );
+        _ = initializer?.Bind( "init" , instance ).Call( interpreter , arguments );
 
         return instance;
     }
