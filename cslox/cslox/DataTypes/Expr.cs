@@ -16,6 +16,7 @@ public abstract class Expr {
         T VisitLogicalExpr( Logical expr );
         T VisitConditionalExpr( Conditional expr );
         T VisitSetExpr( Set expr );
+        T VisitSuperExpr( Super expr );
         T VisitThisExpr( This expr );
         T VisitUnaryExpr( Unary expr );
         T VisitVariableExpr( Variable expr );
@@ -176,6 +177,19 @@ public abstract class Expr {
 
         public override string ToString( ) {
             return $"Variable Name=<{Name}>";
+        }
+    }
+
+    public class Super( Token keyword , Token method ) : Expr {
+        public readonly Token Keyword = keyword;
+        public readonly Token Method = method;
+
+        public static Super CreateInstance( Token keyword , Token method ) {
+            return new Super( keyword , method );
+        }
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitSuperExpr( this );
         }
     }
 }

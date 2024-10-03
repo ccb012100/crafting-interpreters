@@ -312,7 +312,15 @@ internal class Parser( List<Token> tokens ) {
 
     private Stmt.Class ClassDeclaration( ) {
         Token name = Consume( IDENTIFIER , "Expect class name." );
-        Consume( LEFT_BRACE , "Excpect '{' before class body." );
+
+        Expr.Variable superclass = null;
+
+        if ( Match( LESS ) ) {
+            Consume( IDENTIFIER , "Expect superclass name." );
+            superclass = new Expr.Variable( Previous( ) );
+        }
+
+        Consume( LEFT_BRACE , "Expect '{' before class body." );
 
         List<Stmt.FunctionStmt> methods = [ ];
 
@@ -322,7 +330,7 @@ internal class Parser( List<Token> tokens ) {
 
         Consume( RIGHT_BRACE , "Expect '}' after class body." );
 
-        return new Stmt.Class( name , methods );
+        return new Stmt.Class( name , superclass , methods );
     }
 
     private Stmt.FunctionStmt Function( string kind ) {
@@ -585,6 +593,16 @@ internal class Parser( List<Token> tokens ) {
 
         if ( Match( NUMBER , STRING ) ) {
             return new Expr.Literal( Previous( ).Literal );
+        }
+
+        if ( Match( SUPER ) ) {
+            Token keyword = Previous( );
+
+            Consume( DOT , "Expect '.' after 'super'." );
+
+            Token method = Consume( IDENTIFIER , "Expect superclass method name." );
+
+            return Expr.Super.CreateInstance( keyword , method );
         }
 
         if ( Match( THIS ) ) {

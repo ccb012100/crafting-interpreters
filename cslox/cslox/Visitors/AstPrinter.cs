@@ -122,6 +122,10 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
         return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Object );
     }
 
+    public string VisitSuperExpr( Super expr ) {
+        throw new NotImplementedException( );
+    }
+
     public string VisitThisExpr( This expr ) {
         return $"this {expr.Keyword}";
     }

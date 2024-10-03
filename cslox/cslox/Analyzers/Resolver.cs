@@ -19,7 +19,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
     private enum ClassType {
         None,
-        Class
+        Class,
+        Subclass
     }
 
     private enum FunctionType {
@@ -123,6 +124,20 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitSuperExpr( Expr.Super expr ) {
+        if ( _currentClass == ClassType.None ) {
+            Lox.Error( expr.Keyword , "Can't use 'super' keyword outside of a class." );
+        } else if ( _currentClass != ClassType.Subclass ) {
+            Lox.Error( expr.Keyword , "Can't use 'super' keyword in a class with no superclass." );
+        }
+
+        Token superToken = expr.Keyword with { Lexeme = "super" }; // we want ResolveLocal to look for "super"
+
+        ResolveLocal( expr , superToken , true );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitThisExpr( Expr.This expr ) {
         if ( _currentClass == ClassType.None ) {
             Lox.Error( expr.Keyword , "Can't use 'this' keyword outside of a class." );
@@ -130,7 +145,9 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
             return ValueTuple.Create( );
         }
 
-        ResolveLocal( expr , expr.Keyword , true );
+        Token thisToken = expr.Keyword with { Lexeme = "this" }; // we want ResolveLocal to look for "this"
+
+        ResolveLocal( expr , thisToken , true );
 
         return ValueTuple.Create( );
     }
@@ -200,9 +217,24 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         Declare( stmt.Name );
         Define( stmt.Name );
 
+        if ( stmt.Superclass is not null ) {
+            if ( stmt.Name.Lexeme.Equals( stmt.Superclass.Name.Lexeme ) ) {
+                Lox.Error( stmt.Superclass.Name , "A class can't inherit from itself." );
+            }
+
+            _currentClass = ClassType.Subclass;
+            Resolve( stmt.Superclass );
+
+            BeginScope( );
+
+            Dictionary<string , Variable> superScope = _scopes.Peek( );
+            superScope.Add( "super" , new Variable( stmt.Name , superScope.Count , VariableState.Read ) );
+        }
+
         BeginScope( );
 
-        _scopes.Peek( ).Add( "this" , new Variable( stmt.Name , _scopes.Count , VariableState.Read ) );
+        Dictionary<string , Variable> scope = _scopes.Peek( );
+        scope.Add( "this" , new Variable( stmt.Name , scope.Count , VariableState.Read ) );
 
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
             FunctionType declaration = method.Name.Lexeme.Equals( "init" )
@@ -213,6 +245,11 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         }
 
         EndScope( );
+
+        if ( stmt.Superclass is not null ) {
+            EndScope();
+        }
+
         _currentClass = enclosingClass;
 
         return ValueTuple.Create( );
@@ -231,22 +268,6 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         ResolveFunction( stmt , FunctionType.Function );
 
         return ValueTuple.Create( );
-    }
-
-    private void ResolveFunction( Stmt.FunctionStmt function , FunctionType type ) {
-        FunctionType enclosingFunction = _currentFunction;
-        _currentFunction = type;
-
-        BeginScope( );
-
-        foreach ( Token param in function.Function.Parameters ) {
-            Declare( param );
-            Define( param );
-        }
-
-        Resolve( function.Function.Body );
-        EndScope( );
-        _currentFunction = enclosingFunction;
     }
 
     public ValueTuple VisitIfStmt( Stmt.If stmt ) {
@@ -273,7 +294,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
         if ( stmt.Value is not null ) {
             if ( _currentFunction == FunctionType.Initializer ) {
-                Lox.Error( stmt.Keyword , "Can't return a value from an initializer ." );
+                Lox.Error( stmt.Keyword , "Can't return a value from an initializer." );
             }
 
             Resolve( stmt.Value );
@@ -292,6 +313,45 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         Define( stmt.Name );
 
         return ValueTuple.Create( );
+    }
+
+    public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
+        Resolve( stmt.Condition );
+        Resolve( stmt.Body );
+
+        return ValueTuple.Create( );
+    }
+
+    private void BeginScope( ) {
+        _scopes.Push( new Dictionary<string , Variable>( ) );
+    }
+
+    private void EndScope( ) {
+        Dictionary<string , Variable> scope = _scopes.Pop( );
+
+        foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
+            Lox.Error( v.Name , "Local variable is not used in scope." );
+        }
+    }
+
+    private void Resolve( Stmt stmt ) {
+        stmt.Accept( this );
+    }
+
+    private void ResolveFunction( Stmt.FunctionStmt function , FunctionType type ) {
+        FunctionType enclosingFunction = _currentFunction;
+        _currentFunction = type;
+
+        BeginScope( );
+
+        foreach ( Token param in function.Function.Parameters ) {
+            Declare( param );
+            Define( param );
+        }
+
+        Resolve( function.Function.Body );
+        EndScope( );
+        _currentFunction = enclosingFunction;
     }
 
     private void Declare( Token name ) {
@@ -313,32 +373,6 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         }
 
         _scopes.Peek( )[name.Lexeme].State = VariableState.Defined;
-    }
-
-    public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
-        Resolve( stmt.Condition );
-        Resolve( stmt.Body );
-
-        return ValueTuple.Create( );
-    }
-
-    private void BeginScope( ) {
-        _scopes.Push( new Dictionary<string , Variable>( ) );
-    }
-
-    private void EndScope( ) {
-        Dictionary<string , Variable> scope = _scopes.Pop( );
-
-        foreach ( (string _, Variable v) in scope.Where( kv => kv.Value.State == VariableState.Defined ) ) {
-            Lox.Error(
-                v.Name ,
-                $"Local variable is not used in scope=<{string.Join( ", " , scope )} count={scope.Count}>."
-            );
-        }
-    }
-
-    private void Resolve( Stmt stmt ) {
-        stmt.Accept( this );
     }
 
     #endregion

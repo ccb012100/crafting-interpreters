@@ -10,8 +10,12 @@ internal class Program {
         switch ( args.Length ) {
             case 0: {
                     Console.WriteLine( "Enter code:" );
-                    Lox.RunPrompt( );
-                    // Lox.RunFile( "test-code/test.lox" );
+
+                    // Lox.RunPrompt( );
+                    Lox.RunFile(
+                        $"{Environment.GetEnvironmentVariable( "HOME" )}/src/crafting-interpreters/cslox/cslox/test-code/interpreter.lox" ,
+                        Lox.Visitor.Interpreter
+                    );
 
                     return;
                 }

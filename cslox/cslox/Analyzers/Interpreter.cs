@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using cslox.LoxCallables;
 
 namespace cslox.Analyzers;
@@ -214,6 +216,24 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return value;
     }
 
+    public object VisitSuperExpr( Expr.Super expr ) {
+        bool exists = _locals.TryGetValue( expr , out int distance );
+
+        Debug.Assert( exists , $"Super expression <{expr}> should exist in locals <{_locals}>." );
+
+        LoxClass superclass = ( LoxClass ) _environment.GetAt( distance , _slots[expr] );
+
+        LoxInstance loxInstance = ( LoxInstance ) _environment.GetAt( distance - 1 , _slots[expr] );
+
+        LoxFunction method = superclass.FindMethod( expr.Method.Lexeme );
+
+        if ( method is null ) {
+            throw new RuntimeError( expr.Method , $"Undefined property '{expr.Method.Lexeme}'." );
+        }
+
+        return method.Bind( expr.Method.Lexeme , loxInstance );
+    }
+
     public object VisitThisExpr( Expr.This expr ) {
         return LookUpVariable( expr.Keyword , expr );
     }
@@ -239,9 +259,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     private object LookUpVariable( Token name , Expr expr ) {
         if ( _locals.TryGetValue( expr , out int distance ) ) {
-            return name.Lexeme.Equals( "this" )
-                ? _environment.GetThis( distance )
-                : _environment.GetAt( distance , _slots[expr] );
+            return _environment.GetAt( distance , _slots[expr] );
         }
 
         if ( _globals.TryGetValue( name.Lexeme , out object value ) ) {
@@ -266,7 +284,22 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
+        object superclass = null;
+
+        if ( stmt.Superclass is not null ) {
+            superclass = Evaluate( stmt.Superclass );
+
+            if ( superclass is not LoxClass ) {
+                throw new RuntimeError( stmt.Superclass.Name , "Superclass must be a class." );
+            }
+        }
+
         Define( stmt.Name , null );
+
+        if ( stmt.Superclass is not null ) {
+            _environment = new Environment( _environment );
+            _environment.Define( superclass );
+        }
 
         Dictionary<string , LoxFunction> methods = [ ];
 
@@ -275,7 +308,11 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             methods.Add( method.Name.Lexeme , function );
         }
 
-        LoxClass klass = new( stmt.Name.Lexeme , methods );
+        LoxClass klass = new( stmt.Name.Lexeme , superclass as LoxClass , methods );
+
+        if ( superclass is not null ) {
+            _environment = _environment._enclosing;
+        }
 
         if ( _globals.ContainsKey( stmt.Name.Lexeme ) ) {
             _globals[stmt.Name.Lexeme] = klass;

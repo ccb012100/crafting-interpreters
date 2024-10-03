@@ -22,6 +22,7 @@ internal static class Program {
                 "Logical     : Expr left, Token operator, Expr right" ,
                 "Conditional : Expr condition, Expr thenBranch, Expr elseBranch" ,
                 "Set         : Expr object, Token name, Expr value" ,
+                "Super       : Token keyword, Token method" ,
                 "This        : Token keyword" ,
                 "Unary       : Token oper, Expr right" ,
                 "Variable    : Token name" ,
@@ -35,7 +36,7 @@ internal static class Program {
             [
                 "Block          : List<Stmt> statements" ,
                 "Break          : " ,
-                "Class          : Token name, List<Stmt.Function> methods" ,
+                "Class          : Token name, Expr.Variable superclass, List<Stmt.Function> methods" ,
                 "ExpressionStmt : Expr expression" ,
                 "Function       : Token name, Expr.Function function" ,
                 "If             : Expr condition, Stmt thenBranch, Stmt elseBranch" ,
