@@ -595,6 +595,16 @@ internal class Parser( List<Token> tokens ) {
             return new Expr.Literal( Previous( ).Literal );
         }
 
+        if ( Match( SUPER ) ) {
+            Token keyword = Previous( );
+
+            Consume( DOT , "Expect '.' after 'super'." );
+
+            Token method = Consume( IDENTIFIER , "Expect superclass method name." );
+
+            return Expr.Super.CreateInstance( keyword , method );
+        }
+
         if ( Match( THIS ) ) {
             return new Expr.This( Previous( ) );
         }

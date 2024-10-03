@@ -3,19 +3,15 @@ using System.Diagnostics;
 namespace cslox.Analyzers;
 
 public class Environment( Environment enclosing ) {
-    private readonly Environment _enclosing = enclosing;
+    internal readonly Environment _enclosing = enclosing;
     private readonly List<object> _values = [ ];
 
     public void Define( object value ) {
         _values.Add( value );
     }
 
-    public object GetThis( int distance ) {
+    public object GetThis( ) {
         Environment environment = this;
-
-        for ( int i = 0 ; i < distance ; i++ ) {
-            environment = environment._enclosing;
-        }
 
         object instance = environment._values.SingleOrDefault( v => v.GetType( ) == typeof( LoxInstance ) );
 

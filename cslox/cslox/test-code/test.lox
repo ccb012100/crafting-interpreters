@@ -1,73 +1,23 @@
 /* scratch script for testing out functionality */
-class Box {}
-
-fun notMethod(argument) {
-  print "called function with '" + argument + "'";
-}
-
-var box = Box();
-box.function = notMethod;
-box.function("foo bar baz"); // Prints "called function with 'foo bar baz'"
-
-class Person {
-  sayName() {
-    print this.name;
+class A {
+  method() {
+    print "A method";
   }
 }
 
-var jane = Person();
-jane.name = "Jane";
+class B < A {
+  method() {
+    print "B method";
+  }
 
-var bill = Person();
-bill.name = "Bill";
-
-bill.sayName = jane.sayName;
-bill.sayName(); // Prints "Bill"
-
-class Bacon {
-  eat() {
-    print "Crunch crunch crunch!";
+  test() {
+    super.method();
   }
 }
 
-Bacon().eat(); // Prints "Crunch crunch crunch!".
+B().method(); // "B method"
+B().test(); // "A method"
 
-class Cake {
-  taste() {
-    var adjective = "delicious";
-    print "The " + this.flavor + " cake is " + adjective + "!";
-  }
-}
+class C < B {}
 
-var cake = Cake();
-cake.flavor = "German chocolate";
-cake.taste(); // Prints "The German chocolate cake is delicious!".
-
-class Thing {
-  getCallback() {
-    fun localFunction() {
-      print this;
-    }
-
-    return localFunction;
-  }
-}
-
-var callback = Thing().getCallback();
-callback(); // Prints "Thing instance"
-
-class Foo {
-  init() {
-    print this;
-    return;
-  }
-}
-
-var foo = Foo(); // Prints "Foo instance"
-print foo.init();
-// "Foo instance" (the init method)
-// "Foo instance" (the print call - init() returns `this`)
-
-var NotAClass = "I am totally not a class";
-
-class Subclass < NotAClass {} // RuntimeError: Superclass must be a class.
+C().test(); // "A method"

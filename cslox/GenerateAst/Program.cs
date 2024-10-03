@@ -22,6 +22,7 @@ internal static class Program {
                 "Logical     : Expr left, Token operator, Expr right" ,
                 "Conditional : Expr condition, Expr thenBranch, Expr elseBranch" ,
                 "Set         : Expr object, Token name, Expr value" ,
+                "Super       : Token keyword, Token method" ,
                 "This        : Token keyword" ,
                 "Unary       : Token oper, Expr right" ,
                 "Variable    : Token name" ,

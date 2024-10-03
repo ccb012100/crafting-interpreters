@@ -25,3 +25,13 @@ class Foo {
 }
 
 class Oops < Oops {} // A class can't inherit from itself.
+
+class Eclair {
+  cook() {
+    super.cook();
+    print "Pipe full of crème pâtissière.";
+  }
+}
+// "Error at 'super': Can't use 'super' keyword in a class with no superclass."
+
+super.notEvenInAClass(); //  "Error at 'super': Can't use 'super' keyword outside of a class."

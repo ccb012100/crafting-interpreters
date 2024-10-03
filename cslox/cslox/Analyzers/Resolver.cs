@@ -19,7 +19,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
     private enum ClassType {
         None,
-        Class
+        Class,
+        Subclass
     }
 
     private enum FunctionType {
@@ -123,6 +124,20 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitSuperExpr( Expr.Super expr ) {
+        if ( _currentClass == ClassType.None ) {
+            Lox.Error( expr.Keyword , "Can't use 'super' keyword outside of a class." );
+        } else if ( _currentClass != ClassType.Subclass ) {
+            Lox.Error( expr.Keyword , "Can't use 'super' keyword in a class with no superclass." );
+        }
+
+        Token superToken = expr.Keyword with { Lexeme = "super" }; // we want ResolveLocal to look for "super"
+
+        ResolveLocal( expr , superToken , true );
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitThisExpr( Expr.This expr ) {
         if ( _currentClass == ClassType.None ) {
             Lox.Error( expr.Keyword , "Can't use 'this' keyword outside of a class." );
@@ -130,7 +145,9 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
             return ValueTuple.Create( );
         }
 
-        ResolveLocal( expr , expr.Keyword , true );
+        Token thisToken = expr.Keyword with { Lexeme = "this" }; // we want ResolveLocal to look for "this"
+
+        ResolveLocal( expr , thisToken , true );
 
         return ValueTuple.Create( );
     }
@@ -205,12 +222,19 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
                 Lox.Error( stmt.Superclass.Name , "A class can't inherit from itself." );
             }
 
+            _currentClass = ClassType.Subclass;
             Resolve( stmt.Superclass );
+
+            BeginScope( );
+
+            Dictionary<string , Variable> superScope = _scopes.Peek( );
+            superScope.Add( "super" , new Variable( stmt.Name , superScope.Count , VariableState.Read ) );
         }
 
         BeginScope( );
 
-        _scopes.Peek( ).Add( "this" , new Variable( stmt.Name , _scopes.Count , VariableState.Read ) );
+        Dictionary<string , Variable> scope = _scopes.Peek( );
+        scope.Add( "this" , new Variable( stmt.Name , scope.Count , VariableState.Read ) );
 
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
             FunctionType declaration = method.Name.Lexeme.Equals( "init" )
@@ -221,6 +245,11 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         }
 
         EndScope( );
+
+        if ( stmt.Superclass is not null ) {
+            EndScope();
+        }
+
         _currentClass = enclosingClass;
 
         return ValueTuple.Create( );
@@ -239,22 +268,6 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         ResolveFunction( stmt , FunctionType.Function );
 
         return ValueTuple.Create( );
-    }
-
-    private void ResolveFunction( Stmt.FunctionStmt function , FunctionType type ) {
-        FunctionType enclosingFunction = _currentFunction;
-        _currentFunction = type;
-
-        BeginScope( );
-
-        foreach ( Token param in function.Function.Parameters ) {
-            Declare( param );
-            Define( param );
-        }
-
-        Resolve( function.Function.Body );
-        EndScope( );
-        _currentFunction = enclosingFunction;
     }
 
     public ValueTuple VisitIfStmt( Stmt.If stmt ) {
@@ -302,27 +315,6 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
-    private void Declare( Token name ) {
-        if ( _scopes.Count == 0 ) {
-            return;
-        }
-
-        Dictionary<string , Variable> scope = _scopes.Peek( );
-
-        // instead of if `(!scope.ContainsKey( name.Lexeme )) { scope.Add() }, we use TryAdd
-        if ( !scope.TryAdd( name.Lexeme , new Variable( name , scope.Count , VariableState.Declared ) ) ) {
-            Lox.Error( name , "Already a variable with this name in the scope." );
-        }
-    }
-
-    private void Define( Token name ) {
-        if ( _scopes.Count == 0 ) {
-            return;
-        }
-
-        _scopes.Peek( )[name.Lexeme].State = VariableState.Defined;
-    }
-
     public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
         Resolve( stmt.Condition );
         Resolve( stmt.Body );
@@ -344,6 +336,43 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
     private void Resolve( Stmt stmt ) {
         stmt.Accept( this );
+    }
+
+    private void ResolveFunction( Stmt.FunctionStmt function , FunctionType type ) {
+        FunctionType enclosingFunction = _currentFunction;
+        _currentFunction = type;
+
+        BeginScope( );
+
+        foreach ( Token param in function.Function.Parameters ) {
+            Declare( param );
+            Define( param );
+        }
+
+        Resolve( function.Function.Body );
+        EndScope( );
+        _currentFunction = enclosingFunction;
+    }
+
+    private void Declare( Token name ) {
+        if ( _scopes.Count == 0 ) {
+            return;
+        }
+
+        Dictionary<string , Variable> scope = _scopes.Peek( );
+
+        // instead of if `(!scope.ContainsKey( name.Lexeme )) { scope.Add() }, we use TryAdd
+        if ( !scope.TryAdd( name.Lexeme , new Variable( name , scope.Count , VariableState.Declared ) ) ) {
+            Lox.Error( name , "Already a variable with this name in the scope." );
+        }
+    }
+
+    private void Define( Token name ) {
+        if ( _scopes.Count == 0 ) {
+            return;
+        }
+
+        _scopes.Peek( )[name.Lexeme].State = VariableState.Defined;
     }
 
     #endregion

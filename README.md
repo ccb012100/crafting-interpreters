@@ -75,10 +75,10 @@ book.
 │    unary          →   ( "!" | "-" ) unary | lambda ;                       │░
 │                   |   lambda ;                                             │░
 │    call           →   primary ( "(" arguments? ")" | "." IDENTIFIER )* ;   │░
-│    primary        →   NUMBER | STRING | "true" | "false" | "nil"           │░
-│                   |   "(" expression ")" ;                                 │░
+│    primary        →   "true" | "false" | "nil" | "this"                    │░
+│                   |   NUMBER | STRING | IDENTIFIER | "(" expression ")" ;  │░
 │                   |   lambda ;                                             │░
-│                   |   IDENTIFIER ;                                         │░
+│                   |   "super" "." IDENTIFIER ;                             │░
 │                                                                            │░
 │    lambda         →   "fun" "(" parameters? ")" block ;                    │░
 │    function       →   IDENTIFIER "(" parameters? ")" block ;               │░

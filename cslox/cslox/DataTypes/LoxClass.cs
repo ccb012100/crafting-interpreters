@@ -28,10 +28,8 @@ public class LoxClass( string name , LoxClass superclass , Dictionary<string , L
     }
 
     public LoxFunction FindMethod( string name ) {
-        if ( _methods.TryGetValue( name , out LoxFunction method ) ) {
-            return method;
-        }
-
-        return null;
+        return _methods.TryGetValue( name , out LoxFunction method )
+            ? method
+            : _superclass?.FindMethod( name );
     }
 }

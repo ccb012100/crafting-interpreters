@@ -45,8 +45,8 @@ fun makeCounter() {
 }
 
 var counter = makeCounter();
-print "counter: " + counter(); // Prints counter: "1".
-print "counter: " + counter(); // Prints counter: "2"
+print "counter: " + counter(); // "counter: 1".
+print "counter: " + counter(); // "counter: 2"
 
 fun thrice(fn) {
   for (var i = 1; i <= 3; i = i + 1) {
@@ -80,17 +80,17 @@ class DevonshireCream {
   }
 }
 
-print DevonshireCream; // Prints "DevonshireCream".
+print DevonshireCream; // "DevonshireCream".
 
 class Bagel {}
 var bagel = Bagel();
-print bagel; // Prints "Bagel instance".
+print bagel; // "Bagel instance".
 
 bagel.x = 12;
 bagel.y = "foobar";
 
-print bagel.x; // Prints "12"
-print bagel.y; // Prints "foobar"
+print bagel.x; // "12"
+print bagel.y; // "foobar"
 
 class Box {}
 
@@ -100,7 +100,7 @@ fun notMethod(argument) {
 
 var box = Box();
 box.function = notMethod;
-box.function("foo bar baz"); // Prints "called function with 'foo bar baz'"
+box.function("foo bar baz"); // "called function with 'foo bar baz'"
 
 class Person {
   sayName() {
@@ -115,7 +115,7 @@ var bill = Person();
 bill.name = "Bill";
 
 bill.sayName = jane.sayName;
-bill.sayName(); // Prints "Bill"
+bill.sayName(); // "Bill"
 
 class Bacon {
   eat() {
@@ -123,7 +123,7 @@ class Bacon {
   }
 }
 
-Bacon().eat(); // Prints "Crunch crunch crunch!".
+Bacon().eat(); // "Crunch crunch crunch!".
 
 class Cake {
   taste() {
@@ -134,7 +134,7 @@ class Cake {
 
 var cake = Cake();
 cake.flavor = "German chocolate";
-cake.taste(); // Prints "The German chocolate cake is delicious!".
+cake.taste(); // "The German chocolate cake is delicious!".
 
 class Thing {
   getCallback() {
@@ -147,7 +147,7 @@ class Thing {
 }
 
 var callback = Thing().getCallback();
-callback(); // Prints "Thing instance"
+callback(); // "Thing instance"
 
 class Foo {
   init() {
@@ -156,7 +156,45 @@ class Foo {
   }
 }
 
-var foo = Foo(); // Prints "Foo instance"
+var foo = Foo(); // "Foo instance"
 print foo.init();
-// "Foo instance" (the init method)
-// "Foo instance" (the print call - init() returns `this`)
+// "Foo instance" (printed by the init method)
+// "Foo instance" (the print call to foo.init() - init() returns `this`)
+
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+  }
+}
+
+class BostonCream < Doughnut {
+  cook() {
+    super.cook();
+    print "Pipe full of custard and coat with chocolate.";
+  }
+}
+
+BostonCream().cook();
+// Fry until golden brown.
+// Pipe full of custard and coat with chocolate.
+
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B < A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    super.method();
+  }
+}
+
+class C < B {}
+
+C().test(); // "A method"
+
