@@ -247,7 +247,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         EndScope( );
 
         if ( stmt.Superclass is not null ) {
-            EndScope();
+            EndScope( );
         }
 
         _currentClass = enclosingClass;

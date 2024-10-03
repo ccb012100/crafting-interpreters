@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 using cslox.Analyzers;
 
 using Environment = cslox.Analyzers.Environment;
@@ -6,7 +8,6 @@ namespace cslox.LoxCallables;
 
 public class LoxFunction( string name , Expr.Function declaration , Environment closure , bool isInitializer )
     : ILoxCallable {
-    private readonly string _name = name;
     private readonly Environment _closure = closure;
     private readonly Expr.Function _declaration = declaration;
     private readonly string _fnNamePrintableForm = name is null ? "<fn>" : $"<fn {name}>";
