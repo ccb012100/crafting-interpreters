@@ -32,9 +32,8 @@ book.
 │                   |   statement ;                                          │░
 │                                                                            │░
 │    classDecl      →   "class" IDENTIFIER ( "<" IDENTIFIER)?                │░
-│                       "{" function "}" ;                                   │░
+│                       "{" classFunction* "}" ;                             │░
 │    funDecl        →   "fun" function ;                                     │░
-│    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │                                                                            │░
 │    statement      →   exprStmt                                             │░
@@ -81,6 +80,7 @@ book.
 │                   |   "super" "." IDENTIFIER ;                             │░
 │                                                                            │░
 │    lambda         →   "fun" "(" parameters? ")" block ;                    │░
+│    classFunction  →   ( "class" )? function ;                              │░
 │    function       →   IDENTIFIER "(" parameters? ")" block ;               │░
 │    parameters     →   IDENTIFIER ( "," IDENTIFIER )* ;                     │░
 │    arguments      →   expression ( "," expression )* ;                     │░
@@ -97,7 +97,7 @@ book.
 │    DIGIT         →   "0" ... "9" ;                                         │░
 ╰────────────────────────────────────────────────────────────────────────────╯░
  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
- 
+
 ╔════════════════════════╦═══════════════════════════════════════════════════╗
 ║    Grammar notation    ║   Code representation                             ║░
 ╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░

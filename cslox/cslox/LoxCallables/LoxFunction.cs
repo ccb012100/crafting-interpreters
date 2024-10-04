@@ -25,11 +25,17 @@ public class LoxFunction( string name , Expr.Function declaration , Environment 
         return _declaration.Parameters.Count;
     }
 
+    public bool IsGetter( ) {
+        return _declaration.Parameters is null;
+    }
+
     public object Call( Interpreter interpreter , List<object> arguments ) {
         Environment environment = new( _closure );
 
-        for ( int i = 0 ; i < _declaration.Parameters.Count ; i++ ) {
-            environment.Define( arguments[i] );
+        if ( _declaration.Parameters is not null ) {
+            for ( int i = 0 ; i < _declaration.Parameters.Count ; i++ ) {
+                environment.Define( arguments[i] );
+            }
         }
 
         try {

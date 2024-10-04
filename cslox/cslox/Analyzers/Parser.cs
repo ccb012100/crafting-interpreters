@@ -323,14 +323,16 @@ internal class Parser( List<Token> tokens ) {
         Consume( LEFT_BRACE , "Expect '{' before class body." );
 
         List<Stmt.FunctionStmt> methods = [ ];
+        List<Stmt.FunctionStmt> classMethods = [ ];
 
         while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
-            methods.Add( Function( "method" ) );
+            bool isClassMethod = Match( CLASS );
+            ( isClassMethod ? classMethods : methods ).Add( Function( "method" ) );
         }
 
         Consume( RIGHT_BRACE , "Expect '}' after class body." );
 
-        return new Stmt.Class( name , superclass , methods );
+        return new Stmt.Class( name , superclass , methods , classMethods );
     }
 
     private Stmt.FunctionStmt Function( string kind ) {
@@ -340,21 +342,27 @@ internal class Parser( List<Token> tokens ) {
     }
 
     private Expr.Function FunctionBody( string kind ) {
-        Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
+        List<Token> parameters = null;
 
-        List<Token> parameters = [ ];
+        // Allow omitting the parameter list entirely in method getters.
+        if ( !kind.Equals( "method" ) || Check( LEFT_PAREN ) ) {
+            Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
 
-        if ( !Check( RIGHT_PAREN ) ) {
-            do {
-                if ( parameters.Count >= 255 ) {
-                    Error( Peek( ) , "Can't have more than 255 parameters." );
-                }
+            parameters = [ ];
 
-                parameters.Add( Consume( IDENTIFIER , "Expect parameter name." ) );
-            } while ( Match( COMMA ) );
+            if ( !Check( RIGHT_PAREN ) ) {
+                do {
+                    if ( parameters.Count >= 255 ) {
+                        Error( Peek( ) , "Can't have more than 255 parameters." );
+                    }
+
+                    parameters.Add( Consume( IDENTIFIER , "Expect parameter name." ) );
+                } while ( Match( COMMA ) );
+            }
+
+            Consume( RIGHT_PAREN , "Expect ')' after parameters." );
         }
 
-        Consume( RIGHT_PAREN , "Expect ')' after parameters." );
         Consume( LEFT_BRACE , $"Expect '{{' before {kind} body." );
 
         List<Stmt> body = Block( );

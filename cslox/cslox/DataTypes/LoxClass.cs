@@ -3,9 +3,10 @@ using cslox.LoxCallables;
 
 namespace cslox.DataTypes;
 
-public class LoxClass( string name , LoxClass superclass , Dictionary<string , LoxFunction> methods ) : ILoxCallable {
+public class LoxClass( LoxClass metaclass , string name , LoxClass superclass , Dictionary<string , LoxFunction> methods ) : LoxInstance( metaclass ), ILoxCallable {
     private readonly Dictionary<string , LoxFunction> _methods = methods;
     private readonly LoxClass _superclass = superclass;
+
     public readonly string Name = name;
 
     public int Arity( ) {

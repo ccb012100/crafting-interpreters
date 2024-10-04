@@ -173,10 +173,17 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     public object VisitGetExpr( Expr.Get expr ) {
         object obj = Evaluate( expr.Object );
 
-        return obj switch {
-            LoxInstance instance => instance.Get( expr.Name ),
-            _ => throw new RuntimeError( expr.Name , "Only instances have properties." )
-        };
+        if ( obj is not LoxInstance instance ) {
+            throw new RuntimeError( expr.Name , "Only instances have properties." );
+        }
+
+        object result = instance.Get( expr.Name );
+
+        if ( result is LoxFunction func && func.IsGetter( ) ) {
+            result = func.Call( this , null );
+        }
+
+        return result;
     }
 
     public object VisitGroupingExpr( Expr.Grouping expr ) {
@@ -284,14 +291,16 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     }
 
     public ValueTuple VisitClassStmt( Stmt.Class stmt ) {
-        object superclass = null;
+        LoxClass superclass = null;
 
         if ( stmt.Superclass is not null ) {
-            superclass = Evaluate( stmt.Superclass );
+            object superclassObj = Evaluate( stmt.Superclass );
 
-            if ( superclass is not LoxClass ) {
+            if ( superclassObj is not LoxClass ) {
                 throw new RuntimeError( stmt.Superclass.Name , "Superclass must be a class." );
             }
+
+            superclass = ( LoxClass ) superclassObj;
         }
 
         Define( stmt.Name , null );
@@ -301,6 +310,14 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             _environment.Define( superclass );
         }
 
+        Dictionary<string , LoxFunction> classMethods = [ ];
+
+        foreach ( Stmt.FunctionStmt method in stmt.ClassMethods ) {
+            classMethods.Add( method.Name.Lexeme , new LoxFunction( method , _environment , false ) );
+        }
+
+        LoxClass metaclass = new( null , $"{stmt.Name.Lexeme} metaclass" , superclass , classMethods );
+
         Dictionary<string , LoxFunction> methods = [ ];
 
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
@@ -308,7 +325,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
             methods.Add( method.Name.Lexeme , function );
         }
 
-        LoxClass klass = new( stmt.Name.Lexeme , superclass as LoxClass , methods );
+        LoxClass klass = new( metaclass , stmt.Name.Lexeme , superclass , methods );
 
         if ( superclass is not null ) {
             _environment = _environment._enclosing;

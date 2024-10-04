@@ -242,9 +242,17 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
                 : FunctionType.Method;
 
             ResolveFunction( method , declaration );
-        }
+        };
 
         EndScope( );
+
+        foreach ( Stmt.FunctionStmt method in stmt.ClassMethods ) {
+            BeginScope( );
+            Dictionary<string , Variable> classMethodScope = _scopes.Peek( );
+            classMethodScope.Add( "this" , new Variable( stmt.Name , scope.Count , VariableState.Read ) );
+            ResolveFunction( method , FunctionType.Method );
+            EndScope( );
+        }
 
         if ( stmt.Superclass is not null ) {
             EndScope( );
@@ -344,9 +352,11 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
 
         BeginScope( );
 
-        foreach ( Token param in function.Function.Parameters ) {
-            Declare( param );
-            Define( param );
+        if ( function.Function.Parameters is not null ) {
+            foreach ( Token param in function.Function.Parameters ) {
+                Declare( param );
+                Define( param );
+            }
         }
 
         Resolve( function.Function.Body );
