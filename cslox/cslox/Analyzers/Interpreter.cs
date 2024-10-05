@@ -6,9 +6,9 @@ namespace cslox.Analyzers;
 
 public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
     private static readonly object s_uninitialized = new( );
-    private readonly Dictionary<string , object> _globals = new( );
-    private readonly Dictionary<Expr , int> _locals = new( );
-    private readonly Dictionary<Expr , int> _slots = new( );
+    private readonly Dictionary<string , object> _globals = [ ];
+    private readonly Dictionary<Expr , int> _locals = [ ];
+    private readonly Dictionary<Expr , int> _slots = [ ];
     private Environment _environment;
 
     public Interpreter( ) {
@@ -318,7 +318,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
         LoxClass metaclass = new( null , $"{stmt.Name.Lexeme} metaclass" , superclass , classMethods );
 
-        Dictionary<string , LoxFunction> methods = [ ];
+        Dictionary<string , LoxFunction> methods = ApplyTraits( stmt.Traits );
 
         foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
             LoxFunction function = new( method , _environment , method.Name.Lexeme.Equals( "init" ) );
@@ -392,6 +392,48 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitTraitStmt( Stmt.Trait stmt ) {
+        Dictionary<string , LoxFunction> methods = ApplyTraits( stmt.Traits );
+
+        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            if ( methods.ContainsKey( method.Name.Lexeme ) ) {
+                throw new RuntimeError( method.Name , $"A previous trait declares a method named '{method.Name.Lexeme}'." );
+            }
+
+            methods.Add( method.Name.Lexeme , new LoxFunction( method , _environment , false ) );
+        }
+
+        LoxTrait trait = new( stmt.Name , methods );
+
+        Define( stmt.Name , trait );
+
+        return ValueTuple.Create( );
+    }
+
+    private Dictionary<string , LoxFunction> ApplyTraits( List<Expr> traits ) {
+        Dictionary<string , LoxFunction> methods = [ ];
+
+        foreach ( Expr traitExpr in traits ) {
+            object traitObject = Evaluate( traitExpr );
+
+            if ( traitObject is not LoxTrait trait ) {
+                Token name = ( ( Expr.Variable ) traitExpr ).Name;
+                throw new RuntimeError( name , $"'{name.Lexeme}' is not a trait." );
+            }
+
+            foreach ( (string name, LoxFunction method) in trait.Methods ) {
+                if ( methods.ContainsKey( name ) ) {
+                    throw new RuntimeError( trait.Name , $"A previous trait declares a method named {name}." );
+                }
+
+                methods.Add( name , method );
+            }
+
+        }
+
+        return methods;
+    }
+
     public ValueTuple VisitWhileStmt( Stmt.While stmt ) {
         try {
             while ( IsTruthy( Evaluate( stmt.Condition ) ) ) {
@@ -408,10 +450,13 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
         if ( _environment is not null ) {
             _environment.Define( value );
         } else {
-            _globals.Add( name.Lexeme , value );
+            if ( _globals.TryAdd( name.Lexeme , value ) ) {
+                return;
+            }
+
+            throw new RuntimeError( name , $"Global value {name.Lexeme} already declared." );
         }
     }
-
     #endregion
 
     #region private methods

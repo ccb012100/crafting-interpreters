@@ -20,7 +20,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     private enum ClassType {
         None,
         Class,
-        Subclass
+        Subclass,
+        Trait
     }
 
     private enum FunctionType {
@@ -127,6 +128,8 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     public ValueTuple VisitSuperExpr( Expr.Super expr ) {
         if ( _currentClass == ClassType.None ) {
             Lox.Error( expr.Keyword , "Can't use 'super' keyword outside of a class." );
+        } else if ( _currentClass == ClassType.Trait ) {
+            Lox.Error( expr.Keyword , "Can't use 'super' keyword in a trait." );
         } else if ( _currentClass != ClassType.Subclass ) {
             Lox.Error( expr.Keyword , "Can't use 'super' keyword in a class with no superclass." );
         }
@@ -231,6 +234,10 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
             superScope.Add( "super" , new Variable( stmt.Name , superScope.Count , VariableState.Read ) );
         }
 
+        foreach ( Expr trait in stmt.Traits ) {
+            Resolve( trait );
+        }
+
         BeginScope( );
 
         Dictionary<string , Variable> scope = _scopes.Peek( );
@@ -311,6 +318,33 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
         return ValueTuple.Create( );
     }
 
+    public ValueTuple VisitTraitStmt( Stmt.Trait stmt ) {
+        Declare( stmt.Name );
+        Define( stmt.Name );
+
+        ClassType enclosingClass = _currentClass;
+        _currentClass = ClassType.Trait;
+
+        foreach ( Expr trait in stmt.Traits ) {
+            Resolve( trait );
+        }
+
+        BeginScope( );
+
+        Dictionary<string , Variable> scope = _scopes.Peek( );
+        scope.Add( "this" , new Variable( stmt.Name , scope.Count , VariableState.Read ) );
+
+        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
+            ResolveFunction( method , FunctionType.Method );
+        }
+
+        EndScope( );
+
+        _currentClass = enclosingClass;
+
+        return ValueTuple.Create( );
+    }
+
     public ValueTuple VisitVarStmt( Stmt.Var stmt ) {
         Declare( stmt.Name );
 
@@ -331,7 +365,7 @@ public class Resolver( Interpreter interpreter ) : Expr.IVisitor<ValueTuple>, St
     }
 
     private void BeginScope( ) {
-        _scopes.Push( new Dictionary<string , Variable>( ) );
+        _scopes.Push( [ ] );
     }
 
     private void EndScope( ) {

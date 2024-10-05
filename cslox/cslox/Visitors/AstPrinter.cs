@@ -206,5 +206,9 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
         return ParenthesizeObjects( "while" , stmt.Condition , stmt.Body );
     }
 
+    public string VisitTraitStmt( Stmt.Trait stmt ) {
+        throw new NotImplementedException( );
+    }
+
     #endregion
 }

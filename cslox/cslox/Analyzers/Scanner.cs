@@ -18,9 +18,11 @@ internal class Scanner( string source ) {
         { "return" , RETURN } ,
         { "super" , SUPER } ,
         { "this" , THIS } ,
+        {"trait", TRAIT},
         { "true" , TRUE } ,
         { "var" , VAR } ,
-        { "while" , WHILE }
+        { "while" , WHILE },
+        {"with",    WITH}
     };
 
     private readonly List<char> _scanningErrors = [ ];

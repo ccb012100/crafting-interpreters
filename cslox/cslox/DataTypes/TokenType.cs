@@ -48,9 +48,11 @@ public enum TokenType {
     RETURN,
     SUPER,
     THIS,
+    TRAIT,
     TRUE,
     VAR,
     WHILE,
+    WITH,
 
     EOF
 }

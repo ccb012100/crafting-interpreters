@@ -27,12 +27,16 @@ book.
 │    program        →   declaration* EOF ;                                   │░
 │                                                                            │░
 │    declaration    →   classDecl                                            │░
+│                   |   traitDecl ;                                          │░
 │                   |   funDecl ;                                            │░
 │                   |   varDecl ;                                            │░
 │                   |   statement ;                                          │░
 │                                                                            │░
-│    classDecl      →   "class" IDENTIFIER ( "<" IDENTIFIER)?                │░
-│                       "{" classFunction* "}" ;                             │░
+│    classDecl      →   "class" IDENTIFIER ( "<" IDENTIFIER )? ;             │░
+│                         "{" classFunction* "}" ;                           │░
+│    traitDecl      →   "trait" IDENTIFIER                                   │░
+│                         ( "with" IDENTIFIER ( "," IDENTIFIER )* )?         │░
+│                         "{" function* "}" ;                                │░
 │    funDecl        →   "fun" function ;                                     │░
 │    varDecl        →   "var" IDENTIFIER ( "=" expression )? ";" ;           │░
 │                                                                            │░
@@ -48,8 +52,8 @@ book.
 │                   |   statement ;                                          │░
 │    exprStmt       →   expression ";" ;                                     │░
 │    forStmt        →   "for" "(" ( varDecl | exprStmt | ";" )               │░
-│                       expression? ";"                                      │░
-│                       expression? ")" statement ;                          │░
+│                         expression? ";" expression? ")"                    │░
+│                         statement ;                                        │░
 │    ifStmt         →   "if" "(" expression ")" breakStmt                    │░
 │                       ( "else" breakStmt )? ;                              │░
 │    printStmt      →   "print" expression ";" ;                             │░
@@ -58,7 +62,7 @@ book.
 │    block          →   "{" declaration* "}" ;                               │░
 │                                                                            │░
 │    expression     →   lambda ;                                             │░
-│    comma          →   "(" assignment ( "," assignment )* ;                 │░
+│    comma          →   assignment ( "," assignment )* ;                     │░
 │                                                                            │░
 │    assignment     →   ( call "." )? IDENTIFIER "=" assignment              │░
 │                   |   conditional ;                                        │░
@@ -87,36 +91,36 @@ book.
 ╰────────────────────────────────────────────────────────────────────────────╯░
  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-╭────────────────────────────────────────────────────────────────────────────╮
-│                          LEXICAL GRAMMAR                                   │░
-├────────────────────────────────────────────────────────────────────────────┤░
-│    NUMBER        →   DIGIT+ ("." DIGIT+ )? ;                               │░
-│    STRING        →   "\"" <any char except "\"">* "\"" ;                   │░
-│    IDENTIFIER    →   ALPHA ( ALPHA | DIGIT )* ;                            │░
-│    ALPHA         →   "a" ... "z" | "A" ... "Z" | "_" ;                     │░
-│    DIGIT         →   "0" ... "9" ;                                         │░
-╰────────────────────────────────────────────────────────────────────────────╯░
- ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+╭───────────────────────────────────────────────────────────────────╮
+│                          LEXICAL GRAMMAR                          │░
+├───────────────────────────────────────────────────────────────────┤░
+│    NUMBER        →   DIGIT+ ("." DIGIT+ )? ;                      │░
+│    STRING        →   "\"" <any char except "\"">* "\"" ;          │░
+│    IDENTIFIER    →   ALPHA ( ALPHA | DIGIT )* ;                   │░
+│    ALPHA         →   "a" ... "z" | "A" ... "Z" | "_" ;            │░
+│    DIGIT         →   "0" ... "9" ;                                │░
+╰───────────────────────────────────────────────────────────────────╯░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-╔════════════════════════╦═══════════════════════════════════════════════════╗
-║    Grammar notation    ║   Code representation                             ║░
-╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
-║    Terminal            ║   Code to match and consume a token               ║░
-║    Non-terminal        ║   Call to that rule’s function                    ║░
-║    |                   ║   if or switch statement                          ║░
-║    * or +              ║   while or for loop                               ║░
-║    ?                   ║   if statement                                    ║░
-╚════════════════════════╩═══════════════════════════════════════════════════╝░
- ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+╔════════════════════════╦══════════════════════════════════════════╗
+║    Grammar notation    ║   Code representation                    ║░
+╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
+║    Terminal            ║   Code to match and consume a token      ║░
+║    Non-terminal        ║   Call to that rule’s function           ║░
+║    |                   ║   if or switch statement                 ║░
+║    * or +              ║   while or for loop                      ║░
+║    ?                   ║   if statement                           ║░
+╚════════════════════════╩══════════════════════════════════════════╝░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-╔════════════════════════╦═══════════════════════════════════════════════════╗
-║    Lox Type            ║   C# representation                               ║░
-╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
-║    Any Lox value       ║   object                                          ║░
-║    nil                 ║   null                                            ║░
-║    Boolean             ║   boolean                                         ║░
-║    number              ║   Double                                          ║░
-║    string              ║   string                                          ║░
-╚════════════════════════╩═══════════════════════════════════════════════════╝░
- ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+╔════════════════════════╦══════════════════════════════════════════╗
+║    Lox Type            ║   C# representation                      ║░
+╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
+║    Any Lox value       ║   object                                 ║░
+║    nil                 ║   null                                   ║░
+║    Boolean             ║   boolean                                ║░
+║    number              ║   Double                                 ║░
+║    string              ║   string                                 ║░
+╚════════════════════════╩══════════════════════════════════════════╝░
+ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ```

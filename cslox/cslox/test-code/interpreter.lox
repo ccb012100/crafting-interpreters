@@ -221,3 +221,36 @@ class Circle {
 
 var circle = Circle(4);
 print circle.area; // "50.27"
+
+trait AA {
+  a() {
+    print "a";
+  }
+}
+
+trait B1 {
+  b1() {
+    print "b1";
+  }
+}
+
+trait B2 {
+  b2() {
+    print "b2";
+  }
+}
+
+trait BB with B1, B2 {
+  b() {
+    this.b1();
+    this.b2();
+  }
+}
+
+class CC with AA, BB {}
+
+var cc = CC();
+cc.a(); // "a"
+cc.b();
+// "b1"
+// "b2"

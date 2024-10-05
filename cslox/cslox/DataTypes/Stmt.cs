@@ -14,6 +14,7 @@ public abstract class Stmt {
         T VisitIfStmt( If stmt );
         T VisitPrintStmt( Print stmt );
         T VisitReturnStmt( Return stmt );
+        T VisitTraitStmt( Trait stmt );
         T VisitVarStmt( Var stmt );
         T VisitWhileStmt( While stmt );
     }
@@ -26,7 +27,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Block Statements=[ {Statements.ToPrintString( )} ]";
+            return $"Block{{ Statements=[ {Statements.ToPrintString( )} ] }}";
         }
     }
 
@@ -36,22 +37,23 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return "Break";
+            return "Break{ }";
         }
     }
 
-    public class Class( Token name , Expr.Variable superclass , List<FunctionStmt> methods , List<FunctionStmt> classMethods ) : Stmt {
+    public class Class( Token name , Expr.Variable superclass , List<Expr> traits , List<FunctionStmt> methods , List<FunctionStmt> classMethods ) : Stmt {
         public readonly List<FunctionStmt> Methods = methods;
         public readonly Token Name = name;
         public readonly Expr.Variable Superclass = superclass;
         public readonly List<FunctionStmt> ClassMethods = classMethods;
+        public readonly List<Expr> Traits = traits;
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitClassStmt( this );
         }
 
         public override string ToString( ) {
-            return $"Class Name=<{Name}> Methods=<{Methods.ToPrintString( )}>";
+            return $"Class{{ Name=<{Name}> Superclass=<{Superclass}> Methods=[ {Methods.ToPrintString( )}] Traits=[ {Traits.ToPrintString( )} ] ClassMethods=[ {ClassMethods.ToPrintString( )} ] }}";
         }
     }
 
@@ -63,7 +65,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"ExpressionStmt Expression=<{Expression}>";
+            return $"ExpressionStmt{{ Expression=<{Expression}> }}";
         }
     }
 
@@ -76,7 +78,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Function Name=<{Name}> Function=<{Function}>";
+            return $"FunctionStmt{{ Name=<{Name}> Function=<{Function}> }}";
         }
     }
 
@@ -90,7 +92,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Condition=<{Condition}> ElseBranch=<{ElseBranch}> ThenBranch=<{ThenBranch}>";
+            return $"If{{ Condition=<{Condition}> ElseBranch=<{ElseBranch}> ThenBranch=<{ThenBranch}> }}";
         }
     }
 
@@ -102,7 +104,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Print Expression=<{Expression}>";
+            return $"Print{{ Expression=<{Expression}> }}";
         }
     }
 
@@ -115,10 +117,23 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Return keyword=<{Keyword}> Value=<{Value}>";
+            return $"Return{{ keyword=<{Keyword}> Value=<{Value}> }}";
         }
     }
 
+    public class Trait( Token name , List<Expr> traits , List<FunctionStmt> methods ) : Stmt {
+        public readonly Token Name = name;
+        public readonly List<Expr> Traits = traits;
+        public readonly List<FunctionStmt> Methods = methods;
+
+        public override T Accept<T>( IVisitor<T> visitor ) {
+            return visitor.VisitTraitStmt( this );
+        }
+
+        public override string ToString( ) {
+            return $"Trait{{ Name=<{Name}> Traits=[ {Traits.ToPrintString( )} ] Methods=[ {Methods.ToPrintString( )} ] }}";
+        }
+    }
     public class Var( Token name , Expr initializer ) : Stmt {
         public readonly Expr Initializer = initializer;
         public readonly Token Name = name;
@@ -128,7 +143,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"Var Name=<{Name}> Initializer=<{Initializer}>";
+            return $"Var{{ Name=<{Name}> Initializer=<{Initializer}> }}";
         }
     }
 
@@ -141,7 +156,7 @@ public abstract class Stmt {
         }
 
         public override string ToString( ) {
-            return $"While Body={{{Body}}} Condition=<{Condition}>";
+            return $"While{{ Body={{{Body}}} Condition=<{Condition}> }}";
         }
     }
 }
