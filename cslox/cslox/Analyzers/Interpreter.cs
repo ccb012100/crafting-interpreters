@@ -13,6 +13,7 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
     public Interpreter( ) {
         _globals.Add( "clock" , new Clock( ) );
+        _globals.Add( "Array" , new Array( ) );
     }
 
     public void Interpret( List<Stmt> statements ) {
@@ -71,6 +72,15 @@ public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<ValueTuple> {
 
         public override string ToString( ) {
             return "<native fn>";
+        }
+    }
+
+    private class Array : ILoxCallable {
+        public int Arity( ) => 1;
+
+        public object Call( Interpreter interpreter , List<object> arguments ) {
+            int size = ( int ) ( double ) arguments[0];
+            return new LoxArray( size );
         }
     }
 

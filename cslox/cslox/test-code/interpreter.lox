@@ -254,3 +254,11 @@ cc.a(); // "a"
 cc.b();
 // "b1"
 // "b2"
+
+var array = Array(3);
+print array; // "[null, null, null]"
+
+array.set(1, "new");
+array.set(2, 12.232);
+print array.get(1); // "new"
+print array; // "[null, "new", "null"]
