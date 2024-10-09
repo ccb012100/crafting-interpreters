@@ -22,7 +22,7 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
 
         sb.Append( '(' );
 
-        foreach ( Token parameter in function.Parameters ) {
+        foreach ( Token parameter in function?.Parameters ?? [ ] ) {
             if ( parameter != function.Parameters[0] ) {
                 sb.Append( ' ' );
             }
@@ -53,35 +53,40 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
 
     private string ParenthesizeObjects( string name , params object[ ] parts ) {
         StringBuilder sb = new StringBuilder( "(" ).Append( name );
+        transform( sb , parts );
+        return sb.Append( ')' ).ToString( );
 
-        foreach ( object part in parts ) {
-            sb.Append( ' ' );
+        void transform( StringBuilder sb , params object[ ] parts ) {
+            foreach ( object part in parts ) {
+                sb.Append( ' ' );
 
-            switch ( part ) {
-                case Expr expression: {
-                        sb.Append( expression.Accept( this ) );
+                switch ( part ) {
+                    case Expr expression: {
+                            sb.Append( expression.Accept( this ) );
 
+                            break;
+                        }
+                    case Stmt stmt: {
+                            sb.Append( stmt.Accept( this ) );
+
+                            break;
+                        }
+                    case Token token: {
+                            sb.Append( token.Lexeme );
+
+                            break;
+                        }
+                    case List<object> list:
+                        transform( sb , list.ToArray( ) );
                         break;
-                    }
-                case Stmt stmt: {
-                        sb.Append( stmt.Accept( this ) );
+                    default: {
+                            sb.Append( part );
 
-                        break;
-                    }
-                case Token token: {
-                        sb.Append( token.Lexeme );
-
-                        break;
-                    }
-                default: {
-                        sb.Append( part );
-
-                        break;
-                    }
+                            break;
+                        }
+                }
             }
         }
-
-        return sb.Append( ')' ).ToString( );
     }
 
     #region Expr.IVisitor<string>
@@ -103,7 +108,7 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
     }
 
     public string VisitGetExpr( Get expr ) {
-        return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Object );
+        return $"{expr.Name.Lexeme} {expr.Object.Accept( this )}";
     }
 
     public string VisitGroupingExpr( Grouping expr ) {
@@ -119,15 +124,15 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
     }
 
     public string VisitSetExpr( Set expr ) {
-        return ParenthesizeObjects( "=" , expr.Name.Lexeme , expr.Object );
+        return ParenthesizeObjects( "=" , expr.Object , expr.Name.Lexeme , expr.Value );
     }
 
     public string VisitSuperExpr( Super expr ) {
-        throw new NotImplementedException( );
+        return ParenthesizeObjects( "super" , expr.Method );
     }
 
     public string VisitThisExpr( This expr ) {
-        return $"this {expr.Keyword}";
+        return "this";
     }
 
     public string VisitUnaryExpr( Unary expr ) {
@@ -165,13 +170,25 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
     }
 
     public string VisitClassStmt( Stmt.Class stmt ) {
-        StringBuilder sb = new StringBuilder( "class " ).Append( stmt.Name ).Append( "{ " );
+        List<object> parms = [stmt.Name];
 
-        foreach ( Stmt.FunctionStmt method in stmt.Methods ) {
-            sb.Append( method.Accept( this ) );
+        if ( stmt.Superclass is not null ) {
+            parms.Add( Parenthesize( "extends" , stmt.Superclass ) );
         }
 
-        return ParenthesizeObjects( $"class {stmt.Name}" );
+        if ( stmt.Traits.Count > 0 ) {
+            parms.Add( Parenthesize( "with" , [.. stmt.Traits] ) );
+        }
+
+        foreach ( Stmt.FunctionStmt function in stmt.ClassMethods ) {
+            parms.Add( function.Accept( this ) );
+        }
+
+        foreach ( Stmt.FunctionStmt function in stmt.Methods ) {
+            parms.Add( function.Accept( this ) );
+        }
+
+        return ParenthesizeObjects( $"class" , [.. parms] );
     }
 
     public string VisitExpressionStmt( Stmt.ExpressionStmt stmt ) {
@@ -207,7 +224,11 @@ internal class AstPrinter : IVisitor<string>, Stmt.IVisitor<string> {
     }
 
     public string VisitTraitStmt( Stmt.Trait stmt ) {
-        throw new NotImplementedException( );
+        if ( stmt.Traits.Count == 0 ) {
+            return ParenthesizeObjects( "trait" , [stmt.Name , .. stmt.Methods] );
+        }
+
+        return ParenthesizeObjects( "trait" , stmt.Name , Parenthesize( "with" , [.. stmt.Traits] ) );
     }
 
     #endregion

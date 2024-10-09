@@ -31,7 +31,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"AssignExpr => Name=<{Name}>, Value=<{Value}>";
+            return $"AssignExpr{{ Name=<{Name}>, Value=<{Value}> }}";
         }
     }
 
@@ -45,7 +45,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Binary => Left=<{Left}>, Operator=<{Operator}>, Right=<{Right}>";
+            return $"Binary{{ Left=<{Left}>, Operator=<{Operator}>, Right=<{Right}> }}";
         }
     }
 
@@ -59,7 +59,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Call => Arguments=[{Arguments.ToPrintString( )}] Callee=<{Callee}>, Paren=<{Paren}>";
+            return $"Call{{ Arguments=[{Arguments.ToPrintString( )}] Callee=<{Callee}>, Paren=<{Paren}> }}";
         }
     }
 
@@ -72,7 +72,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Function => Parameters=[{Parameters.ToPrintString( )}], Body={{{Body.ToPrintString( )}}} ";
+            return $"Function{{ Parameters = [{Parameters.ToPrintString( )}],Body ={{{Body.ToPrintString( )}}} }} ";
         }
     }
 
@@ -82,6 +82,10 @@ public abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitGetExpr( this );
+        }
+
+        public override string ToString( ) {
+            return $"Get{{ Name={Name} Object=<{Object}> }}";
         }
     }
 
@@ -93,7 +97,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Grouping=({Expression})";
+            return $"Grouping( {Expression} )";
         }
     }
 
@@ -105,7 +109,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Literal=<{Value}>";
+            return $"Literal{{ {Value} }}>";
         }
     }
 
@@ -119,7 +123,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Logical Left=<{Left}>, Operator=<{Operator}>, Right=<{Right}>";
+            return $"Logical{{ Left=<{Left}>, Operator={Operator}, Right=<{Right}> }}";
         }
     }
 
@@ -133,7 +137,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Conditional: Condition={Condition}, ThenBranch={ThenBranch}, ElseBranch=<{ElseBranch}>";
+            return $"Conditional{{ Condition=<{Condition}>, ThenBranch=<{ThenBranch}>, ElseBranch=<{ElseBranch}> }}";
         }
     }
 
@@ -145,6 +149,10 @@ public abstract class Expr {
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitSetExpr( this );
         }
+
+        public override string ToString( ) {
+            return $"Set{{ Name={Name}>, Object=<{Object}>, Value=<{Value}> }}";
+        }
     }
 
     public class This( Token keyword ) : Expr {
@@ -152,6 +160,10 @@ public abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitThisExpr( this );
+        }
+
+        public override string ToString( ) {
+            return $"This{{ Keyword={Keyword} }}";
         }
     }
 
@@ -164,7 +176,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Unary Operator=<{Operator}>, Right=<{Right}>";
+            return $"Unary{{ Operator={Operator}, Right=<{Right}> }}";
         }
     }
 
@@ -176,7 +188,7 @@ public abstract class Expr {
         }
 
         public override string ToString( ) {
-            return $"Variable Name=<{Name}>";
+            return $"Variable Name={Name}";
         }
     }
 
@@ -190,6 +202,10 @@ public abstract class Expr {
 
         public override T Accept<T>( IVisitor<T> visitor ) {
             return visitor.VisitSuperExpr( this );
+        }
+
+        public override string ToString( ) {
+            return $"Super{{ Keyword={Keyword} Method=<{Method}> }}";
         }
     }
 }
