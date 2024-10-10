@@ -134,3 +134,10 @@ on top of the "core" **jlox** implementation from the book.
 ╚════════════════════════╩══════════════════════════════════════════╝░
  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 ```
+
+### [`clox`](clox/)
+
+**Lox** bytecode VM written in **C**.
+
+This corresponds to [**Part III**](https://craftinginterpreters.com/a-bytecode-virtual-machine.html) (Chapters 14-30) of the book.
+
