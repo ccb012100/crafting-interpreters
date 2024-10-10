@@ -13,12 +13,22 @@ For feature commits, the subject line follows the format:
 
 > `<Chapter/Section number> <Chapter/Section name> [EC] (description)`
 
-`EC` (Extra Credit) denotes extra features that aren't part of the core `Lox` feature set.
+`EC` (Extra Credit) denotes extra features drawn from end of chapter challenges, which aren't part of the core `Lox` feature set.
 
-### `cslox`
+### [`cslox`](cslox/)
 
-This includes the "extra credit" grammar such as `ternary` and `comma` that I've implemented on top of the "core" **Lox** implementation from the
-book.
+Tree-walk **Lox** interpreter.
+
+This corresponds to [**Part II**](https://craftinginterpreters.com/a-tree-walk-interpreter.html) (Chapters 4-13) of the book.
+
+Rather than **Java**, I've implemented the interpreter in **C#** (hence `cslox` in place of `jlox`).
+
+After finishing Part II, I also converted the implementation from using the Visitor Pattern to using pattern matching.
+
+#### Grammar
+
+This implementation includes the grammar for features from the _Challenges_, such as ternary/conditionals and the comma operator, which I've implemented
+on top of the "core" **jlox** implementation from the book.
 
 ```console
 ╭────────────────────────────────────────────────────────────────────────────╮
@@ -106,7 +116,7 @@ book.
 ║    Grammar notation    ║   Code representation                    ║░
 ╠━━━━━━━━━━━━━━━━━━━━━━━━╬━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╣░
 ║    Terminal            ║   Code to match and consume a token      ║░
-║    Non-terminal        ║   Call to that rule’s function           ║░
+║    Non-terminal        ║   Call to that rule's function           ║░
 ║    |                   ║   if or switch statement                 ║░
 ║    * or +              ║   while or for loop                      ║░
 ║    ?                   ║   if statement                           ║░
