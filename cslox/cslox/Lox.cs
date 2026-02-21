@@ -7,143 +7,171 @@ using Environment = System.Environment;
 
 namespace cslox;
 
-internal static class Lox {
-    private static readonly Interpreter s_interpreter = new( );
+internal static class Lox
+{
+    private static readonly Interpreter s_interpreter = new();
     private static bool s_hadError;
     private static bool s_hadRuntimeError;
 
     #region Run
 
-    public enum Visitor {
+    public enum Visitor
+    {
         Interpreter,
         Ast,
         Rpn
     }
 
-    public static void RunFile( string path , Visitor visitor ) {
-        if ( path is "" ) {
-            Console.WriteLine( "File parameter is empty; aborting..." );
-            Environment.Exit( 66 );
+    public static void RunFile(string path, Visitor visitor)
+    {
+        if (path is "")
+        {
+            Console.WriteLine("File parameter is empty; aborting...");
+            Environment.Exit(66);
         }
 
-        byte[ ] bytes = File.ReadAllBytes( path );
-        string source = Encoding.Default.GetString( bytes ); // TODO: get encoding of path
+        byte[] bytes = File.ReadAllBytes(path);
+        string source = Encoding.Default.GetString(bytes); // TODO: get encoding of path
 
-        List<Stmt> statements = source.ToParser( ).Parse( );
+        List<Stmt> statements = source.ToParser().Parse();
 
         // Stop if there was a syntax error.
-        if ( s_hadError ) {
+        if (s_hadError)
+        {
             return;
         }
 
-        new Resolver( s_interpreter ).Resolve( statements );
+        new Resolver(s_interpreter).Resolve(statements);
 
-        if ( s_hadError ) {
+        if (s_hadError)
+        {
             return;
         }
 
-        switch ( visitor ) {
+        switch (visitor)
+        {
             case Visitor.Interpreter:
-                s_interpreter.Interpret( statements );
+                s_interpreter.Interpret(statements);
 
                 break;
             case Visitor.Ast:
-                AstPrinter ast = new( );
+                AstPrinter ast = new();
 
-                foreach ( Stmt s in statements ) {
-                    Console.WriteLine( ast.Print( s ) );
+                foreach (Stmt s in statements)
+                {
+                    Console.WriteLine(ast.Print(s));
                 }
 
                 break;
             case Visitor.Rpn:
-                throw new NotImplementedException( "Need to update RpnPrinter" );
+                throw new NotImplementedException("Need to update RpnPrinter");
             default:
-                throw new ArgumentOutOfRangeException( nameof( visitor ) , visitor , null );
+                throw new ArgumentOutOfRangeException(nameof(visitor), visitor, null);
         }
 
-        if ( s_hadError ) {
-            Environment.Exit( 65 );
+        if (s_hadError)
+        {
+            Environment.Exit(65);
         }
 
-        if ( s_hadRuntimeError ) {
-            Environment.Exit( 70 );
+        if (s_hadRuntimeError)
+        {
+            Environment.Exit(70);
         }
     }
 
-    public static void RunPrompt( ) {
-        while ( Console.ReadLine( ) is { } line ) {
+    public static void RunPrompt()
+    {
+        while (Console.ReadLine() is { } line)
+        {
             s_hadError = false; // reset the state
 
-            if ( string.IsNullOrEmpty( line ) ) {
+            if (string.IsNullOrEmpty(line))
+            {
                 break;
             }
 
-            if ( line.EndsWith( ';' ) ) {
-                RunStatementsInPrompt( line.ToParser( ) );
-            } else {
-                RunExpressionInPrompt( line.ToParser( ) );
+            if (line.EndsWith(';'))
+            {
+                RunStatementsInPrompt(line.ToParser());
+            }
+            else
+            {
+                RunExpressionInPrompt(line.ToParser());
             }
         }
     }
 
-    private static void RunStatementsInPrompt( Parser parser ) {
-        List<Stmt> statements = parser.Parse( );
+    private static void RunStatementsInPrompt(Parser parser)
+    {
+        List<Stmt> statements = parser.Parse();
 
         // Stop if there was a syntax error.
-        if ( s_hadError ) {
+        if (s_hadError)
+        {
             return;
         }
 
-        s_interpreter.Interpret( statements );
+        s_interpreter.Interpret(statements);
     }
 
-    private static void RunExpressionInPrompt( Parser parser ) {
+    private static void RunExpressionInPrompt(Parser parser)
+    {
         Expr expression = null;
 
-        try {
-            expression = parser.ParseExpression( );
-        } catch ( Parser.ParseError pe ) {
+        try
+        {
+            expression = parser.ParseExpression();
+        }
+        catch (Parser.ParseError pe)
+        {
             s_hadError = true;
-            Console.WriteLine( $"{pe.Message}" );
+            Console.WriteLine($"{pe.Message}");
         }
 
         // Stop if there was a syntax or parse error.
-        if ( s_hadError ) {
+        if (s_hadError)
+        {
             return;
         }
 
-        s_interpreter.Eval( expression );
+        s_interpreter.Eval(expression);
     }
 
-    private static Parser ToParser( this string source ) {
-        return new Parser( new Scanner( source ).ScanTokens( ) );
+    private static Parser ToParser(this string source)
+    {
+        return new Parser(new Scanner(source).ScanTokens());
     }
 
     #endregion
 
     #region Error
 
-    public static void RuntimeError( RuntimeError error ) {
-        Console.WriteLine( $"{error.Message}\n[line {error.Token.Line}]" );
+    public static void RuntimeError(RuntimeError error)
+    {
+        Console.WriteLine($"{error.Message}\n[line {error.Token.Line}]");
 
         s_hadRuntimeError = true;
     }
 
-    public static void Error( int line , string message ) {
-        Report( line , "" , message );
+    public static void Error(int line, string message)
+    {
+        Report(line, "", message);
     }
 
-    public static void Error( Token token , string message ) {
+    public static void Error(Token token, string message)
+    {
         Report(
-            token.Line ,
-            token.Type == EOF ? " at end" : " at '" + token.Lexeme + "'" ,
+            token.Line,
+            token.Type == EOF ? " at end" : " at '" + token.Lexeme + "'",
             message
         );
     }
 
-    private static void Report( int line , string where , string message ) {
+    private static void Report(int line, string where, string message)
+    {
         TextWriter errorWriter = Console.Error;
-        errorWriter.WriteLine( $"[line {line}] Error{where}: {message}" );
+        errorWriter.WriteLine($"[line {line}] Error{where}: {message}");
         s_hadError = true;
     }
 

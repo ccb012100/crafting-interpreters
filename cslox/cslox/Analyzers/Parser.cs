@@ -1,95 +1,118 @@
 ﻿namespace cslox.Analyzers;
 
-internal class Parser( List<Token> tokens ) {
+internal class Parser(List<Token> tokens)
+{
     private int _current;
     private int _loopDepth;
 
-    public List<Stmt> Parse( ) {
-        List<Stmt> statements = [ ];
+    public List<Stmt> Parse()
+    {
+        List<Stmt> statements = [];
 
-        while ( !IsAtEnd( ) ) {
-            statements.Add( Declaration( ) );
+        while (!IsAtEnd())
+        {
+            statements.Add(Declaration());
         }
 
         return statements;
     }
 
-    public Expr ParseExpression( ) {
-        return Expression( );
+    public Expr ParseExpression()
+    {
+        return Expression();
     }
 
-    private bool Match( params TokenType[ ] types ) {
-        if ( !types.Any( Check ) ) {
+    private bool Match(params TokenType[] types)
+    {
+        if (!types.Any(Check))
+        {
             return false;
         }
 
-        Advance( );
+        Advance();
 
         return true;
     }
 
-    private bool Check( TokenType type ) {
-        if ( IsAtEnd( ) ) {
+    private bool Check(TokenType type)
+    {
+        if (IsAtEnd())
+        {
             return false;
         }
 
-        return Peek( ).Type == type;
+        return Peek().Type == type;
     }
 
-    private bool CheckNext( TokenType type ) {
-        if ( IsAtEnd( ) ) {
+    private bool CheckNext(TokenType type)
+    {
+        if (IsAtEnd())
+        {
             return false;
         }
 
-        return tokens[_current + 1].Type switch {
+        return tokens[_current + 1].Type switch
+        {
             EOF => false,
             _ => tokens[_current + 1].Type == type
         };
     }
 
-    private Token Advance( ) {
-        if ( !IsAtEnd( ) ) {
+    private Token Advance()
+    {
+        if (!IsAtEnd())
+        {
             _current++;
         }
 
-        return Previous( );
+        return Previous();
     }
 
-    private bool IsAtEnd( ) {
-        return Peek( ).Type == EOF;
+    private bool IsAtEnd()
+    {
+        return Peek().Type == EOF;
     }
 
-    private Token Peek( ) {
-        return tokens.ElementAt( _current );
+    private Token Peek()
+    {
+        return tokens.ElementAt(_current);
     }
 
-    private Token Previous( ) {
-        return tokens.ElementAt( _current - 1 );
+    private Token Previous()
+    {
+        return tokens.ElementAt(_current - 1);
     }
 
-    private Token Consume( TokenType type , string message ) {
-        if ( Check( type ) ) {
-            return Advance( );
+    private Token Consume(TokenType type, string message)
+    {
+        if (Check(type))
+        {
+            return Advance();
         }
 
-        throw Error( Peek( ) , message );
+        throw Error(Peek(), message);
     }
 
-    private static ParseError Error( Token token , string message ) {
-        Lox.Error( token , message );
+    private static ParseError Error(Token token, string message)
+    {
+        Lox.Error(token, message);
 
-        return new ParseError( );
+        return new ParseError();
     }
 
-    private void Synchronize( ) {
-        Advance( );
+    private void Synchronize()
+    {
+        Advance();
 
-        while ( !IsAtEnd( ) ) {
-            if ( Previous( ).Type == SEMICOLON ) {
+        while (!IsAtEnd())
+        {
+            if (Previous().Type == SEMICOLON)
+            {
                 return;
             }
 
-            switch ( Peek( ).Type ) {
+            switch (Peek().Type)
+            {
                 case CLASS:
                 case FUN:
                 case VAR:
@@ -101,7 +124,7 @@ internal class Parser( List<Token> tokens ) {
                     return;
             }
 
-            Advance( );
+            Advance();
         }
     }
 
@@ -109,462 +132,552 @@ internal class Parser( List<Token> tokens ) {
 
     #region Stmt
 
-    private Stmt Statement( ) {
-        if ( Match( BREAK ) ) {
-            return BreakStatement( );
+    private Stmt Statement()
+    {
+        if (Match(BREAK))
+        {
+            return BreakStatement();
         }
 
-        if ( Match( FOR ) ) {
-            return ForStatement( );
+        if (Match(FOR))
+        {
+            return ForStatement();
         }
 
-        if ( Match( IF ) ) {
-            return IfStatement( );
+        if (Match(IF))
+        {
+            return IfStatement();
         }
 
-        if ( Match( PRINT ) ) {
-            return PrintStatement( );
+        if (Match(PRINT))
+        {
+            return PrintStatement();
         }
 
-        if ( Match( RETURN ) ) {
-            return ReturnStatement( );
+        if (Match(RETURN))
+        {
+            return ReturnStatement();
         }
 
-        if ( Match( WHILE ) ) {
-            return WhileStatement( );
+        if (Match(WHILE))
+        {
+            return WhileStatement();
         }
 
-        if ( Match( LEFT_BRACE ) ) {
-            return new Stmt.Block( Block( ) );
+        if (Match(LEFT_BRACE))
+        {
+            return new Stmt.Block(Block());
         }
 
-        return ExpressionStatement( );
+        return ExpressionStatement();
     }
 
-    private Stmt.Break BreakStatement( ) {
-        if ( _loopDepth == 0 ) {
-            throw Error( Previous( ) , "Must be inside a loop to use 'break'." );
+    private Stmt.Break BreakStatement()
+    {
+        if (_loopDepth == 0)
+        {
+            throw Error(Previous(), "Must be inside a loop to use 'break'.");
         }
 
-        Consume( SEMICOLON , "Expect ';' after 'break'." );
+        Consume(SEMICOLON, "Expect ';' after 'break'.");
 
-        return new Stmt.Break( );
+        return new Stmt.Break();
     }
 
-    private Stmt ForStatement( ) {
-        Consume( LEFT_PAREN , "Expect '(' after 'for'." );
+    private Stmt ForStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'for'.");
         Stmt initializer;
 
-        if ( Match( SEMICOLON ) ) {
+        if (Match(SEMICOLON))
+        {
             initializer = null;
-        } else if ( Match( VAR ) ) {
-            initializer = VarDeclaration( );
-        } else {
-            initializer = ExpressionStatement( );
+        }
+        else if (Match(VAR))
+        {
+            initializer = VarDeclaration();
+        }
+        else
+        {
+            initializer = ExpressionStatement();
         }
 
-        Expr condition = Expression( );
+        Expr condition = Expression();
 
-        if ( !Check( SEMICOLON ) ) {
-            condition = Expression( );
+        if (!Check(SEMICOLON))
+        {
+            condition = Expression();
         }
 
-        Consume( SEMICOLON , "Expect ';' after loop condition." );
+        Consume(SEMICOLON, "Expect ';' after loop condition.");
 
         Expr increment = null;
 
-        if ( !Check( RIGHT_PAREN ) ) {
-            increment = Expression( );
+        if (!Check(RIGHT_PAREN))
+        {
+            increment = Expression();
         }
 
-        Consume( RIGHT_PAREN , "Expect ')' after for clauses." );
+        Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
 
-        try {
+        try
+        {
             _loopDepth++;
-            Stmt body = Statement( );
+            Stmt body = Statement();
 
-            if ( increment is not null ) {
-                body = new Stmt.Block( [body , new Stmt.ExpressionStmt( increment )] );
+            if (increment is not null)
+            {
+                body = new Stmt.Block([body, new Stmt.ExpressionStmt(increment)]);
             }
 
-            condition ??= new Expr.Literal( true );
+            condition ??= new Expr.Literal(true);
 
-            body = new Stmt.While( condition , body );
+            body = new Stmt.While(condition, body);
 
-            if ( initializer is not null ) {
-                body = new Stmt.Block( [initializer , body] );
+            if (initializer is not null)
+            {
+                body = new Stmt.Block([initializer, body]);
             }
 
             return body;
-        } finally {
+        }
+        finally
+        {
             _loopDepth--;
         }
     }
 
-    private Stmt.If IfStatement( ) {
-        Consume( LEFT_PAREN , "Expect '(' after 'if'." );
-        Expr condition = Expression( );
-        Consume( RIGHT_PAREN , "Expect ')' after if condition." );
+    private Stmt.If IfStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = Expression();
+        Consume(RIGHT_PAREN, "Expect ')' after if condition.");
 
-        Stmt thenBranch = Statement( );
+        Stmt thenBranch = Statement();
         Stmt elseBranch = null;
 
-        if ( Match( ELSE ) ) {
-            elseBranch = Statement( );
+        if (Match(ELSE))
+        {
+            elseBranch = Statement();
         }
 
-        return new Stmt.If( condition , thenBranch , elseBranch );
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
-    private Stmt.Print PrintStatement( ) {
-        Expr value = Expression( );
+    private Stmt.Print PrintStatement()
+    {
+        Expr value = Expression();
 
-        Consume( SEMICOLON , "Expect ';' after value." );
+        Consume(SEMICOLON, "Expect ';' after value.");
 
-        return new Stmt.Print( value );
+        return new Stmt.Print(value);
     }
 
-    private Stmt ReturnStatement( ) {
-        Token keyword = Previous( );
+    private Stmt ReturnStatement()
+    {
+        Token keyword = Previous();
         Expr value = null;
 
-        if ( !Check( SEMICOLON ) ) {
-            value = Expression( );
+        if (!Check(SEMICOLON))
+        {
+            value = Expression();
         }
 
-        Consume( SEMICOLON , "Expect ';' after return value." );
+        Consume(SEMICOLON, "Expect ';' after return value.");
 
-        return new Stmt.Return( keyword , value );
+        return new Stmt.Return(keyword, value);
     }
 
-    private Stmt.Trait TraitDeclaration( ) {
-        Token name = Consume( IDENTIFIER , "Expect trait name." );
+    private Stmt.Trait TraitDeclaration()
+    {
+        Token name = Consume(IDENTIFIER, "Expect trait name.");
 
-        List<Expr> traits = WithClause( );
+        List<Expr> traits = WithClause();
 
-        Consume( LEFT_BRACE , "Expect '{' before trait body." );
+        Consume(LEFT_BRACE, "Expect '{' before trait body.");
 
-        List<Stmt.FunctionStmt> methods = [ ];
+        List<Stmt.FunctionStmt> methods = [];
 
-        while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
-            methods.Add( Function( "method" ) );
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            methods.Add(Function("method"));
         }
 
-        Consume( RIGHT_BRACE , "Expect '}' after trait body." );
+        Consume(RIGHT_BRACE, "Expect '}' after trait body.");
 
-        return new Stmt.Trait( name , traits , methods );
+        return new Stmt.Trait(name, traits, methods);
     }
 
-    private List<Expr> WithClause( ) {
-        List<Expr> traits = [ ];
+    private List<Expr> WithClause()
+    {
+        List<Expr> traits = [];
 
-        if ( Match( WITH ) ) {
-            do {
-                Consume( IDENTIFIER , "Expect trait name." );
-                traits.Add( new Expr.Variable( Previous( ) ) );
-            } while ( Match( COMMA ) );
+        if (Match(WITH))
+        {
+            do
+            {
+                Consume(IDENTIFIER, "Expect trait name.");
+                traits.Add(new Expr.Variable(Previous()));
+            } while (Match(COMMA));
         }
 
         return traits;
     }
 
-    private Stmt.While WhileStatement( ) {
-        Consume( LEFT_PAREN , "Expect '(' after 'while'." );
-        Expr condition = Expression( );
-        Consume( RIGHT_PAREN , "Expect ')' after condition." );
+    private Stmt.While WhileStatement()
+    {
+        Consume(LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = Expression();
+        Consume(RIGHT_PAREN, "Expect ')' after condition.");
 
-        try {
+        try
+        {
             _loopDepth++;
-            Stmt body = Statement( );
+            Stmt body = Statement();
 
-            return new Stmt.While( condition , body );
-        } finally {
+            return new Stmt.While(condition, body);
+        }
+        finally
+        {
             _loopDepth--;
         }
     }
 
-    private Stmt.Var VarDeclaration( ) {
-        Token name = Consume( IDENTIFIER , "Expect variable name." );
+    private Stmt.Var VarDeclaration()
+    {
+        Token name = Consume(IDENTIFIER, "Expect variable name.");
 
         Expr initializer = null;
 
-        if ( Match( EQUAL ) ) {
-            initializer = Expression( );
+        if (Match(EQUAL))
+        {
+            initializer = Expression();
         }
 
-        Consume( SEMICOLON , "Expect ';' after variable declaration." );
+        Consume(SEMICOLON, "Expect ';' after variable declaration.");
 
-        return new Stmt.Var( name , initializer );
+        return new Stmt.Var(name, initializer);
     }
 
-    private Stmt.ExpressionStmt ExpressionStatement( ) {
-        Expr expr = Expression( );
+    private Stmt.ExpressionStmt ExpressionStatement()
+    {
+        Expr expr = Expression();
 
-        Consume( SEMICOLON , "Expect ';' after expression." );
+        Consume(SEMICOLON, "Expect ';' after expression.");
 
-        return new Stmt.ExpressionStmt( expr );
+        return new Stmt.ExpressionStmt(expr);
     }
 
-    private List<Stmt> Block( ) {
-        List<Stmt> statements = [ ];
+    private List<Stmt> Block()
+    {
+        List<Stmt> statements = [];
 
-        while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
-            statements.Add( Declaration( ) );
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            statements.Add(Declaration());
         }
 
-        Consume( RIGHT_BRACE , "Expect '}' after block" );
+        Consume(RIGHT_BRACE, "Expect '}' after block");
 
         return statements;
     }
 
-    private Stmt Declaration( ) {
-        try {
-            if ( Match( TRAIT ) ) {
-                return TraitDeclaration( );
+    private Stmt Declaration()
+    {
+        try
+        {
+            if (Match(TRAIT))
+            {
+                return TraitDeclaration();
             }
 
-            if ( Match( CLASS ) ) {
-                return ClassDeclaration( );
+            if (Match(CLASS))
+            {
+                return ClassDeclaration();
             }
 
-            if ( Check( FUN ) && CheckNext( IDENTIFIER ) ) {
-                Consume( FUN , null );
+            if (Check(FUN) && CheckNext(IDENTIFIER))
+            {
+                Consume(FUN, null);
 
-                return Function( "function" );
+                return Function("function");
             }
 
-            if ( Match( VAR ) ) {
-                return VarDeclaration( );
+            if (Match(VAR))
+            {
+                return VarDeclaration();
             }
 
-            return Statement( );
-        } catch ( ParseError ) {
-            Synchronize( );
+            return Statement();
+        }
+        catch (ParseError)
+        {
+            Synchronize();
 
             return null;
         }
     }
 
-    private Stmt.Class ClassDeclaration( ) {
-        Token name = Consume( IDENTIFIER , "Expect class name." );
+    private Stmt.Class ClassDeclaration()
+    {
+        Token name = Consume(IDENTIFIER, "Expect class name.");
 
         Expr.Variable superclass = null;
 
-        if ( Match( LESS ) ) {
-            Consume( IDENTIFIER , "Expect superclass name." );
-            superclass = new Expr.Variable( Previous( ) );
+        if (Match(LESS))
+        {
+            Consume(IDENTIFIER, "Expect superclass name.");
+            superclass = new Expr.Variable(Previous());
         }
 
-        List<Expr> traits = WithClause( );
+        List<Expr> traits = WithClause();
 
-        Consume( LEFT_BRACE , "Expect '{' before class body." );
+        Consume(LEFT_BRACE, "Expect '{' before class body.");
 
-        List<Stmt.FunctionStmt> methods = [ ];
-        List<Stmt.FunctionStmt> classMethods = [ ];
+        List<Stmt.FunctionStmt> methods = [];
+        List<Stmt.FunctionStmt> classMethods = [];
 
-        while ( !Check( RIGHT_BRACE ) && !IsAtEnd( ) ) {
-            bool isClassMethod = Match( CLASS );
-            ( isClassMethod ? classMethods : methods ).Add( Function( "method" ) );
+        while (!Check(RIGHT_BRACE) && !IsAtEnd())
+        {
+            bool isClassMethod = Match(CLASS);
+            (isClassMethod ? classMethods : methods).Add(Function("method"));
         }
 
-        Consume( RIGHT_BRACE , "Expect '}' after class body." );
+        Consume(RIGHT_BRACE, "Expect '}' after class body.");
 
-        return new Stmt.Class( name , superclass , traits , methods , classMethods );
+        return new Stmt.Class(name, superclass, traits, methods, classMethods);
     }
 
-    private Stmt.FunctionStmt Function( string kind ) {
-        Token name = Consume( IDENTIFIER , $"Expect {kind} name." );
+    private Stmt.FunctionStmt Function(string kind)
+    {
+        Token name = Consume(IDENTIFIER, $"Expect {kind} name.");
 
-        return new Stmt.FunctionStmt( name , FunctionBody( kind ) );
+        return new Stmt.FunctionStmt(name, FunctionBody(kind));
     }
 
     #endregion
 
     #region Expr
 
-    private Expr Expression( ) {
-        return Comma( );
+    private Expr Expression()
+    {
+        return Comma();
     }
 
-    private Expr Comma( ) {
-        Expr expr = Assignment( );
+    private Expr Comma()
+    {
+        Expr expr = Assignment();
 
-        while ( Match( COMMA ) ) {
-            Token @operator = Previous( );
-            Expr right = Assignment( );
+        while (Match(COMMA))
+        {
+            Token @operator = Previous();
+            Expr right = Assignment();
 
-            expr = new Expr.Binary( expr , @operator , right );
+            expr = new Expr.Binary(expr, @operator, right);
         }
 
         return expr;
     }
 
-    private Expr Assignment( ) {
-        Expr expr = Conditional( );
+    private Expr Assignment()
+    {
+        Expr expr = Conditional();
 
-        if ( Match( EQUAL ) ) {
-            Token equals = Previous( );
-            Expr value = Assignment( );
+        if (Match(EQUAL))
+        {
+            Token equals = Previous();
+            Expr value = Assignment();
 
-            switch ( expr ) {
-                case Expr.Variable varExpr: {
-                        Token name = varExpr.Name;
+            switch (expr)
+            {
+                case Expr.Variable varExpr:
+                {
+                    Token name = varExpr.Name;
 
-                        return new Expr.Assign( name , value );
-                    }
-                case Expr.Get getExpr: {
-                        return new Expr.Set( getExpr.Object , getExpr.Name , value );
-                    }
-                default: {
-                        Error( equals , "Invalid assignment target." );
+                    return new Expr.Assign(name, value);
+                }
+                case Expr.Get getExpr:
+                {
+                    return new Expr.Set(getExpr.Object, getExpr.Name, value);
+                }
+                default:
+                {
+                    Error(equals, "Invalid assignment target.");
 
-                        break;
-                    }
+                    break;
+                }
             }
         }
 
         return expr;
     }
 
-    private Expr Conditional( ) {
-        Expr expr = Or( );
+    private Expr Conditional()
+    {
+        Expr expr = Or();
 
-        if ( Match( QUESTION_MARK ) ) {
-            Expr thenBranch = Expression( );
+        if (Match(QUESTION_MARK))
+        {
+            Expr thenBranch = Expression();
 
-            Consume( COLON , "Expect ':' after expression." );
+            Consume(COLON, "Expect ':' after expression.");
 
-            Expr elseBranch = Conditional( );
+            Expr elseBranch = Conditional();
 
-            expr = new Expr.Conditional( expr , thenBranch , elseBranch );
+            expr = new Expr.Conditional(expr, thenBranch, elseBranch);
         }
 
         return expr;
     }
 
-    private Expr Or( ) {
-        Expr expr = And( );
+    private Expr Or()
+    {
+        Expr expr = And();
 
-        while ( Match( OR ) ) {
-            Token @operator = Previous( );
-            Expr right = And( );
+        while (Match(OR))
+        {
+            Token @operator = Previous();
+            Expr right = And();
 
-            expr = new Expr.Logical( expr , @operator , right );
+            expr = new Expr.Logical(expr, @operator, right);
         }
 
         return expr;
     }
 
-    private Expr And( ) {
-        Expr expr = Equality( );
+    private Expr And()
+    {
+        Expr expr = Equality();
 
-        while ( Match( AND ) ) {
-            Token @operator = Previous( );
-            Expr right = Equality( );
+        while (Match(AND))
+        {
+            Token @operator = Previous();
+            Expr right = Equality();
 
-            expr = new Expr.Logical( expr , @operator , right );
+            expr = new Expr.Logical(expr, @operator, right);
         }
 
         return expr;
     }
 
-    private Expr Equality( ) {
-        if ( Peek( ).Type is BANG_EQUAL or EQUAL_EQUAL ) {
-            Token @operator = Advance( );
-            _ = Comparison( ); // right-hand operand
+    private Expr Equality()
+    {
+        if (Peek().Type is BANG_EQUAL or EQUAL_EQUAL)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
 
-            throw Error( @operator , "Missing left-hand operand" );
+            throw Error(@operator, "Missing left-hand operand");
         }
 
-        Expr expr = Comparison( );
+        Expr expr = Comparison();
 
-        while ( Match( BANG_EQUAL , EQUAL_EQUAL ) ) {
-            Token @operator = Previous( );
-            Expr right = Comparison( );
-            expr = new Expr.Binary( expr , @operator , right );
-        }
-
-        return expr;
-    }
-
-    private Expr Comparison( ) {
-        if ( Peek( ).Type is GREATER or GREATER_EQUAL or LESS or LESS_EQUAL ) {
-            Token @operator = Advance( );
-            _ = Comparison( ); // right-hand operand
-
-            throw Error( @operator , "Missing left-hand operand" );
-        }
-
-        Expr expr = Term( );
-
-        while ( Match( GREATER , GREATER_EQUAL , LESS , LESS_EQUAL ) ) {
-            Token @operator = Previous( );
-            Expr right = Term( );
-            expr = new Expr.Binary( expr , @operator , right );
+        while (Match(BANG_EQUAL, EQUAL_EQUAL))
+        {
+            Token @operator = Previous();
+            Expr right = Comparison();
+            expr = new Expr.Binary(expr, @operator, right);
         }
 
         return expr;
     }
 
-    private Expr Term( ) {
-        if ( Peek( ).Type is MINUS or PLUS ) {
-            Token @operator = Advance( );
-            _ = Comparison( ); // right-hand operand
+    private Expr Comparison()
+    {
+        if (Peek().Type is GREATER or GREATER_EQUAL or LESS or LESS_EQUAL)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
 
-            throw Error( @operator , "Missing left-hand operand" );
+            throw Error(@operator, "Missing left-hand operand");
         }
 
-        Expr expr = Factor( );
+        Expr expr = Term();
 
-        while ( Match( MINUS , PLUS ) ) {
-            Token @operator = Previous( );
-            Expr right = Factor( );
-            expr = new Expr.Binary( expr , @operator , right );
-        }
-
-        return expr;
-    }
-
-    private Expr Factor( ) {
-        if ( Peek( ).Type is SLASH or STAR ) {
-            Token @operator = Advance( );
-            _ = Comparison( ); // right-hand operand
-
-            throw Error( @operator , "Missing left-hand operand" );
-        }
-
-        Expr expr = Unary( );
-
-        while ( Match( SLASH , STAR ) ) {
-            Token @operator = Previous( );
-            Expr right = Unary( );
-            expr = new Expr.Binary( expr , @operator , right );
+        while (Match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
+        {
+            Token @operator = Previous();
+            Expr right = Term();
+            expr = new Expr.Binary(expr, @operator, right);
         }
 
         return expr;
     }
 
-    private Expr Unary( ) {
-        if ( Match( BANG , MINUS ) ) {
-            Token @operator = Previous( );
-            Expr right = Unary( );
+    private Expr Term()
+    {
+        if (Peek().Type is MINUS or PLUS)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
 
-            return new Expr.Unary( @operator , right );
+            throw Error(@operator, "Missing left-hand operand");
         }
 
-        return Call( );
+        Expr expr = Factor();
+
+        while (Match(MINUS, PLUS))
+        {
+            Token @operator = Previous();
+            Expr right = Factor();
+            expr = new Expr.Binary(expr, @operator, right);
+        }
+
+        return expr;
     }
 
-    private Expr Call( ) {
-        Expr expr = Primary( );
+    private Expr Factor()
+    {
+        if (Peek().Type is SLASH or STAR)
+        {
+            Token @operator = Advance();
+            _ = Comparison(); // right-hand operand
 
-        while ( true ) {
-            if ( Match( LEFT_PAREN ) ) {
-                expr = FinishCall( expr );
-            } else if ( Match( DOT ) ) {
-                Token name = Consume( IDENTIFIER , "Expect property name after '.'." );
-                expr = new Expr.Get( expr , name );
-            } else {
+            throw Error(@operator, "Missing left-hand operand");
+        }
+
+        Expr expr = Unary();
+
+        while (Match(SLASH, STAR))
+        {
+            Token @operator = Previous();
+            Expr right = Unary();
+            expr = new Expr.Binary(expr, @operator, right);
+        }
+
+        return expr;
+    }
+
+    private Expr Unary()
+    {
+        if (Match(BANG, MINUS))
+        {
+            Token @operator = Previous();
+            Expr right = Unary();
+
+            return new Expr.Unary(@operator, right);
+        }
+
+        return Call();
+    }
+
+    private Expr Call()
+    {
+        Expr expr = Primary();
+
+        while (true)
+        {
+            if (Match(LEFT_PAREN))
+            {
+                expr = FinishCall(expr);
+            }
+            else if (Match(DOT))
+            {
+                Token name = Consume(IDENTIFIER, "Expect property name after '.'.");
+                expr = new Expr.Get(expr, name);
+            }
+            else
+            {
                 break;
             }
         }
@@ -572,101 +685,120 @@ internal class Parser( List<Token> tokens ) {
         return expr;
     }
 
-    private Expr.Call FinishCall( Expr callee ) {
-        List<Expr> arguments = [ ];
+    private Expr.Call FinishCall(Expr callee)
+    {
+        List<Expr> arguments = [];
 
-        if ( !Check( RIGHT_PAREN ) ) {
-            do {
-                if ( arguments.Count >= 255 ) {
-                    Error( Peek( ) , "Can't have more than 255 arguments." );
+        if (!Check(RIGHT_PAREN))
+        {
+            do
+            {
+                if (arguments.Count >= 255)
+                {
+                    Error(Peek(), "Can't have more than 255 arguments.");
                 }
 
-                arguments.Add( Assignment( ) );
-            } while ( Match( COMMA ) );
+                arguments.Add(Assignment());
+            } while (Match(COMMA));
         }
 
-        Token paren = Consume( RIGHT_PAREN , "Expect ')' after arguments." );
+        Token paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
-        return new Expr.Call( callee , paren , arguments );
+        return new Expr.Call(callee, paren, arguments);
     }
 
-    private Expr Primary( ) {
-        if ( Match( FUN ) ) {
-            return FunctionBody( "function" );
+    private Expr Primary()
+    {
+        if (Match(FUN))
+        {
+            return FunctionBody("function");
         }
 
-        if ( Match( FALSE ) ) {
-            return new Expr.Literal( false );
+        if (Match(FALSE))
+        {
+            return new Expr.Literal(false);
         }
 
-        if ( Match( TRUE ) ) {
-            return new Expr.Literal( true );
+        if (Match(TRUE))
+        {
+            return new Expr.Literal(true);
         }
 
-        if ( Match( NIL ) ) {
-            return new Expr.Literal( null );
+        if (Match(NIL))
+        {
+            return new Expr.Literal(null);
         }
 
-        if ( Match( NUMBER , STRING ) ) {
-            return new Expr.Literal( Previous( ).Literal );
+        if (Match(NUMBER, STRING))
+        {
+            return new Expr.Literal(Previous().Literal);
         }
 
-        if ( Match( SUPER ) ) {
-            Token keyword = Previous( );
+        if (Match(SUPER))
+        {
+            Token keyword = Previous();
 
-            Consume( DOT , "Expect '.' after 'super'." );
+            Consume(DOT, "Expect '.' after 'super'.");
 
-            Token method = Consume( IDENTIFIER , "Expect superclass method name." );
+            Token method = Consume(IDENTIFIER, "Expect superclass method name.");
 
-            return Expr.Super.CreateInstance( keyword , method );
+            return Expr.Super.CreateInstance(keyword, method);
         }
 
-        if ( Match( THIS ) ) {
-            return new Expr.This( Previous( ) );
+        if (Match(THIS))
+        {
+            return new Expr.This(Previous());
         }
 
-        if ( Match( IDENTIFIER ) ) {
-            return new Expr.Variable( Previous( ) );
+        if (Match(IDENTIFIER))
+        {
+            return new Expr.Variable(Previous());
         }
 
-        if ( Match( LEFT_PAREN ) ) {
-            Expr expr = Expression( );
-            Consume( RIGHT_PAREN , "Expect ')' after expression." );
+        if (Match(LEFT_PAREN))
+        {
+            Expr expr = Expression();
+            Consume(RIGHT_PAREN, "Expect ')' after expression.");
 
-            return new Expr.Grouping( expr );
+            return new Expr.Grouping(expr);
         }
 
-        throw Error( Peek( ) , "Expect expression." );
+        throw Error(Peek(), "Expect expression.");
     }
 
     #endregion
 
-    private Expr.Function FunctionBody( string kind ) {
+    private Expr.Function FunctionBody(string kind)
+    {
         List<Token> parameters = null;
 
         // Allow omitting the parameter list entirely in method getters.
-        if ( !kind.Equals( "method" ) || Check( LEFT_PAREN ) ) {
-            Consume( LEFT_PAREN , $"Expect '(' after {kind} name." );
+        if (!kind.Equals("method") || Check(LEFT_PAREN))
+        {
+            Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
 
-            parameters = [ ];
+            parameters = [];
 
-            if ( !Check( RIGHT_PAREN ) ) {
-                do {
-                    if ( parameters.Count >= 255 ) {
-                        Error( Peek( ) , "Can't have more than 255 parameters." );
+            if (!Check(RIGHT_PAREN))
+            {
+                do
+                {
+                    if (parameters.Count >= 255)
+                    {
+                        Error(Peek(), "Can't have more than 255 parameters.");
                     }
 
-                    parameters.Add( Consume( IDENTIFIER , "Expect parameter name." ) );
-                } while ( Match( COMMA ) );
+                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
+                } while (Match(COMMA));
             }
 
-            Consume( RIGHT_PAREN , "Expect ')' after parameters." );
+            Consume(RIGHT_PAREN, "Expect ')' after parameters.");
         }
 
-        Consume( LEFT_BRACE , $"Expect '{{' before {kind} body." );
+        Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
 
-        List<Stmt> body = Block( );
+        List<Stmt> body = Block();
 
-        return new Expr.Function( parameters , body );
+        return new Expr.Function(parameters, body);
     }
 }

@@ -1,7 +1,9 @@
 namespace cslox.DataTypes;
 
-public record Token( TokenType Type , string Lexeme , object Literal , int Line ) {
-    public override string ToString( ) {
-        return $"{Type} {Lexeme} {Literal}".TrimEnd( );
+public record Token(TokenType Type, string Lexeme, object Literal, int Line)
+{
+    public override string ToString()
+    {
+        return $"{Type} {Lexeme} {Literal}".TrimEnd();
     }
 }
