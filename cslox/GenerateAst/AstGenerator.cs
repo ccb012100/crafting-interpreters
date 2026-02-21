@@ -1,48 +1,53 @@
 ﻿namespace tool;
 
-internal static class AstGenerator {
-    public static void DefineAst( string outputDir , string baseName , List<string> types ) {
+internal static class AstGenerator
+{
+    public static void DefineAst(string outputDir, string baseName, List<string> types)
+    {
         const string tab = "    ";
         string path = $"{outputDir}/{baseName}.cs";
 
-        using StreamWriter writer = File.CreateText( path );
+        using StreamWriter writer = File.CreateText(path);
 
-        BlankLine( );
+        BlankLine();
 
-        writer.WriteLine( "namespace cslox;" );
-        BlankLine( );
+        writer.WriteLine("namespace cslox;");
+        BlankLine();
 
-        writer.WriteLine( $"internal abstract class {baseName}" );
-        writer.WriteLine( "{" );
+        writer.WriteLine($"internal abstract class {baseName}");
+        writer.WriteLine("{");
 
-        DefineVisitor( );
+        DefineVisitor();
 
         // The AST classes
-        foreach ( string type in types ) {
-            string[ ] typeSplit = type.Split( ':' );
+        foreach (string type in types)
+        {
+            string[] typeSplit = type.Split(':');
 
-            string className = typeSplit[0].Trim( );
-            string fields = typeSplit[1].Trim( );
+            string className = typeSplit[0].Trim();
+            string fields = typeSplit[1].Trim();
 
-            BlankLine( );
-            DefineType( className , fields );
+            BlankLine();
+            DefineType(className, fields);
         }
 
-        BlankLine( );
+        BlankLine();
 
         // The base accept() method
-        writer.WriteLine( $"{tab}public abstract T accept<T>(IVisitor<T> visitor);" );
+        writer.WriteLine($"{tab}public abstract T accept<T>(IVisitor<T> visitor);");
 
-        writer.WriteLine( "}" );
-        writer.Close( );
+        writer.WriteLine("}");
+        writer.Close();
 
         return;
 
-        void BlankLine( ) {
-            writer.WriteLine( );
+        void BlankLine()
+        {
+            writer.WriteLine();
         }
 
-        void DefineType( string className , string fieldList ) {
+        void DefineType(string className, string fieldList)
+        {
             /*
                 public class ClassName : BaseName
                 {
@@ -55,22 +60,23 @@ internal static class AstGenerator {
                     }
                 }
              */
-            writer.WriteLine( $"{tab}public class {className} : {baseName}" );
-            writer.WriteLine( $"{tab}{{" );
+            writer.WriteLine($"{tab}public class {className} : {baseName}");
+            writer.WriteLine($"{tab}{{");
 
             // ctor
-            writer.WriteLine( $"{tab}{tab}public {className} ({fieldList})" );
-            writer.WriteLine( $"{tab}{tab}{{" );
+            writer.WriteLine($"{tab}{tab}public {className} ({fieldList})");
+            writer.WriteLine($"{tab}{tab}{{");
 
-            string[ ] fields = fieldList.Length > 0 ? fieldList.Split( ", " ) : [ ];
+            string[] fields = fieldList.Length > 0 ? fieldList.Split(", ") : [];
 
             // store params in fields
-            foreach ( string field in fields ) {
-                string name = field.Split( " " )[1];
-                writer.WriteLine( $"{tab}{tab}{tab}this.{name} = {name};" );
+            foreach (string field in fields)
+            {
+                string name = field.Split(" ")[1];
+                writer.WriteLine($"{tab}{tab}{tab}this.{name} = {name};");
             }
 
-            writer.WriteLine( $"{tab}{tab}}}" );
+            writer.WriteLine($"{tab}{tab}}}");
 
             /*
                 Visitor pattern
@@ -79,13 +85,13 @@ internal static class AstGenerator {
                 public override T Accept(Visitor<T> visitor) => return Visitor.VisitClassnameBasename(this);
                 ```
              */
-            BlankLine( );
+            BlankLine();
 
             writer.WriteLine(
                 $"{tab}{tab}public override T Accept<T>(IVisitor<T> visitor) => visitor.visit{className}{baseName}(this);"
             );
 
-            BlankLine( );
+            BlankLine();
 
             /*
                 fields
@@ -97,14 +103,16 @@ internal static class AstGenerator {
                     public fieldN
                  ```
             */
-            foreach ( string field in fields ) {
-                writer.WriteLine( $"{tab}{tab}public {field};" );
+            foreach (string field in fields)
+            {
+                writer.WriteLine($"{tab}{tab}public {field};");
             }
 
-            writer.WriteLine( $"{tab}}}" );
+            writer.WriteLine($"{tab}}}");
         }
 
-        void DefineVisitor( ) {
+        void DefineVisitor()
+        {
             /*
                 ```
                 internal interface Visitor<T>
@@ -116,14 +124,15 @@ internal static class AstGenerator {
                 }
                 ```
             */
-            writer.WriteLine( $"{tab}internal interface IVisitor<out T>" );
-            writer.WriteLine( $"{tab}{{" );
+            writer.WriteLine($"{tab}internal interface IVisitor<out T>");
+            writer.WriteLine($"{tab}{{");
 
-            foreach ( string typeName in types.Select( type => type.Split( ':' )[0].Trim( ) ) ) {
-                writer.WriteLine( $"{tab}{tab}T visit{typeName}{baseName}({typeName} {baseName.ToLowerInvariant( )});" );
+            foreach (string typeName in types.Select(type => type.Split(':')[0].Trim()))
+            {
+                writer.WriteLine($"{tab}{tab}T visit{typeName}{baseName}({typeName} {baseName.ToLowerInvariant()});");
             }
 
-            writer.WriteLine( $"{tab}}}" );
+            writer.WriteLine($"{tab}}}");
         }
     }
 }

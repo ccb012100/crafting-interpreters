@@ -1,17 +1,20 @@
 ﻿namespace tool;
 
-internal static class Program {
-    private static void Main( string[ ] args ) {
-        if ( args.Length is not 1 ) {
-            Console.Error.WriteLine( "Usage: generate_ast <output directory>" );
-            Environment.Exit( 64 );
+internal static class Program
+{
+    private static void Main(string[] args)
+    {
+        if (args.Length is not 1)
+        {
+            Console.Error.WriteLine("Usage: generate_ast <output directory>");
+            Environment.Exit(64);
         }
 
         string outputDir = args[0];
 
         AstGenerator.DefineAst(
-            outputDir ,
-            "Expr" ,
+            outputDir,
+            "Expr",
             [
                 "Assign      : Token name, Expr value" ,
                 "Binary      : Expr left, Token oper, Expr right" ,
@@ -31,8 +34,8 @@ internal static class Program {
         );
 
         AstGenerator.DefineAst(
-            outputDir ,
-            "Stmt" ,
+            outputDir,
+            "Stmt",
             [
                 "Block          : List<Stmt> statements" ,
                 "Break          : " ,
